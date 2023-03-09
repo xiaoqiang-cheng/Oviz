@@ -1,0 +1,25 @@
+{
+    "view3d": {
+        "type": "add_3dview",
+        "vis": {
+            "point_cloud": {
+                "type": "add_pointcloud_vis"
+            },
+            "bbox_surface": {
+                "type": "add_bbox_vis"
+            },
+            "bbox_line": {
+                "type": "add_box_line_vis"
+            },
+            "obj_vel": {
+                "type": "add_obj_vel_vis"
+            },
+            "text": {
+                "type": "add_text_vis"
+            },
+            "xyz_axis": {
+                "type": "add_axis_vis"
+            }
+        }
+    }
+}

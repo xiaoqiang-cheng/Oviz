@@ -1,0 +1,10 @@
+{
+    "view2d_2": {
+        "type": "add_2dview",
+        "vis": {
+            "image": {
+                "type": "add_image_vis"
+            }
+        }
+    }
+}

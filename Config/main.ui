@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1118</width>
+    <height>762</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Xiaoqiang Studio</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>config/xshow.ico</normaloff>config/xshow.ico</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,2,1">
+    <item>
+     <widget class="QTabWidget" name="groupbox_displays">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="groupbox_displaysPage1">
+       <attribute name="title">
+        <string>Displays</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2" stretch="10,1">
+        <item>
+         <widget class="QScrollArea" name="scrollArea">
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>284</width>
+             <height>562</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_6">
+            <item>
+             <widget class="QTreeWidget" name="tree_widget_for_display">
+              <column>
+               <property name="text">
+                <string>Topic</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Type</string>
+               </property>
+              </column>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="frame">
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QGridLayout" name="gridLayout">
+           <item row="1" column="2">
+            <widget class="QPushButton" name="button_add_topic">
+             <property name="text">
+              <string>Add</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QComboBox" name="combox_topic_type"/>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="need_sub_text"/>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Data_Type</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Topic_Name</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Push Me!</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_4">
+       <attribute name="title">
+        <string>Image2D</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_9">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_img"/>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupbox_mainwindow">
+      <property name="title">
+       <string>Main window</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_3" stretch="5,0">
+       <item>
+        <widget class="QGroupBox" name="groupbox_vis3d">
+         <property name="title">
+          <string>Vis3D</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTabWidget" name="tabwidget_main">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tab_3">
+          <attribute name="title">
+           <string>输出</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="QTextEdit" name="textedit_log_info"/>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_5">
+          <attribute name="title">
+           <string>TEXTSHOW</string>
+          </attribute>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QTextBrowser" name="textBrowser"/>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTabWidget" name="tabwidget_setting">
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="tab_setting_1">
+       <attribute name="title">
+        <string>setting</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_4" stretch="5,5,1">
+        <item>
+         <widget class="QFrame" name="timeCurveFrame">
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_8"/>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="XyCurveFrame">
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_11"/>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="control_frame">
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QPushButton" name="button_step_control">
+             <property name="text">
+              <string>STEP</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkbox_cycle">
+             <property name="text">
+              <string>Cycle</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="text_cycle_term">
+             <property name="maximumSize">
+              <size>
+               <width>100</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>10</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>HZ</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Tab 2</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="QScrollArea" name="scrollArea_3">
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents_3">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>266</width>
+             <height>638</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_7">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_5">
+              <item>
+               <widget class="QLineEdit" name="lineEdit"/>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton">
+                <property name="text">
+                 <string>PushButton</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <item>
+               <widget class="QPushButton" name="pushButton_2">
+                <property name="text">
+                 <string>&lt;</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_2"/>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_3">
+                <property name="text">
+                 <string>&gt;</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QSlider" name="horizontalSlider">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1118</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>主页</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menu_theme">
+    <property name="title">
+     <string>主题</string>
+    </property>
+    <addaction name="actionDefault"/>
+    <addaction name="actionDark"/>
+    <addaction name="actionDark_red"/>
+    <addaction name="actionDark_purple"/>
+    <addaction name="actionDark_lightgreen"/>
+    <addaction name="actionDark_amber"/>
+    <addaction name="actionLight_blue"/>
+    <addaction name="actionLight_cyan"/>
+    <addaction name="actionLight_lightgreen"/>
+   </widget>
+   <addaction name="menu"/>
+   <addaction name="menu_theme"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionDefault">
+   <property name="text">
+    <string>default</string>
+   </property>
+  </action>
+  <action name="actionDark">
+   <property name="text">
+    <string>dark_teal</string>
+   </property>
+  </action>
+  <action name="actionDark_red">
+   <property name="text">
+    <string>dark_red</string>
+   </property>
+  </action>
+  <action name="actionDark_purple">
+   <property name="text">
+    <string>dark_purple</string>
+   </property>
+  </action>
+  <action name="actionDark_lightgreen">
+   <property name="text">
+    <string>dark_lightgreen</string>
+   </property>
+  </action>
+  <action name="actionDark_amber">
+   <property name="text">
+    <string>dark_amber</string>
+   </property>
+  </action>
+  <action name="actionLight_blue">
+   <property name="text">
+    <string>light_blue</string>
+   </property>
+  </action>
+  <action name="actionLight_cyan">
+   <property name="text">
+    <string>light_cyan</string>
+   </property>
+  </action>
+  <action name="actionLight_lightgreen">
+   <property name="text">
+    <string>light_lightgreen</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
