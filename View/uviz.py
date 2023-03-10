@@ -28,7 +28,9 @@ class Canvas(scene.SceneCanvas):
     def __init__(self, **kwargs):
         scene.SceneCanvas.__init__(self, keys='interactive')
         self.unfreeze()
-        self.grid = self.central_widget.add_grid(spacing=0, bgcolor='black', border_color='k')
+        self.grid = self.central_widget.add_grid(spacing=5, bgcolor='black', border_color='k')
+            # Bind the escape key to a custom function
+        # vispy.app.use_app().bind_key("Escape", self.on_escape)
         self.view_panel = {}
         self.vis_module = {}
         self.color_map = {}
@@ -49,6 +51,18 @@ class Canvas(scene.SceneCanvas):
                     "11": "trailer"
                 }
 
+
+    #     self.canvas.events.key_press.connect(on_escape)
+
+    # #     self.native.keyPressEvent = lambda event: self.on_escape(event) if event.key() == vispy.keys.ESCAPE else None
+
+    # # def on_escape(self, event):
+    # #     pass
+
+    # def on_key_press(event):
+    #     if event.key == vispy.keys.ESCAPE:
+    #         event.handled = True
+
     def create_view(self, view_type, view_name):
         create_method = getattr(self, view_type, None)
         if create_method is None:
@@ -68,7 +82,7 @@ class Canvas(scene.SceneCanvas):
         self.view_panel[view_name] = self.grid.add_view(row=0, col=0, margin=10, border_color=(1, 1, 1))
         self.view_panel[view_name].camera = 'turntable' # arcball
         self.view_panel[view_name].camera.fov = 30
-        vispy.scene.visuals.GridLines(color = 'w',parent=self.view_panel[view_name].scene)
+        # vispy.scene.visuals.GridLines(color = 'w',parent=self.view_panel[view_name].scene)
 
 
     def add_2dview(self, view_name = "2d"):

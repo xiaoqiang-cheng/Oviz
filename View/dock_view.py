@@ -1,0 +1,183 @@
+# import cv2
+import sys
+import os
+import PySide2
+from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2.QtCore import Qt
+from PySide2.QtWidgets import *
+from Utils.common_utils import *
+import time
+from qtrangeslider import QRangeSlider
+
+class ImageViewer(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.image = QtGui.QImage()
+        self.scale_factor = 1.0
+
+    def cvimg_to_qtimg(self, cvimg):
+        height, width,_ = cvimg.shape
+        qimg = QtGui.QImage(cvimg.data, width, height, QtGui.QImage.Format_BGR888)
+        return qimg
+
+    def set_image(self, cvimg):
+        if isinstance(cvimg, str):
+            if os.path.exists(cvimg):
+                self.image.load(cvimg)
+        else:
+            self.image = self.cvimg_to_qtimg(cvimg)
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.SmoothPixmapTransform)
+        target_rect = QtCore.QRectF(0.0, 0.0, self.width(), self.height())
+        source_rect = QtCore.QRectF(0.0, 0.0, self.image.width(), self.image.height())
+        painter.drawImage(target_rect, self.image, source_rect)
+
+class ImageDockWidget(QDockWidget):
+    def __init__(self, parent=None, dock_title = "dockview"):
+        super().__init__(dock_title, parent)
+        # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+
+        # Create the custom title bar widget
+        title_bar_widget = QWidget(self)
+        title_bar_layout = QHBoxLayout()
+        title_bar_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Add the title label to the title bar
+        title_label = QLabel(dock_title)
+        title_bar_layout.addWidget(title_label)
+
+        # Add the line edit to the title bar
+        line_edit = QLineEdit()
+        line_edit.setMaximumWidth(100)
+        line_edit.setMinimumHeight(20)
+        line_edit.setFrame(False)
+        line_edit.setPlaceholderText("Enter text")
+        line_edit.setStyleSheet("background-color: white; border-radius: 5px;")
+        title_bar_layout.addWidget(line_edit)
+
+        # Add a separator line between the title bar and the content area
+        separator_line = QFrame(self)
+        separator_line.setFrameShape(QFrame.HLine)
+        separator_line.setFrameShadow(QFrame.Sunken)
+        separator_line.setStyleSheet("background-color: rgb(224, 224, 224);")
+        title_bar_layout.addWidget(separator_line)
+
+        # Set the custom title bar widget as the title bar for the dock widget
+        title_bar_widget.setLayout(title_bar_layout)
+        self.setTitleBarWidget(title_bar_widget)
+        self.image_viewer = ImageViewer(self)
+        widget = QWidget()
+        layout = QVBoxLayout()
+        layout.addWidget(self.image_viewer)
+        widget.setLayout(layout)
+        self.setWidget(widget)
+        self.set_image("./Config/default.png")
+        self.setMinimumSize(200, 200)
+
+
+    def set_image(self, image_path):
+        self.image_viewer.set_image(image_path)
+
+
+class LogDockWidget(QDockWidget):
+    def __init__(self, parent=None, titie = "Qlog"):
+        super().__init__(titie, parent)
+        # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+
+        widget = QWidget()
+        layout = QVBoxLayout()
+        self.text_edit = QTextEdit()
+        layout.addWidget(self.text_edit)
+        widget.setLayout(layout)
+        self.setWidget(widget)
+
+    def display_append_msg_list(self, msg):
+        self.text_edit.append(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        for m in msg:
+            self.text_edit.append(
+                '<span style=\" color: %s;\">%s</span>'%(info_color_list[m[0]],m[1])
+                )
+        self.text_edit.verticalScrollBar().setValue(
+                self.text_edit.verticalScrollBar().maximum()
+            )
+
+
+
+class LogDockWidget(QDockWidget):
+    def __init__(self, parent=None, titie = "Qlog"):
+        super().__init__(titie, parent)
+        # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+
+        widget = QWidget()
+        layout = QVBoxLayout()
+        self.text_edit = QTextEdit()
+        layout.addWidget(self.text_edit)
+        widget.setLayout(layout)
+        self.setWidget(widget)
+
+    def display_append_msg_list(self, msg):
+        self.text_edit.append(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        for m in msg:
+            self.text_edit.append(
+                '<span style=\" color: %s;\">%s</span>'%(info_color_list[m[0]],m[1])
+                )
+        self.text_edit.verticalScrollBar().setValue(
+                self.text_edit.verticalScrollBar().maximum()
+            )
+
+class RangeSlideDockWidget(QDockWidget):
+    def __init__(self, parent=None, titie = "frame"):
+        super().__init__(titie, parent)
+        # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        widget = QWidget()
+        layout = QVBoxLayout()
+        layout2 = QHBoxLayout()
+
+        self.range_slider = QSlider()
+        self.range_slider.setOrientation(Qt.Horizontal)
+
+
+        self.last = QPushButton("<")
+        self.auto = QCheckBox("auto")
+        self.next = QPushButton(">")
+        self.frame = QLineEdit()
+        self.frame.setMaximumWidth(50)
+
+        self.frame_cnt = QLabel("\\N")
+        self.curr_filename = QLabel("filename")
+
+
+
+        layout2.addWidget(self.last)
+        layout2.addWidget(self.auto)
+
+        layout2.addWidget(self.next)
+        layout2.addWidget(self.range_slider)
+        layout2.addWidget(self.frame)
+        layout2.addWidget(self.frame_cnt)
+        layout2.addWidget(self.curr_filename)
+
+        widget.setLayout(layout2)
+        self.setWidget(widget)
+
+
+# class MainWindow(QMainWindow):
+#     def __init__(self):
+#         super().__init__()
+#         self.initUI()
+
+#     def initUI(self):
+#         self.setWindowTitle("Custom Dock Widget Example")
+#         self.setGeometry(100, 100, 800, 600)
+#         self.dock_widget = ImageDockWidget(self)
+#         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget )
+
+#         self.show()
+
+#     def set_image(self, image_path):
+#         self.dock_widget.set_image(image_path)
+
+
