@@ -9,13 +9,21 @@ from PySide2.QtCore import Qt
 from PySide2.QtWidgets import *
 from Utils.common_utils import *
 import time
+from PySide2.QtGui import QPixmap
+
+
 
 class ImageViewer(QtWidgets.QWidget):
     doubleClicked = Signal()
     def __init__(self, parent=None):
         super().__init__(parent)
         self.image = QtGui.QImage()
+        self.label = QLabel("N\A")
         self.scale_factor = 1.0
+        # self.setWidget(self.label)
+        layout = QVBoxLayout()
+        layout.addWidget(self.label)
+        self.setLayout(layout)
 
     def cvimg_to_qtimg(self, cvimg):
         height, width,_ = cvimg.shape
@@ -23,12 +31,18 @@ class ImageViewer(QtWidgets.QWidget):
         return QtGui.QPixmap(qimg)
 
     def set_image(self, cvimg):
+        # if isinstance(cvimg, str):
+        #     if os.path.exists(cvimg):
+        #         self.image.load(cvimg)
+        # else:
+        #     self.image = self.cvimg_to_qtimg(cvimg)
         if isinstance(cvimg, str):
-            if os.path.exists(cvimg):
-                self.image.load(cvimg)
+            pixmap = QPixmap(cvimg).scaled(self.label.size(), aspectMode=Qt.KeepAspectRatio)
         else:
-            self.image = self.cvimg_to_qtimg(cvimg)
-        self.update()
+            pixmap = self.cvimg_to_qtimg(cvimg).scaled(self.label.size(), aspectMode=Qt.KeepAspectRatio)
+        self.label.setPixmap(pixmap)
+        self.label.repaint()
+        # self.update()
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
