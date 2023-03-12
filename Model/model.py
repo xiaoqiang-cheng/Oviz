@@ -1,34 +1,90 @@
-from time import time
 from Utils.common_utils import *
-from MsgManager.manager import NodeRegister
-from PySide2.QtCore import QThread
-import time
-
+from Utils.point_cloud_utils import read_pcd, read_bin
 from log_sys import send_log_msg
+import os
+import cv2
 
-
-class Model(QThread):
+class Model():
     def __init__(self, cfg_path = "Config/global_config.json"):
-        super(Model, self).__init__()
+        # super(Model, self).__init__()
         self.global_cfg_path = cfg_path
         self.global_cfg = parse_json(self.global_cfg_path)
-        self.subnode = NodeRegister()
+        self.offline_frame_cnt = 0
+        self.point_cloud_ext = ".bin"
+        self.data_frame_list = []
+        # format "key"(only filename like timestamp), "topicname": data
+        self.database = {}
+        self.topic_path_meta = {}
 
-    def sub(self, topic, callback):
-        self.subnode.sub(topic, callback)
+    def get_curr_frame_data(self, index, dim = 4):
+        key = self.data_frame_list[index]
+        curr_data_dict = self.database[key]
+        ret = {}
 
-    def unsub(self, topic):
-        self.subnode.unsub(topic)
+        for topic, file in curr_data_dict.items():
+            topic_type = self.topic_path_meta[topic][0]
+            data_path = os.path.join(topic, file)
+            if topic_type == POINTCLOUD:
+                pc = self.smart_read_pointcloud(data_path, dim)
+                ret[topic] = pc
+            elif topic_type == IMAGE:
+                ret[topic] = self.smart_read_image(data_path)
+                # ret[topic] = pc
+        send_log_msg(NORMAL, "获取第%d帧数据: %s"%(index, key))
+        return ret
 
-    def pub(self, topoic, data):
-        self.subnode.pub(topoic, data)
+    def smart_read_pointcloud(self, pc_path, dim = 4):
+        if self.point_cloud_ext == ".pcd":
+            pc = read_pcd(pc_path)
+            pc = np.array(pc.tolist(), dtype=np.float32)
+        elif self.point_cloud_ext == ".bin":
+            pc = read_bin(pc_path, dim)
 
-    def save_global_cfg_when_close(self):
-        write_json(self.global_cfg, self.global_cfg_path)
+        return pc
 
-    def run(self):
-        while True:
-            self.subnode.subspin()
-            time.sleep(self.global_cfg["update_sec"])
+    def smart_read_image(self, image_path):
+        img = cv2.imread(image_path)
+        return img
+
+    def deal_image_folder(self, image_path, meta_form):
+        datanames = os.listdir(image_path)
+        self.topic_path_meta[image_path] = [IMAGE, meta_form]
+
+        for f in datanames:
+            key, ext = os.path.splitext(f)
+            if ext in [".jpg", ".png", ".tiff"]:
+                if key not in self.database.keys():
+                    self.database[key] = {}
+                self.database[key][image_path] = f
+
+        cnt = len(self.database.keys())
+        self.data_frame_list = list(self.database.keys())
+        self.data_frame_list.sort()
+        self.offline_frame_cnt = cnt
+        send_log_msg(NORMAL, "共发现了%s格式的文件 %d 帧"%(ext, cnt))
+        return cnt
+
+    def deal_pointcloud_folder(self, pc_path, meta_form = 0):
+        datanames = os.listdir(pc_path)
+        self.topic_path_meta[pc_path] = [POINTCLOUD, meta_form]
+        for f in datanames:
+            key, ext = os.path.splitext(f)
+            if ext in [".pcd", ".bin"]:
+                self.point_cloud_ext = ext
+            else:
+                continue
+
+            if key not in self.database.keys():
+                self.database[key] = {}
+            self.database[key][pc_path] = f
+
+        pc_cnt = len(self.database.keys())
+        self.data_frame_list = list(self.database.keys())
+        self.data_frame_list.sort()
+        self.offline_frame_cnt = pc_cnt
+        send_log_msg(NORMAL, "共发现了%s格式的文件 %d 帧"%(self.point_cloud_ext, pc_cnt))
+        return pc_cnt
+
+
 
 

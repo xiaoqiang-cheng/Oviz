@@ -6,10 +6,9 @@ from vispy.color import Color
 import colorsys
 import numpy as np
 
-
-PCD_MODE = 1
-PCAP_MODE = 2
-REGRESSION_MODE = 3
+POINTCLOUD = "pointcloud"
+IMAGE = "image"
+BBOX3D = "bbox3d"
 
 INSTALL_MODE = 1
 DEPLOY_MODE = 2

@@ -73,6 +73,9 @@ class View():
 
         self.add_list_kind_color()
 
+        self.version_label = QLabel("v0.0.1")
+        self.ui.statusbar.addWidget(self.version_label)
+
 
 
     def add_pointcloud_setting_widget(self):
@@ -134,3 +137,10 @@ class View():
 
     def show(self):
         self.ui.show()
+
+    def set_point_cloud(self, points, show, color = "#00ff00", size = 1):
+        if show:
+            self.canvas.draw_point_cloud("point_cloud", points, color, size)
+
+    def set_image(self, img, meta_form):
+        self.image_dock[meta_form].set_image(img)

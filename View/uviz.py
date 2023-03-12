@@ -8,8 +8,8 @@ except:
 
 import vispy.scene
 import vispy.app
-import trimesh
 
+import trimesh
 from vispy import scene
 from vispy.scene import visuals
 from vispy.color import Color
@@ -29,7 +29,7 @@ class Canvas(scene.SceneCanvas):
         scene.SceneCanvas.__init__(self, keys='interactive')
         self.unfreeze()
         self.grid = self.central_widget.add_grid(spacing=5, bgcolor='black', border_color='k')
-            # Bind the escape key to a custom function
+        # Bind the escape key to a custom function
         # vispy.app.use_app().bind_key("Escape", self.on_escape)
         self.view_panel = {}
         self.vis_module = {}
@@ -153,6 +153,7 @@ class Canvas(scene.SceneCanvas):
                                             edge_color=edge_color,
                                             face_color=face_color,
                                             size=size)
+
     def draw_image(self, vis_name, img):
         self.vis_module[vis_name].set_data(img)
 
