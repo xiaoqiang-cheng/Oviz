@@ -5,7 +5,7 @@ import PySide2
 from PySide2.QtCore import Signal
 
 from PySide2 import QtCore, QtGui, QtWidgets
-from PySide2.QtCore import Qt
+from PySide2.QtCore import *
 from PySide2.QtWidgets import *
 from Utils.common_utils import *
 import time
@@ -128,6 +128,7 @@ class LogDockWidget(QDockWidget):
             )
 
 class RangeSlideDockWidget(QDockWidget):
+    frameChanged = Signal(int)
     def __init__(self, parent=None, titie = "frame"):
         super().__init__(titie, parent)
         # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
@@ -138,6 +139,9 @@ class RangeSlideDockWidget(QDockWidget):
         self.range_slider = QSlider()
         self.range_slider.setOrientation(Qt.Horizontal)
 
+        self.auto_timer = QTimer()
+        self.auto_timer.timeout.connect(self.auto_play)
+        self.update_handled = True
 
         self.last = QPushButton("<")
         self.auto = QCheckBox("auto")
@@ -160,6 +164,80 @@ class RangeSlideDockWidget(QDockWidget):
 
         widget.setLayout(layout2)
         self.setWidget(widget)
+
+        self.curr_index = 0
+        self.frame_range = 100
+        self.listname = list(range(100))
+        self.set_range(self.listname)
+
+        self.last.clicked.connect(self.last_frame)
+        self.next.clicked.connect(self.next_frame)
+
+        self.frame.textChanged.connect(self.set_bar)
+        self.range_slider.valueChanged.connect(self.change_bar)
+        self.auto.stateChanged.connect(self.auto_ctrl)
+
+    def auto_play(self):
+        if self.update_handled:
+            self.next_frame()
+
+    def auto_ctrl(self, state):
+        if state == 0:
+            self.auto_timer.stop()
+        else:
+            self.auto_timer.start(100)
+
+    def change_bar(self):
+        self.curr_index = self.range_slider.value()
+        self.set_frmae_text(self.curr_index)
+        if self.update_handled:
+            self.update_handled = False
+            self.frameChanged.emit(self.curr_index)
+
+    def set_filename(self, name):
+        self.curr_filename.setText(str(name))
+
+    def set_frame_cnt(self, cnt):
+        self.frame_cnt.setText("/" + str(cnt))
+
+    def set_bar(self):
+        try:
+            self.curr_index = int(self.frame.text())
+            if self.curr_index < 0:
+                self.curr_index = 0
+                self.set_frmae_text(self.curr_index)
+            elif self.curr_index >= self.frame_range:
+                self.curr_index = self.frame_range - 1
+                self.set_frmae_text(self.curr_index)
+        except:
+            print("输入不合法")
+        self.range_slider.setValue(self.curr_index)
+        self.set_filename(self.listname[self.curr_index])
+
+    def set_frmae_text(self, index):
+        self.frame.setText(str(index))
+
+    def next_frame(self):
+        self.curr_index += 1
+        if self.curr_index >= self.frame_range:
+            self.curr_index = 0
+        self.set_frmae_text(self.curr_index)
+
+    def last_frame(self):
+        self.curr_index -= 1
+        if self.curr_index < 0:
+            self.curr_index = self.frame_range - 1
+        self.set_frmae_text(self.curr_index)
+
+    def get_curr_index(self):
+        return self.curr_index
+
+    def set_range(self, list_name):
+        self.listname = list_name
+        self.frame_range = len(self.listname)
+        self.range_slider.setRange(0, self.frame_range - 1)
+        self.set_frame_cnt(self.frame_range - 1)
+
 
 
 # class MainWindow(QMainWindow):

@@ -35,6 +35,7 @@ class Controller():
 
 
     def signal_connect(self):
+        self.view.dock_range_slide.frameChanged.connect(self.update_system_vis)
         self.view.button_select_pointcloud.SelectDone.connect(self.select_pointcloud)
         for key in self.view.image_dock.keys():
             self.view.image_dock[key].SelectDone.connect(self.select_image)
@@ -45,6 +46,7 @@ class Controller():
             pass
         else:
             cnt = self.model.deal_image_folder(topic_path, meta_form)
+            self.view.set_data_range(self.model.data_frame_list)
             if cnt:
                 self.update_system_vis(0)
 
@@ -54,6 +56,7 @@ class Controller():
             pass
         else:
             cnt = self.model.deal_pointcloud_folder(topic_path, meta_form)
+            self.view.set_data_range(self.model.data_frame_list)
             if cnt:
                 self.update_system_vis(0)
 
@@ -65,6 +68,8 @@ class Controller():
             fun_name = topic_type + "_callback"
             callback_fun = getattr(self, fun_name, None)
             callback_fun(data, topic, meta_form)
+
+        self.view.send_update_vis_flag()
 
     def run(self):
         self.view.show()
@@ -79,14 +84,10 @@ class Controller():
     def sigint_handler(self, signum = None, frame = None):
         sys.exit(self.app.exec_())
 
-
     def image_callback(self, msg, topic, meta_form):
-        send_log_msg(NORMAL, "收到来自%s的 image msg"%topic)
         self.view.set_image(msg, meta_form)
 
     def pointcloud_callback(self, msg, topic, meta_form):
-        send_log_msg(NORMAL, "收到来自%s的point msg"%topic)
-
         if isinstance(msg, dict):
             self.view.set_point_cloud(msg["data"], show=1)
         else:

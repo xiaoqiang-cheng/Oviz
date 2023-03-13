@@ -30,9 +30,6 @@ class Model():
                 self.curr_frame_data[topic] = pc
             elif topic_type == IMAGE:
                 self.curr_frame_data[topic] = self.smart_read_image(data_path)
-                # ret[topic] = pc
-        send_log_msg(NORMAL, "获取第%d帧数据: %s"%(index, key))
-        # return ret
 
     def smart_read_pointcloud(self, pc_path, dim = 4):
         if self.point_cloud_ext == ".pcd":

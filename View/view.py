@@ -134,6 +134,11 @@ class View():
         layout_set.addWidget(self.spliter_dict[spliter_name])
 
 
+    def send_update_vis_flag(self):
+        self.dock_range_slide.update_handled = True
+
+    def set_data_range(self, listname):
+        self.dock_range_slide.set_range(listname)
 
     def show(self):
         self.ui.show()
