@@ -12,8 +12,14 @@ from View.dock_view import *
 # 临时配置 需要写成配置文件的
 
 image_dock_config = {
-    "left": "",
-    "right" : ""
+    "sl": Qt.LeftDockWidgetArea,
+    "fl": Qt.TopDockWidgetArea,
+    "fc": Qt.TopDockWidgetArea,
+    "fr": Qt.TopDockWidgetArea,
+    "sr": Qt.RightDockWidgetArea,
+    "rl" : Qt.LeftDockWidgetArea,
+    "rr":Qt.RightDockWidgetArea
+
 }
 
 color_map = {
@@ -59,7 +65,7 @@ class View():
                 Qt.Horizontal,
                 [self.ui.pointcloud_vis_frame,
                     self.ui.pointcloud_vis_setting_area],
-                [7, 5],
+                [7, -1],
                 self.ui.mainwindow_frame.layout())
 
         self.ui.pointcloud_vis_frame.layout().addWidget(self.canvas.native)
@@ -109,8 +115,10 @@ class View():
     def add_image_dock_widget(self, wimage:dict):
         for n, v in wimage.items():
             self.image_dock[n] = ImageDockWidget(dock_title=n)
-            self.ui.addDockWidget(Qt.LeftDockWidgetArea, self.image_dock[n])
-
+            self.ui.addDockWidget(v,  self.image_dock[n])
+        keys_list = list(image_dock_config.keys())
+        for i, d in enumerate(keys_list[:-1]):
+            self.ui.tabifyDockWidget(self.image_dock[d], self.image_dock[keys_list[i + 1]])
 
     def struct_canvas_init(self, cfg_dict:dict):
         for key, results in cfg_dict.items():

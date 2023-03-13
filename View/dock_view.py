@@ -84,8 +84,7 @@ class ImageDockWidget(QDockWidget):
         widget.setLayout(layout)
         self.setWidget(widget)
         self.set_image("Config/default.png")
-        self.setMinimumSize(200, 200)
-
+        self.setMinimumSize(100, 100)
         self.image_viewer.doubleClicked.connect(self.select_image)
         self.linetxt.returnPressed.connect(self.select_topic_path)
 
