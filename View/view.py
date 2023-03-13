@@ -146,10 +146,10 @@ class View():
         self.dock_range_slide.update_handled = True
 
     def get_pointsetting(self):
-        pt_dim = int(self.linetxt_point_dim.text())
-        xyz_dims = list(map(int, self.linetxt_xyz_dim.text().split()))
-        wlh_dims = list(map(int, self.linetxt_wlh_dim.text().split()))
-        color_dims = list(map(int, self.linetxt_color_dim.text().split()))
+        pt_dim = int(self.ui.linetxt_point_dim.text())
+        xyz_dims = list(map(int, self.ui.linetxt_xyz_dim.text().split(',')))
+        wlh_dims = list(map(int, self.ui.linetxt_wlh_dim.text().split(',')))
+        color_dims = list(map(int, self.ui.linetxt_color_dim.text().split(',')))
         return pt_dim, xyz_dims, wlh_dims, color_dims
 
 
@@ -159,7 +159,7 @@ class View():
     def show(self):
         self.ui.show()
 
-    def set_point_cloud(self, points, show, color = "#00ff00", size = 1):
+    def set_point_cloud(self, points, show, color = "#00ff00", size = 10):
         if show:
             self.canvas.draw_point_cloud("point_cloud", points, color, size)
 

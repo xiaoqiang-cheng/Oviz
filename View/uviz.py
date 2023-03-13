@@ -150,7 +150,7 @@ class Canvas(scene.SceneCanvas):
     def draw_point_cloud(self, vis_name, point_clouds, point_color="#f3f3f3", size = 1):
         face_color = edge_color = Color(point_color)
         self.vis_module[vis_name].set_data(np.array(point_clouds),
-                                            edge_color=edge_color,
+                                            edge_color=(1, 1, 1, .5),
                                             face_color=face_color,
                                             size=size)
 

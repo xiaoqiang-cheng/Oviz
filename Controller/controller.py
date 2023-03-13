@@ -33,6 +33,7 @@ class Controller():
         self.signal_connect()
         send_log_msg(NORMAL, "Qviz 系統开始运行！")
         self.curr_frame_index = 0
+        self.update_pointsetting_dims()
 
 
     def signal_connect(self):
@@ -40,6 +41,11 @@ class Controller():
         self.view.button_select_pointcloud.SelectDone.connect(self.select_pointcloud)
         for key in self.view.image_dock.keys():
             self.view.image_dock[key].SelectDone.connect(self.select_image)
+
+        self.view.ui.linetxt_point_dim.textChanged.connect(self.update_pointsetting_dims)
+        self.view.ui.linetxt_xyz_dim.textChanged.connect(self.update_pointsetting_dims)
+        self.view.ui.linetxt_wlh_dim.textChanged.connect(self.update_pointsetting_dims)
+        self.view.ui.linetxt_color_dim.textChanged.connect(self.update_pointsetting_dims)
 
     def select_image(self, topic_path, meta_form):
         send_log_msg(NORMAL, "亲，你选择了图像topic为: %s"%topic_path)
@@ -61,10 +67,15 @@ class Controller():
             if cnt:
                 self.update_system_vis(0)
 
+    def update_pointsetting_dims(self):
+        try:
+            self.points_dim, self.xyz_dims, self.wlh_dims, self.color_dims = self.view.get_pointsetting()
+        except:
+            print(self.points_dim, self.xyz_dims, self.wlh_dims, self.color_dims)
+
     def update_system_vis(self, index):
-        print(self.view.get_pointsetting())
         self.curr_frame_index = index
-        self.model.get_curr_frame_data(index, 7)
+        self.model.get_curr_frame_data(index, self.points_dim)
         data_dict = self.model.curr_frame_data
         for topic, data in data_dict.items():
             topic_type, meta_form = self.model.topic_path_meta[topic]
@@ -82,7 +93,6 @@ class Controller():
         get_msg = ret_log_msg()
         if get_msg != []:
             self.view.dock_log_info.display_append_msg_list(get_msg)
-
 
     def sigint_handler(self, signum = None, frame = None):
         sys.exit(self.app.exec_())
