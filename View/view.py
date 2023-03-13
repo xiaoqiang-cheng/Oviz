@@ -12,13 +12,13 @@ from View.dock_view import *
 # 临时配置 需要写成配置文件的
 
 image_dock_config = {
-    "sl": Qt.LeftDockWidgetArea,
+    "rl" : Qt.TopDockWidgetArea,
+    "sl": Qt.TopDockWidgetArea,
     "fl": Qt.TopDockWidgetArea,
     "fc": Qt.TopDockWidgetArea,
     "fr": Qt.TopDockWidgetArea,
-    "sr": Qt.RightDockWidgetArea,
-    "rl" : Qt.LeftDockWidgetArea,
-    "rr":Qt.RightDockWidgetArea
+    "sr": Qt.TopDockWidgetArea,
+    "rr":Qt.TopDockWidgetArea
 
 }
 
@@ -116,9 +116,9 @@ class View():
         for n, v in wimage.items():
             self.image_dock[n] = ImageDockWidget(dock_title=n)
             self.ui.addDockWidget(v,  self.image_dock[n])
-        keys_list = list(image_dock_config.keys())
-        for i, d in enumerate(keys_list[:-1]):
-            self.ui.tabifyDockWidget(self.image_dock[d], self.image_dock[keys_list[i + 1]])
+        # keys_list = list(image_dock_config.keys())
+        # for i, d in enumerate(keys_list[:-1]):
+        #     self.ui.tabifyDockWidget(self.image_dock[d], self.image_dock[keys_list[i + 1]])
 
     def struct_canvas_init(self, cfg_dict:dict):
         for key, results in cfg_dict.items():
@@ -144,6 +144,14 @@ class View():
 
     def send_update_vis_flag(self):
         self.dock_range_slide.update_handled = True
+
+    def get_pointsetting(self):
+        pt_dim = int(self.linetxt_point_dim.text())
+        xyz_dims = list(map(int, self.linetxt_xyz_dim.text().split()))
+        wlh_dims = list(map(int, self.linetxt_wlh_dim.text().split()))
+        color_dims = list(map(int, self.linetxt_color_dim.text().split()))
+        return pt_dim, xyz_dims, wlh_dims, color_dims
+
 
     def set_data_range(self, listname):
         self.dock_range_slide.set_range(listname)

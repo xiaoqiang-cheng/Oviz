@@ -88,12 +88,12 @@
               <item row="2" column="0">
                <widget class="QLabel" name="label_3">
                 <property name="text">
-                 <string>w,h,l</string>
+                 <string>w,l,h</string>
                 </property>
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QLineEdit" name="lineEdit_2">
+               <widget class="QLineEdit" name="lintxt_xyz_dim">
                 <property name="text">
                  <string>0,1,2</string>
                 </property>
@@ -107,14 +107,14 @@
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QLineEdit" name="lineEdit_3">
+               <widget class="QLineEdit" name="linetxt_wlh_dim">
                 <property name="text">
                  <string>4,5,6</string>
                 </property>
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLineEdit" name="lineEdit">
+               <widget class="QLineEdit" name="linetxt_point_dim">
                 <property name="text">
                  <string>4</string>
                 </property>
@@ -135,7 +135,7 @@
                </widget>
               </item>
               <item row="3" column="1">
-               <widget class="QLineEdit" name="lineEdit_4">
+               <widget class="QLineEdit" name="linetxt_color_dim">
                 <property name="text">
                  <string>7</string>
                 </property>

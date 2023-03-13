@@ -17,7 +17,7 @@ class Model():
         self.topic_path_meta = {}
         self.curr_frame_data = {}
 
-    def get_curr_frame_data(self, index, dim = 4):
+    def get_curr_frame_data(self, index, dim = 7):
         key = self.data_frame_list[index]
         curr_data_dict = self.database[key]
         self.curr_frame_data = {}
@@ -31,7 +31,7 @@ class Model():
             elif topic_type == IMAGE:
                 self.curr_frame_data[topic] = self.smart_read_image(data_path)
 
-    def smart_read_pointcloud(self, pc_path, dim = 4):
+    def smart_read_pointcloud(self, pc_path, dim = 7):
         if self.point_cloud_ext == ".pcd":
             pc = read_pcd(pc_path)
         elif self.point_cloud_ext == ".bin":
@@ -47,11 +47,18 @@ class Model():
         datanames = os.listdir(image_path)
         self.topic_path_meta[image_path] = [IMAGE, meta_form]
 
+        empty_flag = len(self.database.keys()) == 0
+
         for f in datanames:
             key, ext = os.path.splitext(f)
             if ext in [".jpg", ".png", ".tiff"]:
                 if key not in self.database.keys():
-                    self.database[key] = {}
+                    if empty_flag:
+                        self.database[key] = {}
+                    else:
+                        self.database = {}
+                        self.database[key] = {}
+                        empty_flag = True
                 self.database[key][image_path] = f
 
         cnt = len(self.database.keys())
@@ -63,6 +70,9 @@ class Model():
 
     def deal_pointcloud_folder(self, pc_path, meta_form = 0):
         datanames = os.listdir(pc_path)
+
+        empty_flag = len(self.database.keys()) == 0
+
         self.topic_path_meta[pc_path] = [POINTCLOUD, meta_form]
         for f in datanames:
             key, ext = os.path.splitext(f)
@@ -72,7 +82,12 @@ class Model():
                 continue
 
             if key not in self.database.keys():
-                self.database[key] = {}
+                if empty_flag:
+                    self.database[key] = {}
+                else:
+                    self.database = {}
+                    self.database[key] = {}
+                    empty_flag = True
             self.database[key][pc_path] = f
 
         pc_cnt = len(self.database.keys())

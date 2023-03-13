@@ -32,6 +32,7 @@ class Controller():
 
         self.signal_connect()
         send_log_msg(NORMAL, "Qviz 系統开始运行！")
+        self.curr_frame_index = 0
 
 
     def signal_connect(self):
@@ -61,7 +62,9 @@ class Controller():
                 self.update_system_vis(0)
 
     def update_system_vis(self, index):
-        self.model.get_curr_frame_data(index)
+        print(self.view.get_pointsetting())
+        self.curr_frame_index = index
+        self.model.get_curr_frame_data(index, 7)
         data_dict = self.model.curr_frame_data
         for topic, data in data_dict.items():
             topic_type, meta_form = self.model.topic_path_meta[topic]
