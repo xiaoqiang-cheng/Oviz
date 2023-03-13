@@ -64,7 +64,7 @@ def get_metadata(pcd_path):
 
 def read_pcd(path):
     points = pypcd.PointCloud.from_path(path)
-    return points.pc_data
+    return points.pc_data.view(np.float32).reshape(points.pc_data.shape + (-1,))
 
 def read_bin(path, dim = 4):
     points = np.fromfile(path, dtype=np.float32).reshape(-1, dim)

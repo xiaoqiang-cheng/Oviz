@@ -15,28 +15,28 @@ class Model():
         # format "key"(only filename like timestamp), "topicname": data
         self.database = {}
         self.topic_path_meta = {}
+        self.curr_frame_data = {}
 
     def get_curr_frame_data(self, index, dim = 4):
         key = self.data_frame_list[index]
         curr_data_dict = self.database[key]
-        ret = {}
+        self.curr_frame_data = {}
 
         for topic, file in curr_data_dict.items():
             topic_type = self.topic_path_meta[topic][0]
             data_path = os.path.join(topic, file)
             if topic_type == POINTCLOUD:
                 pc = self.smart_read_pointcloud(data_path, dim)
-                ret[topic] = pc
+                self.curr_frame_data[topic] = pc
             elif topic_type == IMAGE:
-                ret[topic] = self.smart_read_image(data_path)
+                self.curr_frame_data[topic] = self.smart_read_image(data_path)
                 # ret[topic] = pc
         send_log_msg(NORMAL, "获取第%d帧数据: %s"%(index, key))
-        return ret
+        # return ret
 
     def smart_read_pointcloud(self, pc_path, dim = 4):
         if self.point_cloud_ext == ".pcd":
             pc = read_pcd(pc_path)
-            pc = np.array(pc.tolist(), dtype=np.float32)
         elif self.point_cloud_ext == ".bin":
             pc = read_bin(pc_path, dim)
 

@@ -9,45 +9,37 @@ from PySide2.QtCore import Qt
 from PySide2.QtWidgets import *
 from Utils.common_utils import *
 import time
-from PySide2.QtGui import QPixmap
-
-
 
 class ImageViewer(QtWidgets.QWidget):
     doubleClicked = Signal()
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.label = QLabel("N\A")
-        # self.setWidget(self.label)
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.label)
-        self.setLayout(self.layout)
+        self.image = QtGui.QImage()
+
 
     def cvimg_to_qtimg(self, cvimg):
         height, width,_ = cvimg.shape
-        qimg = QtGui.QImage(cvimg.data, width, height, QtGui.QImage.Format_BGR888)
-        return QtGui.QPixmap(qimg)
+        self.image = QtGui.QImage(cvimg.data, width, height, QtGui.QImage.Format_BGR888)
 
     def set_image(self, cvimg):
         if isinstance(cvimg, str):
-            pixmap = QPixmap(cvimg).scaled(self.size())
+            if os.path.exists(cvimg):
+                self.image.load(cvimg)
         else:
-            pixmap = self.cvimg_to_qtimg(cvimg).scaled(self.size())
-        self.label.setPixmap(pixmap)
-        self.label.repaint()
-        print(self.size())
-        # self.update()
+            self.cvimg_to_qtimg(cvimg)
+        self.update()
 
     def paintEvent(self, event):
-        print(self.size())
-    #     painter = QtGui.QPainter(self)
-    #     painter.setRenderHint(QtGui.QPainter.SmoothPixmapTransform)
-    #     target_rect = QtCore.QRectF(0.0, 0.0, self.width(), self.height())
-    #     source_rect = QtCore.QRectF(0.0, 0.0, self.image.width(), self.image.height())
-    #     painter.drawImage(target_rect, self.image, source_rect)
+        self.painter = QtGui.QPainter(self)
+        self.painter.setRenderHint(QtGui.QPainter.SmoothPixmapTransform)
+        target_rect = QtCore.QRectF(0.0, 0.0, self.width(), self.height())
+        source_rect = QtCore.QRectF(0.0, 0.0, self.image.width(), self.image.height())
+        self.painter.drawImage(target_rect, self.image, source_rect)
+        self.painter.end()
 
     def mouseDoubleClickEvent(self, ev):
         self.doubleClicked.emit()
+
 
 class ImageDockWidget(QDockWidget):
     SelectDone = Signal(str, str)
@@ -84,20 +76,17 @@ class ImageDockWidget(QDockWidget):
         # Set the custom title bar widget as the title bar for the dock widget
         title_bar_widget.setLayout(title_bar_layout)
         self.setTitleBarWidget(title_bar_widget)
-        # self.image_viewer = ImageViewer(self)
+        self.image_viewer = ImageViewer(self)
 
-
-        self.label = QLabel("N\A")
-
-        # widget = QWidget()
-        # layout = QVBoxLayout()
-        # layout.addWidget(self.image_viewer)
-        # widget.setLayout(layout)
-        self.setWidget(self.label)
+        widget = QWidget()
+        layout = QVBoxLayout()
+        layout.addWidget(self.image_viewer)
+        widget.setLayout(layout)
+        self.setWidget(widget)
+        self.set_image("Config/default.png")
         self.setMinimumSize(200, 200)
-        self.label.resize(self.size())
-        self.pixmap = QtGui.QPixmap("./Config/default.png").scaled(self.label.size(), mode=Qt.SmoothTransformation)
-        self.label.setPixmap(self.pixmap)
+
+        self.image_viewer.doubleClicked.connect(self.select_image)
         self.linetxt.returnPressed.connect(self.select_topic_path)
 
 
@@ -105,34 +94,15 @@ class ImageDockWidget(QDockWidget):
         self.file_path = self.linetxt.text()
         self.SelectDone.emit(self.folder_path, self.dock_title)
 
-    # def select_image(self):
-    def mouseDoubleClickEvent(self, ev):
+    def select_image(self):
         self.folder_path = choose_folder(self, self.dock_title, self.folder_path)
         if not self.folder_path:
             return
         self.linetxt.setText(self.folder_path)
         self.SelectDone.emit(self.folder_path, self.dock_title)
 
-    def cvimg_to_qtimg(self, cvimg):
-        height, width,_ = cvimg.shape
-        qimg = QtGui.QImage(cvimg.data, width, height, QtGui.QImage.Format_BGR888)
-        return QtGui.QPixmap(qimg)
-
-    def set_image(self, cvimg):
-        self.label.resize(self.size())
-        if isinstance(cvimg, str):
-            self.pixmap = QPixmap(cvimg).scaled(self.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        else:
-            self.pixmap = self.cvimg_to_qtimg(cvimg).scaled(self.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.label.setPixmap(self.pixmap)
-        self.label.repaint()
-        print(self.size())
-
-    # def paintEvent(self, event):
-    #     self.label.resize(self.size())
-    #     self.pixmap = QtGui.QPixmap("./Config/default.png").scaled(self.label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-    #     self.label.repaint()
-    #     print(self.size())
+    def set_image(self, image_path):
+        self.image_viewer.set_image(image_path)
 
 
 class LogDockWidget(QDockWidget):

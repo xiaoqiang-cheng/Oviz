@@ -40,7 +40,6 @@ class Controller():
             self.view.image_dock[key].SelectDone.connect(self.select_image)
 
     def select_image(self, topic_path, meta_form):
-        print(topic_path, meta_form)
         send_log_msg(NORMAL, "亲，你选择了图像topic为: %s"%topic_path)
         if self.system_online_mode:
             pass
@@ -59,7 +58,8 @@ class Controller():
                 self.update_system_vis(0)
 
     def update_system_vis(self, index):
-        data_dict = self.model.get_curr_frame_data(index)
+        self.model.get_curr_frame_data(index)
+        data_dict = self.model.curr_frame_data
         for topic, data in data_dict.items():
             topic_type, meta_form = self.model.topic_path_meta[topic]
             fun_name = topic_type + "_callback"
