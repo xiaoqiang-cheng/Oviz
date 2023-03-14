@@ -23,31 +23,9 @@ image_dock_config = {
 
 }
 
-color_map = {
-    "-1": '#00ff00',
-    "0" : '#000000',
-    "1" : '#00ff00',
-    "2" : '#888a85',
-    "3" : '#98e1e0',
-    "4" : '#98e1e0',
-    "5" : '#89e9b2',
-    "6" : '#e7d9a1',
-    "7" : '#fcaf3e',
-    "8" : '#fe9999',
-    "9" : '#73d216',
-    "10" : '#fce94f',
-    "11" : '#3465a4',
-    "12" : '#ad7fa8',
-    "13" : '#ad7fa8',
-    "14" : '#c4a000',
-    "15" : '#fce94f',
-    "16" : '#fce94f',
-    "17" : '#3465a4',
-    "18" : '#ad7fa8',
-    "19" : '#ad7fa8',
-    "20" : '#c4a000',
-    "21" : '#fce94f'
-}
+
+
+
 rgb_color_map = {}
 
 class View(QObject):
@@ -55,6 +33,7 @@ class View(QObject):
     def __init__(self) -> None:
         super().__init__()
         self.ui = QUiLoader().load('Config/qviz.ui')
+        self.color_map =parse_json("Config/color_map.json")
         self.canvas_cfg = parse_json("Config/init_canvas_cfg3d.json")
         self.canvas = Canvas()
         self.struct_canvas_init(self.canvas_cfg)
@@ -89,6 +68,7 @@ class View(QObject):
 
         self.ui.installEventFilter(self)  # 将事件过滤器安装到UI对象上
         self.set_car_visible(False)
+
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.ShortcutOverride:
@@ -127,13 +107,13 @@ class View(QObject):
 
     def add_list_kind_color(self):
         self.ui.listwidget_id_color_map.clear()
-        for c, val in color_map.items():
+        for c, val in self.color_map.items():
             lw = QListWidgetItem(c)
             lw.setBackground(QColor(val))
             self.ui.listwidget_id_color_map.addItem(lw)
 
     def update_color_map(self, name, color):
-        color_map[name] = color
+        self.color_map[name] = color
 
 
     def add_image_dock_widget(self, wimage:dict):
@@ -199,7 +179,7 @@ class View(QObject):
                 id_list = id_list.reshape(-1)
                 color_dim = 3
                 rgb_color_map = {}
-                for key, value in color_map.items():
+                for key, value in self.color_map.items():
                     rgb_color_map[key] = self.color_str_to_rgb(value)
                     color_dim = len(rgb_color_map[key])
                 ret_color = np.zeros((len(id_list), color_dim))
@@ -211,9 +191,9 @@ class View(QObject):
                 # you must supply normal rgb|a array
                 return id_list, True
             else:
-                return color_map["-1"], True
+                return self.color_map["-1"], True
         except:
-            return color_map["-1"], False
+            return self.color_map["-1"], False
 
 
 
