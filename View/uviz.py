@@ -83,7 +83,7 @@ class Canvas(scene.SceneCanvas):
 
 
     def add_3dview(self, view_name = "3d"):
-        self.view_panel[view_name] = self.grid.add_view(row=0, col=0, margin=10, border_color=(1, 1, 1))
+        self.view_panel[view_name] = self.grid.add_view(row=0, col=0, margin=2, border_color=(1, 1, 1))
         self.view_panel[view_name].camera = 'turntable' # arcball
         self.view_panel[view_name].camera.fov = 30
         # vispy.scene.visuals.GridLines(color = 'w',parent=self.view_panel[view_name].scene)

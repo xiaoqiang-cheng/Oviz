@@ -23,9 +23,6 @@ image_dock_config = {
 
 }
 
-
-
-
 rgb_color_map = {}
 
 class View(QObject):
@@ -35,6 +32,7 @@ class View(QObject):
         self.ui = QUiLoader().load('Config/qviz.ui')
         self.color_map =parse_json("Config/color_map.json")
         self.canvas_cfg = parse_json("Config/init_canvas_cfg3d.json")
+
         self.canvas = Canvas()
         self.struct_canvas_init(self.canvas_cfg)
 
@@ -47,15 +45,14 @@ class View(QObject):
 
         self.set_qspilter("main_form",
                 Qt.Horizontal,
-                [self.ui.pointcloud_vis_frame,
+                [self.ui.pointcloud_vis_widget,
                     self.ui.pointcloud_vis_setting_area],
                 [7, -1],
-                self.ui.mainwindow_frame.layout())
+                self.ui.centralwidget.layout())
 
-        self.ui.pointcloud_vis_frame.layout().addWidget(self.canvas.native)
+        self.ui.pointcloud_vis_widget_layout.addWidget(self.canvas.native)
 
         self.add_pointcloud_setting_widget()
-
 
         self.add_image_dock_widget(image_dock_config)
         self.ui.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
@@ -67,8 +64,45 @@ class View(QObject):
         self.ui.statusbar.addWidget(self.version_label)
 
         self.ui.installEventFilter(self)  # 将事件过滤器安装到UI对象上
+
         self.set_car_visible(False)
 
+        self.image_flag = False
+        self.log_flag = False
+        self.slide_flag = False
+
+        self.ui.action_show_slide.triggered.connect(self.show_range_slide)
+        self.ui.action_show_log.triggered.connect(self.show_dock_log)
+        self.ui.action_show_image.triggered.connect(self.show_dock_image)
+
+        self.show_range_slide()
+        self.show_dock_image()
+        self.show_dock_log()
+
+
+
+    def show_range_slide(self):
+        if self.slide_flag:
+            self.dock_range_slide.show()
+        else:
+            self.dock_range_slide.hide()
+
+        self.slide_flag = not self.slide_flag
+
+    def show_dock_image(self):
+        for k, v in self.image_dock.items():
+            if self.image_flag:
+                v.show()
+            else:
+                v.hide()
+        self.image_flag = not self.image_flag
+
+    def show_dock_log(self):
+        if self.log_flag:
+            self.dock_log_info.show()
+        else:
+            self.dock_log_info.hide()
+        self.log_flag = not self.log_flag
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.ShortcutOverride:

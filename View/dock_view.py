@@ -14,6 +14,8 @@ class ImageViewer(QtWidgets.QWidget):
     doubleClicked = Signal()
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setStyleSheet("border:1px;")
+
         self.image = QtGui.QImage()
 
 
@@ -46,6 +48,7 @@ class ImageDockWidget(QDockWidget):
     def __init__(self, parent=None, dock_title = "dockview", default_path=""):
         super().__init__(dock_title, parent)
         # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.setStyleSheet("border:1px;")
         self.dock_title = dock_title
         self.folder_path = default_path
         # Create the custom title bar widget
@@ -63,7 +66,7 @@ class ImageDockWidget(QDockWidget):
         self.linetxt.setMinimumHeight(20)
         self.linetxt.setFrame(False)
         self.linetxt.setPlaceholderText("Enter text")
-        self.linetxt.setStyleSheet("background-color: white; border-radius: 5px;")
+        self.linetxt.setStyleSheet("background-color: white; border-radius: 1px;")
         title_bar_layout.addWidget(self.linetxt)
 
         # Add a separator line between the title bar and the content area

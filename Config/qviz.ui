@@ -27,128 +27,126 @@
    <set>QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks</set>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="7,1">
     <item>
-     <widget class="QFrame" name="mainwindow_frame">
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
+     <widget class="QWidget" name="pointcloud_vis_widget" native="true">
+      <layout class="QHBoxLayout" name="pointcloud_vis_widget_layout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QScrollArea" name="pointcloud_vis_setting_area">
+      <property name="widgetResizable">
+       <bool>true</bool>
       </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout" stretch="7,1">
-       <item>
-        <widget class="QFrame" name="pointcloud_vis_frame">
-         <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_2"/>
-        </widget>
-       </item>
-       <item>
-        <widget class="QScrollArea" name="pointcloud_vis_setting_area">
-         <property name="widgetResizable">
-          <bool>true</bool>
-         </property>
-         <widget class="QWidget" name="pointcloud_vis_setting_frame">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>144</width>
-            <height>656</height>
-           </rect>
+      <widget class="QWidget" name="pointcloud_vis_setting_frame">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>139</width>
+         <height>697</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Color Map</string>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_3">
-           <item>
-            <widget class="QLabel" name="label_5">
+         </widget>
+        </item>
+        <item>
+         <widget class="QListWidget" name="listwidget_id_color_map">
+          <item>
+           <property name="text">
+            <string>NEW</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="title">
+           <string>point_setting</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout">
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_3">
              <property name="text">
-              <string>Color Map</string>
+              <string>w,l,h</string>
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QListWidget" name="listwidget_id_color_map">
-             <item>
-              <property name="text">
-               <string>NEW</string>
-              </property>
-             </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="linetxt_xyz_dim">
+             <property name="text">
+              <string>0,1,2</string>
+             </property>
             </widget>
            </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox">
-             <property name="title">
-              <string>point_setting</string>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>dim:</string>
              </property>
-             <layout class="QGridLayout" name="gridLayout">
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>w,l,h</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QLineEdit" name="linetxt_xyz_dim">
-                <property name="text">
-                 <string>0,1,2</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label">
-                <property name="text">
-                 <string>dim:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QLineEdit" name="linetxt_wlh_dim">
-                <property name="text">
-                 <string>-1</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLineEdit" name="linetxt_point_dim">
-                <property name="text">
-                 <string>7</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_2">
-                <property name="text">
-                 <string>x,y,z</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>color</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QLineEdit" name="linetxt_color_dim">
-                <property name="text">
-                 <string>5</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="linetxt_wlh_dim">
+             <property name="text">
+              <string>-1</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="linetxt_point_dim">
+             <property name="text">
+              <string>7</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>x,y,z</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>color</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLineEdit" name="linetxt_color_dim">
+             <property name="text">
+              <string>5</string>
+             </property>
             </widget>
            </item>
           </layout>
          </widget>
-        </widget>
-       </item>
-      </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -159,7 +157,7 @@
      <x>0</x>
      <y>0</y>
      <width>1149</width>
-     <height>31</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_new">
@@ -185,6 +183,9 @@
     <property name="title">
      <string>视图</string>
     </property>
+    <addaction name="action_show_image"/>
+    <addaction name="action_show_log"/>
+    <addaction name="action_show_slide"/>
    </widget>
    <addaction name="menu_new"/>
    <addaction name="menu_theme"/>
@@ -234,6 +235,21 @@
   <action name="actionLight_lightgreen">
    <property name="text">
     <string>light_lightgreen</string>
+   </property>
+  </action>
+  <action name="action_show_image">
+   <property name="text">
+    <string>显示图片</string>
+   </property>
+  </action>
+  <action name="action_show_log">
+   <property name="text">
+    <string>显示日志</string>
+   </property>
+  </action>
+  <action name="action_show_slide">
+   <property name="text">
+    <string>显示滑块</string>
    </property>
   </action>
  </widget>
