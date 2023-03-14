@@ -33,6 +33,7 @@ class Controller():
         self.signal_connect()
         send_log_msg(NORMAL, "Qviz 系統开始运行！")
         self.curr_frame_index = 0
+        self.show_voxel = False
         self.update_pointsetting_dims()
 
 
@@ -46,6 +47,23 @@ class Controller():
         self.view.ui.linetxt_xyz_dim.textChanged.connect(self.update_pointsetting_dims)
         self.view.ui.linetxt_wlh_dim.textChanged.connect(self.update_pointsetting_dims)
         self.view.ui.linetxt_color_dim.textChanged.connect(self.update_pointsetting_dims)
+        self.view.pointSizeChanged.connect(self.change_point_size)
+        self.view.show_voxel_mode.stateChanged.connect(self.change_voxel_mode)
+
+    def change_voxel_mode(self, state):
+        if state > 0:
+            self.show_voxel = True
+            send_log_msg(NORMAL, "当前是体素模式")
+        else:
+            self.show_voxel = False
+            send_log_msg(NORMAL, "当前是点云模式")
+        self.view.set_voxel_mode(self.show_voxel)
+        self.update_buffer_vis()
+
+
+    def change_point_size(self, ptsize):
+        self.update_buffer_vis()
+
 
     def select_image(self, topic_path, meta_form):
         send_log_msg(NORMAL, "亲，你选择了图像topic为: %s"%topic_path)
@@ -72,10 +90,9 @@ class Controller():
             self.points_dim, self.xyz_dims, self.wlh_dims, self.color_dims = self.view.get_pointsetting()
         except:
             print(self.points_dim, self.xyz_dims, self.wlh_dims, self.color_dims)
+        self.update_buffer_vis()
 
-    def update_system_vis(self, index):
-        self.curr_frame_index = index
-        self.model.get_curr_frame_data(index, self.points_dim)
+    def update_buffer_vis(self):
         data_dict = self.model.curr_frame_data
         for topic, data in data_dict.items():
             topic_type, meta_form = self.model.topic_path_meta[topic]
@@ -83,6 +100,10 @@ class Controller():
             callback_fun = getattr(self, fun_name, None)
             callback_fun(data, topic, meta_form)
 
+    def update_system_vis(self, index):
+        self.curr_frame_index = index
+        self.model.get_curr_frame_data(index, self.points_dim)
+        self.update_buffer_vis()
         self.view.send_update_vis_flag()
 
     def run(self):
@@ -101,7 +122,29 @@ class Controller():
         self.view.set_image(msg, meta_form)
 
     def pointcloud_callback(self, msg, topic, meta_form):
-        if isinstance(msg, dict):
-            self.view.set_point_cloud(msg["data"], show=1)
+        max_dim = msg.shape[-1]
+        if max(self.xyz_dims) >= max_dim:
+            send_log_msg(ERROR, "xyz维度无效:%s,最大维度为%d"%(str(self.xyz_dims, max_dim)))
+            return
+        points = msg[...,self.xyz_dims]
+
+        if len(self.color_dims) > 0 and max(self.color_dims) >= max_dim:
+            send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.color_dims), max_dim))
+            color_id_list = -1
         else:
-            self.view.set_point_cloud(msg[:, 0:3], show=1)
+            color_id_list = msg[..., self.color_dims].astype(np.uint8)
+
+        real_color, state = self.view.color_id_to_color_list(color_id_list)
+
+        if not state and max(self.color_dims) != -1:
+            send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
+
+        if self.show_voxel:
+            w = np.ones((len(points), 1)) * 0.4
+            l = np.ones((len(points), 1)) * 0.4
+            h = np.ones((len(points), 1)) * 0.4
+            self.view.set_point_voxel(points, w, l, h, real_color)
+        else:
+            self.view.set_point_cloud(points, color = real_color,
+                        size=self.view.point_size)
+        # print(points.shape)

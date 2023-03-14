@@ -1,44 +1,22 @@
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QPixmap
-from PySide2.QtWidgets import QMainWindow, QApplication, QDockWidget, QLabel
-import PySide2
-import os
-dirname = os.path.dirname(PySide2.__file__)
-plugin_path = os.path.join(dirname, 'plugins', 'platforms')
-os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
+import numpy as np
+from vispy.scene import visuals
+from vispy import app, scene
 
-class ImageViewer(QMainWindow):
-    def __init__(self):
-        super().__init__()
+# 生成随机点云数据
+pos = np.random.normal(size=(100000, 3), scale=5)
+color = np.random.uniform(size=(100000, 3), low=0.0, high=1.0)
 
-        # 创建 Dock Widget
-        self.dock = QDockWidget("Image Viewer", self)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.dock)
+# 创建一个视图窗口
+canvas = scene.SceneCanvas(keys='interactive')
+view = canvas.central_widget.add_view()
 
-        # 创建标签控件，并将其设置为 Dock Widget 的中央部件
-        self.label = QLabel(self.dock)
-        self.dock.setWidget(self.label)
+# 创建一个Mark对象并设置数据和颜色
+mark = visuals.Markers()
+import ipdb
+ipdb.set_trace()
+mark.set_data(pos=pos, face_color=color, size=10)
 
-        # 加载图像文件并显示在标签控件中
-        pixmap = QPixmap("D:\\test_data\\camera0\\000000.jpg")
-
-        print(pixmap)
-        self.label.setPixmap(pixmap)
-        self.label.setAlignment(Qt.AlignCenter)
-
-        # 设置主窗口的标题和大小
-        self.setWindowTitle("Image Viewer")
-        self.setGeometry(100, 100, 800, 600)
-
-
-if __name__ == '__main__':
-    app = QApplication([])
-    window = ImageViewer()
-    window.show()
-    app.exec_()
-
-    import cv2
-    img = cv2.imread("D:\\test_data\\camera0\\000000.jpg")
-    cv2.imshow('1', img)
-    cv2.waitKey(0)
-
+# 将Mark对象添加到视图中并显示
+view.add(mark)
+canvas.show()
+app.run()

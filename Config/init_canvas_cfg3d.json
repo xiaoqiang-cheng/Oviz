@@ -5,6 +5,12 @@
             "point_cloud": {
                 "type": "add_pointcloud_vis"
             },
+            "point_voxel":{
+                "type": "add_pointvoxel_vis"
+            },
+            "voxel_line":{
+                "type": "add_voxelline_vis"
+            },
             "bbox_surface": {
                 "type": "add_bbox_vis"
             },

@@ -19,16 +19,19 @@ from .box_marker import BoxMarkers
 from scipy.spatial.transform import Rotation
 from Utils.common_utils import *
 
+from PySide2.QtCore import Signal
 
 class Canvas(scene.SceneCanvas):
     """Class that creates and handles a visualizer for a pointcloud"""
     # view相当于是面板，下面可以有好多vis
     # 设计api
 
+    capturerKey = Signal(str)
+
     def __init__(self, **kwargs):
         scene.SceneCanvas.__init__(self, keys='interactive')
         self.unfreeze()
-        self.grid = self.central_widget.add_grid(spacing=5, bgcolor='black', border_color='k')
+        self.grid = self.central_widget.add_grid(spacing=5, bgcolor=(0.5, 0.5, 0.5, 1), border_color='k')
         # Bind the escape key to a custom function
         # vispy.app.use_app().bind_key("Escape", self.on_escape)
         self.view_panel = {}
@@ -36,6 +39,7 @@ class Canvas(scene.SceneCanvas):
         self.color_map = {}
         self.load_color_map()
         self.curr_col_image_view = 0
+
         self.label_map = {
                     "0": "car",
                     "1": "car",
@@ -110,6 +114,15 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name].transform = transforms.MatrixTransform()
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
+    def add_pointvoxel_vis(self, vis_name, parent_view):
+        self.vis_module[vis_name] = BoxMarkers(width=0.01, height=0.01, depth=0.01)
+        self.vis_module[vis_name].transform = transforms.MatrixTransform()
+        self.view_panel[parent_view].add(self.vis_module[vis_name])
+
+    def add_voxelline_vis(self, vis_name, parent_view):
+        self.vis_module[vis_name] = visuals.Line(antialias=True)
+        self.view_panel[parent_view].add(self.vis_module[vis_name])
+
     def add_obj_vel_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = visuals.Arrow(arrow_type='stealth', antialias=True, width=2)
         self.view_panel[parent_view].add(self.vis_module[vis_name])
@@ -138,7 +151,7 @@ class Canvas(scene.SceneCanvas):
     @property
     def visuals(self):
         """List of all 3D visuals on this canvas."""
-        return [v for v in self.view.children[0].children if isinstance(v, scene.visuals.VisualNode)]
+        return [v for v in self.view_panel['view3d'].children[0].children if isinstance(v, scene.visuals.VisualNode)]
 
     def load_color_map(self, color_path = 'Config/color.yml'):
         with open(color_path, 'r') as c:
@@ -148,19 +161,27 @@ class Canvas(scene.SceneCanvas):
 
 
     def draw_point_cloud(self, vis_name, point_clouds, point_color="#f3f3f3", size = 1):
-        face_color = edge_color = Color(point_color)
+        # face_color = edge_color = Color(point_color)
         self.vis_module[vis_name].set_data(np.array(point_clouds),
-                                            edge_color=(1, 1, 1, .5),
-                                            face_color=face_color,
-                                            size=size)
+                                            edge_color=point_color,
+                                            face_color=point_color,
+                                            size=size,
+                                            symbol = 'o')
+
+    def draw_point_voxel(self, vis_name, pos, w, l, h, face, edge):
+        self.vis_module[vis_name].set_data(pos, width=w, height=l, depth=h, face_color=face, edge_color=edge)
+
+    def draw_voxel_line(self, vis_name, pos, w, l, h, box_line_width=0.8):
+        vertex_point, p_idx = self.create_voxel_vertex(pos, w, l, h)
+        self.vis_module[vis_name].set_data(pos=vertex_point, connect=p_idx,
+                    color=(0,0,0,0.3), width=box_line_width)
 
     def draw_image(self, vis_name, img):
         self.vis_module[vis_name].set_data(img)
 
-    def clear_box(self):
-        for v in self.visuals:
-            if isinstance(v, BoxMarkers):
-                v.parent = None
+
+    def set_visible(self, vis_name, status):
+        self.vis_module[vis_name].visible = status
 
     def draw_velocity(self, vis_name, pos, arrow, width = 4):
         # pos, arrow = self.create_box_vel_arrow(boxes)
@@ -254,6 +275,29 @@ class Canvas(scene.SceneCanvas):
         fc[..., 3] = opacity
         return fc, ec
 
+    def create_voxel_vertex(self, pos, width, length, height):
+        box_vertex = np.array([[-0.5, -0.5, -0.5],
+                                [-0.5, -0.5, 0.5],
+                                [0.5, -0.5, -0.5],
+                                [0.5, -0.5, 0.5],
+                                [0.5, 0.5, -0.5],
+                                [0.5, 0.5, 0.5],
+                                [-0.5, 0.5, -0.5],
+                                [-0.5, 0.5, 0.5]])
+        nb_v = box_vertex.shape[0]
+        scale = np.hstack((width, length, height))
+        vertices = np.zeros((nb_v * pos.shape[0], 3))
+        p_idx = []
+        for i in range(pos.shape[0]):
+            idx_v_start  = nb_v*i
+            idx_v_end    = nb_v*(i+1)
+            vertices[idx_v_start:idx_v_end] = box_vertex * scale[i]
+            vertices[idx_v_start:idx_v_end] += pos[i]
+            for j in range(nb_v):
+                p_idx.append((j + idx_v_start, (2 + j) % nb_v + idx_v_start))
+            for j in range(int(nb_v / 2)):
+                p_idx.append((2 * j + idx_v_start, 2 *j + 1 + idx_v_start))
+        return vertices, np.array(p_idx)
 
     def create_box_vertex(self, pos, width, length, height,
             rotation):
