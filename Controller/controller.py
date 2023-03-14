@@ -49,6 +49,11 @@ class Controller():
         self.view.ui.linetxt_color_dim.textChanged.connect(self.update_pointsetting_dims)
         self.view.pointSizeChanged.connect(self.change_point_size)
         self.view.show_voxel_mode.stateChanged.connect(self.change_voxel_mode)
+        self.view.checkbox_show_car.stateChanged.connect(self.show_car_mode)
+
+    def show_car_mode(self, state):
+        flag = state > 0
+        self.view.set_car_visible(flag)
 
     def change_voxel_mode(self, state):
         if state > 0:
@@ -128,7 +133,7 @@ class Controller():
             return
         points = msg[...,self.xyz_dims]
 
-        if len(self.color_dims) > 0 and max(self.color_dims) >= max_dim:
+        if len(self.color_dims) <= 0 or min(self.color_dims) < 0 or max(self.color_dims) >= max_dim:
             send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.color_dims), max_dim))
             color_id_list = -1
         else:
@@ -140,9 +145,14 @@ class Controller():
             send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
 
         if self.show_voxel:
-            w = np.ones((len(points), 1)) * 0.4
-            l = np.ones((len(points), 1)) * 0.4
-            h = np.ones((len(points), 1)) * 0.4
+            if len(self.color_dims) <= 0 or min(self.wlh_dims) < 0 or max(self.wlh_dims) > max_dim:
+                w = np.ones((len(points), 1)) * 0.4
+                l = np.ones((len(points), 1)) * 0.4
+                h = np.ones((len(points), 1)) * 0.4
+            else:
+                w = msg[..., self.wlh_dims[0]]
+                l = msg[..., self.wlh_dims[1]]
+                h = msg[..., self.wlh_dims[2]]
             self.view.set_point_voxel(points, w, l, h, real_color)
         else:
             self.view.set_point_cloud(points, color = real_color,

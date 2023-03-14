@@ -136,16 +136,17 @@ class Canvas(scene.SceneCanvas):
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
 
-    def add_veh_model(self, vis_name, parent_view, stl_path = "config/toyota.stl"):
+    def add_veh_model(self, vis_name, parent_view, stl_path = "Config/car.obj"):
         car_mesh = trimesh.load(stl_path)
         self.vis_module[vis_name] = visuals.Mesh(vertices=car_mesh.vertices, faces=car_mesh.faces,
-                shading='smooth',
-                color=self.color_map['car_model'])
+                shading='smooth')
         # The size of model from internet is not the actual size of a car
         # and the face direction need adjust
-        self.vis_module[vis_name] .transform = transforms.MatrixTransform()
-        self.vis_module[vis_name] .transform.scale((0.035, 0.035, 0.035))
-        self.vis_module[vis_name] .transform.rotate(-90, (0, 0, 1))
+        self.vis_module[vis_name].transform = transforms.MatrixTransform()
+        self.vis_module[vis_name].transform.scale((0.6, 0.6, 0.6))
+        self.vis_module[vis_name].transform.translate((0., 0., 0.8))
+
+        self.vis_module[vis_name].transform.rotate(0, (0, 0, 1))
         self.view_panel[parent_view].add(self.vis_module[vis_name] )
 
     @property
@@ -178,7 +179,6 @@ class Canvas(scene.SceneCanvas):
 
     def draw_image(self, vis_name, img):
         self.vis_module[vis_name].set_data(img)
-
 
     def set_visible(self, vis_name, status):
         self.vis_module[vis_name].visible = status

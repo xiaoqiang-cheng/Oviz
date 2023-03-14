@@ -88,6 +88,7 @@ class View(QObject):
         self.ui.statusbar.addWidget(self.version_label)
 
         self.ui.installEventFilter(self)  # 将事件过滤器安装到UI对象上
+        self.set_car_visible(False)
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.ShortcutOverride:
@@ -222,6 +223,10 @@ class View(QObject):
     def set_voxel_mode(self, mode):
         self.canvas.set_visible("point_voxel", mode)
         self.canvas.set_visible("voxel_line", mode)
+        self.canvas.set_visible("point_cloud", not mode)
+
+    def set_car_visible(self, mode):
+        self.canvas.set_visible("car_model", mode)
 
     def set_point_cloud(self, points, color = "#00ff00", size = 1):
         # self.canvas.clear_voxel("point_voxel", "view3d")
