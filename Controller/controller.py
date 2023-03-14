@@ -3,7 +3,7 @@ import numpy as np
 from Utils.point_cloud_utils import *
 from View.view import View
 from Model.model import Model
-from PySide2.QtWidgets import QApplication
+from PySide2.QtWidgets import QApplication, QColorDialog
 import os.path as osp
 from Utils.common_utils import *
 from log_sys import *
@@ -50,6 +50,8 @@ class Controller():
         self.view.pointSizeChanged.connect(self.change_point_size)
         self.view.show_voxel_mode.stateChanged.connect(self.change_voxel_mode)
         self.view.checkbox_show_car.stateChanged.connect(self.show_car_mode)
+        self.view.ui.listwidget_id_color_map.itemDoubleClicked.connect(self.toggle_list_kind_color)
+
 
     def show_car_mode(self, state):
         flag = state > 0
@@ -68,6 +70,19 @@ class Controller():
 
     def change_point_size(self, ptsize):
         self.update_buffer_vis()
+
+    def toggle_list_kind_color(self):
+        dlg = QColorDialog()
+        dlg.setWindowFlags(self.view.ui.windowFlags() | PySide2.QtCore.Qt.WindowStaysOnTopHint)
+
+        item = self.view.ui.listwidget_id_color_map.currentItem()
+        if dlg.exec_():
+            cur_color = dlg.currentColor()
+            if item.background().color() != cur_color:
+                item.setBackground(cur_color)
+                self.view.update_color_map(item.text(), cur_color.name())
+                self.update_buffer_vis()
+
 
 
     def select_image(self, topic_path, meta_form):

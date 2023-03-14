@@ -132,6 +132,9 @@ class View(QObject):
             lw.setBackground(QColor(val))
             self.ui.listwidget_id_color_map.addItem(lw)
 
+    def update_color_map(self, name, color):
+        color_map[name] = color
+
 
     def add_image_dock_widget(self, wimage:dict):
         for n, v in wimage.items():
