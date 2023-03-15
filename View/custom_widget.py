@@ -25,8 +25,10 @@ class FolderSelectWidget(QtWidgets.QWidget):
         self.linetxt.returnPressed.connect(self.select_topic_path)
 
     def select_topic_path(self):
-        self.file_path = self.linetxt.text()
-        self.SelectDone.emit(self.file_path, self.widget_title)
+        self.folder_path = self.linetxt.text()
+        if not os.path.exists(self.folder_path):
+            return
+        self.SelectDone.emit(self.folder_path, self.widget_title)
 
     def select_folder(self):
         self.folder_path = choose_folder(self, self.widget_title, self.folder_path)

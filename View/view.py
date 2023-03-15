@@ -137,8 +137,9 @@ class View(QObject):
 
 
     def add_pointcloud_setting_widget(self):
-        self.button_select_pointcloud = FolderSelectWidget(widget_titie="选择点云")
-        self.button_select_bbox = FileSelectWidget(widget_titie="选择bbox")
+        self.button_select_pointcloud = FolderSelectWidget(widget_titie="Point Cloud")
+        self.button_select_lane3d = FolderSelectWidget(widget_titie="3D Lane")
+        self.button_select_bbox2d = FolderSelectWidget(widget_titie="2D Bbox")
 
         self.show_voxel_mode = QCheckBox("voxel模式")
         self.checkbox_show_grid = QCheckBox("显示grid")
@@ -148,7 +149,8 @@ class View(QObject):
 
 
         self.ui.pointcloud_vis_setting_frame.layout().addWidget(self.button_select_pointcloud)
-        self.ui.pointcloud_vis_setting_frame.layout().addWidget(self.button_select_bbox)
+        self.ui.pointcloud_vis_setting_frame.layout().addWidget(self.button_select_lane3d)
+        self.ui.pointcloud_vis_setting_frame.layout().addWidget(self.button_select_bbox2d)
 
         self.ui.pointcloud_vis_setting_frame.layout().addWidget(self.show_voxel_mode)
         self.ui.pointcloud_vis_setting_frame.layout().addWidget(self.checkbox_show_grid)

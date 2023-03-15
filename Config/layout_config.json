@@ -14,5 +14,18 @@
     "point_dim": "7",
     "xyz_dim": "0,1,2",
     "wlh_dim": "-1",
-    "color_dim": "5"
+    "color_dim": "5",
+    "image_dock_path":
+    {
+        "rl": "",
+        "sl": "",
+        "fl": "",
+        "fc": "",
+        "fr": "",
+        "sr": "",
+        "rr": ""
+    },
+    "point_cloud_path": "",
+    "lane3d_path": "",
+    "bbox2d_path": ""
 }
