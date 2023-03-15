@@ -114,11 +114,11 @@ class Controller():
 
     def update_buffer_vis(self):
         data_dict = self.model.curr_frame_data
-        for topic, data in data_dict.items():
-            topic_type, meta_form = self.model.topic_path_meta[topic]
+        for meta_form, data in data_dict.items():
+            topic_type = self.model.topic_path_meta[meta_form]
             fun_name = topic_type + "_callback"
             callback_fun = getattr(self, fun_name, None)
-            callback_fun(data, topic, meta_form)
+            callback_fun(data, meta_form, meta_form)
 
     def update_system_vis(self, index):
         self.curr_frame_index = index
@@ -169,6 +169,8 @@ class Controller():
                 w = msg[..., self.wlh_dims[0]]
                 l = msg[..., self.wlh_dims[1]]
                 h = msg[..., self.wlh_dims[2]]
+            if isinstance(real_color, str):
+                real_color = np.array([self.view.color_str_to_rgb(real_color)] * len(points))
             self.view.set_point_voxel(points, w, l, h, real_color)
         else:
             self.view.set_point_cloud(points, color = real_color,

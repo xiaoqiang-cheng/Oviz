@@ -12,24 +12,21 @@ class Model():
         self.offline_frame_cnt = 0
         self.point_cloud_ext = ".bin"
         self.data_frame_list = []
-        # format "key"(only filename like timestamp), "topicname": data
         self.database = {}
         self.topic_path_meta = {}
         self.curr_frame_data = {}
 
     def get_curr_frame_data(self, index, dim = 7):
         key = self.data_frame_list[index]
-        curr_data_dict = self.database[key]
         self.curr_frame_data = {}
-
-        for topic, file in curr_data_dict.items():
-            topic_type = self.topic_path_meta[topic][0]
-            data_path = os.path.join(topic, file)
-            if topic_type == POINTCLOUD:
-                pc = self.smart_read_pointcloud(data_path, dim)
-                self.curr_frame_data[topic] = pc
-            elif topic_type == IMAGE:
-                self.curr_frame_data[topic] = self.smart_read_image(data_path)
+        for meta_form in self.database.keys():
+            topic_type = self.topic_path_meta[meta_form]
+            if key in self.database[meta_form].keys():
+                data_path = self.database[meta_form][key]
+                if topic_type == POINTCLOUD:
+                    self.curr_frame_data[meta_form] = self.smart_read_pointcloud(data_path, dim)
+                elif topic_type == IMAGE:
+                    self.curr_frame_data[meta_form] = self.smart_read_image(data_path)
 
     def smart_read_pointcloud(self, pc_path, dim = 7):
         if self.point_cloud_ext == ".pcd":
@@ -44,36 +41,27 @@ class Model():
         return img
 
     def deal_image_folder(self, image_path, meta_form):
+        self.database[meta_form] = {}
+        self.topic_path_meta[meta_form] = IMAGE
+
         datanames = os.listdir(image_path)
-        self.topic_path_meta[image_path] = [IMAGE, meta_form]
-
-        empty_flag = len(self.database.keys()) == 0
-
         for f in datanames:
             key, ext = os.path.splitext(f)
             if ext in [".jpg", ".png", ".tiff"]:
-                if key not in self.database.keys():
-                    if empty_flag:
-                        self.database[key] = {}
-                    else:
-                        self.database = {}
-                        self.database[key] = {}
-                        empty_flag = True
-                self.database[key][image_path] = f
+                self.database[meta_form][key] = os.path.join(image_path, f)
 
-        cnt = len(self.database.keys())
-        self.data_frame_list = list(self.database.keys())
+        cnt = len(self.database[meta_form].keys())
+        self.data_frame_list = list(self.database[meta_form].keys())
         self.data_frame_list.sort()
         self.offline_frame_cnt = cnt
         send_log_msg(NORMAL, "共发现了%s格式的文件 %d 帧"%(ext, cnt))
         return cnt
 
-    def deal_pointcloud_folder(self, pc_path, meta_form = 0):
+    def deal_pointcloud_folder(self, pc_path, meta_form):
+        self.database[meta_form] = {}
+        self.topic_path_meta[meta_form] = POINTCLOUD
+
         datanames = os.listdir(pc_path)
-
-        empty_flag = len(self.database.keys()) == 0
-
-        self.topic_path_meta[pc_path] = [POINTCLOUD, meta_form]
         for f in datanames:
             key, ext = os.path.splitext(f)
             if ext in [".pcd", ".bin"]:
@@ -81,17 +69,10 @@ class Model():
             else:
                 continue
 
-            if key not in self.database.keys():
-                if empty_flag:
-                    self.database[key] = {}
-                else:
-                    self.database = {}
-                    self.database[key] = {}
-                    empty_flag = True
-            self.database[key][pc_path] = f
+            self.database[meta_form][key] = os.path.join(pc_path, f)
 
-        pc_cnt = len(self.database.keys())
-        self.data_frame_list = list(self.database.keys())
+        pc_cnt = len(self.database[meta_form].keys())
+        self.data_frame_list = list(self.database[meta_form].keys())
         self.data_frame_list.sort()
         self.offline_frame_cnt = pc_cnt
         send_log_msg(NORMAL, "共发现了%s格式的文件 %d 帧"%(self.point_cloud_ext, pc_cnt))

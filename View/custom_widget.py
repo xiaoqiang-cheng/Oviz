@@ -26,14 +26,14 @@ class FolderSelectWidget(QtWidgets.QWidget):
 
     def select_topic_path(self):
         self.file_path = self.linetxt.text()
-        self.SelectDone.emit(self.file_path, "0")
+        self.SelectDone.emit(self.file_path, self.widget_title)
 
     def select_folder(self):
         self.folder_path = choose_folder(self, self.widget_title, self.folder_path)
         if not self.folder_path:
             return
         self.linetxt.setText(self.folder_path)
-        self.SelectDone.emit(self.folder_path, "0")
+        self.SelectDone.emit(self.folder_path, self.widget_title)
 
     def get_folder_path(self):
         return self.folder_path
@@ -58,14 +58,14 @@ class FileSelectWidget(QtWidgets.QWidget):
 
     def select_topic_path(self):
         self.file_path = self.linetxt.text()
-        self.SelectDone.emit(self.file_path, 0)
+        self.SelectDone.emit(self.file_path, self.widget_title)
 
     def select_file(self):
         self.file_path = choose_file(self, self.widget_title, "file (*.*)", self.file_path)
         if not self.file_path:
             return
         self.linetxt.setText(self.file_path)
-        self.SelectDone.emit(self.file_path, 0)
+        self.SelectDone.emit(self.file_path, self.widget_title)
 
 
     def get_file_path(self):
