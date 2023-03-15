@@ -10,17 +10,11 @@ from View.custom_widget import *
 from View.dock_view import *
 import vispy
 
-# 临时配置 需要写成配置文件的
-
-image_dock_config = {
-    "rl" : Qt.TopDockWidgetArea,
-    "sl": Qt.TopDockWidgetArea,
-    "fl": Qt.TopDockWidgetArea,
-    "fc": Qt.TopDockWidgetArea,
-    "fr": Qt.TopDockWidgetArea,
-    "sr": Qt.TopDockWidgetArea,
-    "rr":Qt.TopDockWidgetArea
-
+dock_layout_map = {
+    "top"    : Qt.TopDockWidgetArea,
+    "buttom" : Qt.BottomDockWidgetArea,
+    "left"   : Qt.LeftDockWidgetArea,
+    "right"  : Qt.RightDockWidgetArea
 }
 
 rgb_color_map = {}
@@ -30,7 +24,8 @@ class View(QObject):
     def __init__(self) -> None:
         super().__init__()
         self.ui = QUiLoader().load('Config/qviz.ui')
-        self.color_map =parse_json("Config/color_map.json")
+        self.color_map = parse_json("Config/color_map.json")
+        self.layout_config = parse_json("Config/layout_config.json")
         self.canvas_cfg = parse_json("Config/init_canvas_cfg3d.json")
 
         self.canvas = Canvas()
@@ -54,7 +49,7 @@ class View(QObject):
 
         self.add_pointcloud_setting_widget()
 
-        self.add_image_dock_widget(image_dock_config)
+        self.add_image_dock_widget(self.layout_config["image_dock_config"])
         self.ui.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
         self.ui.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)
 
@@ -67,19 +62,31 @@ class View(QObject):
 
         self.set_car_visible(False)
 
-        self.image_flag = False
-        self.log_flag = False
-        self.slide_flag = False
 
         self.ui.action_show_slide.triggered.connect(self.show_range_slide)
         self.ui.action_show_log.triggered.connect(self.show_dock_log)
         self.ui.action_show_image.triggered.connect(self.show_dock_image)
 
+        self.revet_layout_config()
+
+    def save_layout_config(self):
+        self.layout_config["point_dim"] = self.ui.linetxt_point_dim.text()
+        self.layout_config["xyz_dim"] = self.ui.linetxt_xyz_dim.text()
+        self.layout_config["wlh_dim"] = self.ui.linetxt_wlh_dim.text()
+        self.layout_config["color_dim"] = self.ui.linetxt_color_dim.text()
+        write_json(self.layout_config, "Config/layout_config.json")
+
+    def revet_layout_config(self):
+        self.image_flag = bool(self.layout_config["show_image_dock"])
+        self.log_flag = bool(self.layout_config["show_log_dock"])
+        self.slide_flag = bool(self.layout_config["show_frame_dock"])
         self.show_range_slide()
         self.show_dock_image()
         self.show_dock_log()
-
-
+        self.ui.linetxt_point_dim.setText(self.layout_config["point_dim"])
+        self.ui.linetxt_xyz_dim.setText(self.layout_config["xyz_dim"])
+        self.ui.linetxt_wlh_dim.setText(self.layout_config["wlh_dim"])
+        self.ui.linetxt_color_dim.setText(self.layout_config["color_dim"])
 
     def show_range_slide(self):
         if self.slide_flag:
@@ -153,7 +160,7 @@ class View(QObject):
     def add_image_dock_widget(self, wimage:dict):
         for n, v in wimage.items():
             self.image_dock[n] = ImageDockWidget(dock_title=n)
-            self.ui.addDockWidget(v,  self.image_dock[n])
+            self.ui.addDockWidget(dock_layout_map[v],  self.image_dock[n])
         # keys_list = list(image_dock_config.keys())
         # for i, d in enumerate(keys_list[:-1]):
         #     self.ui.tabifyDockWidget(self.image_dock[d], self.image_dock[keys_list[i + 1]])

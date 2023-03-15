@@ -192,9 +192,6 @@ class RangeSlideDockWidget(QDockWidget):
     def change_bar(self):
         self.curr_index = self.range_slider.value()
         self.set_frmae_text(self.curr_index)
-        if self.update_handled:
-            self.update_handled = False
-            self.frameChanged.emit(self.curr_index)
 
     def set_filename(self, name):
         self.curr_filename.setText(str(name))
@@ -211,6 +208,9 @@ class RangeSlideDockWidget(QDockWidget):
             elif self.curr_index >= self.frame_range:
                 self.curr_index = self.frame_range - 1
                 self.set_frmae_text(self.curr_index)
+            if self.update_handled:
+                self.update_handled = False
+                self.frameChanged.emit(self.curr_index)
         except:
             print("输入不合法")
         self.range_slider.setValue(self.curr_index)

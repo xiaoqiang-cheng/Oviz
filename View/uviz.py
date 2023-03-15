@@ -36,8 +36,6 @@ class Canvas(scene.SceneCanvas):
         # vispy.app.use_app().bind_key("Escape", self.on_escape)
         self.view_panel = {}
         self.vis_module = {}
-        self.color_map = {}
-        self.load_color_map()
         self.curr_col_image_view = 0
 
         self.label_map = {
@@ -154,13 +152,6 @@ class Canvas(scene.SceneCanvas):
         """List of all 3D visuals on this canvas."""
         return [v for v in self.view_panel['view3d'].children[0].children if isinstance(v, scene.visuals.VisualNode)]
 
-    def load_color_map(self, color_path = 'Config/color.yml'):
-        with open(color_path, 'r') as c:
-            color_map = yaml.load(c, Loader=Loader)
-        for ke in color_map:
-            self.color_map[ke] = Color(color_map[ke])
-
-
     def draw_point_cloud(self, vis_name, point_clouds, point_color="#f3f3f3", size = 1):
         # face_color = edge_color = Color(point_color)
         self.vis_module[vis_name].set_data(np.array(point_clouds),
@@ -187,23 +178,23 @@ class Canvas(scene.SceneCanvas):
         # pos, arrow = self.create_box_vel_arrow(boxes)
         self.vis_module[vis_name].set_data(pos, connect='segments', arrows=arrow, width=width)
 
-    def draw_box_line(self, vis_name, boxes, box_line_lightness_scale=1.2,
-                                                box_line_width=2):
-        pos, width, length, height, theta = self.prepare_box_data(boxes)
-        fc, _ = self.prepare_box_color(boxes,
-                lightness_ratio = box_line_lightness_scale)
-        fc = np.tile(fc, 8).reshape(-1, 4)
-        vertex_point, p_idx = self.create_box_vertex(pos,
-                width, length, height, theta)
-        self.vis_module[vis_name].set_data(pos=vertex_point, connect=p_idx,
-                color=fc, width=box_line_width)
+    # def draw_box_line(self, vis_name, boxes, box_line_lightness_scale=1.2,
+    #                                             box_line_width=2):
+    #     pos, width, length, height, theta = self.prepare_box_data(boxes)
+    #     fc, _ = self.prepare_box_color(boxes,
+    #             lightness_ratio = box_line_lightness_scale)
+    #     fc = np.tile(fc, 8).reshape(-1, 4)
+    #     vertex_point, p_idx = self.create_box_vertex(pos,
+    #             width, length, height, theta)
+    #     self.vis_module[vis_name].set_data(pos=vertex_point, connect=p_idx,
+    #             color=fc, width=box_line_width)
 
-    def draw_box_surface(self, vis_name, boxes, box_surface_opacity = 0.8):
-        pos, width, length, height, theta = self.prepare_box_data(boxes)
-        fc, ec = self.prepare_box_color(boxes,
-                opacity = box_surface_opacity)
-        self.vis_module[vis_name].set_data(pos, width=width, height=length, depth=height,
-            face_color=fc, edge_color=ec, rotation=theta)
+    # def draw_box_surface(self, vis_name, boxes, box_surface_opacity = 0.8):
+    #     pos, width, length, height, theta = self.prepare_box_data(boxes)
+    #     fc, ec = self.prepare_box_color(boxes,
+    #             opacity = box_surface_opacity)
+    #     self.vis_module[vis_name].set_data(pos, width=width, height=length, depth=height,
+    #         face_color=fc, edge_color=ec, rotation=theta)
 
     def draw_id_vel(self, vis_name, box, show_id = 1, show_vel = 0):
         if show_id:
@@ -230,17 +221,17 @@ class Canvas(scene.SceneCanvas):
             show_text_color.append(rgba)
         return show_text, show_text_pos, show_text_color
 
-    def prepare_box_color(self, boxes, lightness_ratio=1.0, opacity=1.0):
-        fc = []
-        for b in boxes:
-            rgba = self.color_map[self.label_map[b.kind]].rgba
-            if lightness_ratio != 1.0:
-                rgba[:3] = scale_lightness(rgba[:3], lightness_ratio)
-            fc.append(rgba)
-        fc = np.array(fc)
-        ec = np.copy(fc)
-        fc[..., 3] = opacity
-        return fc, ec
+    # def prepare_box_color(self, boxes, lightness_ratio=1.0, opacity=1.0):
+    #     fc = []
+    #     for b in boxes:
+    #         rgba = self.color_map[self.label_map[b.kind]].rgba
+    #         if lightness_ratio != 1.0:
+    #             rgba[:3] = scale_lightness(rgba[:3], lightness_ratio)
+    #         fc.append(rgba)
+    #     fc = np.array(fc)
+    #     ec = np.copy(fc)
+    #     fc[..., 3] = opacity
+    #     return fc, ec
 
     def prepare_box_data(self, boxes, enlarge_ratio=1.0):
         pos = []

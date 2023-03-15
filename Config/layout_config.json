@@ -1,0 +1,18 @@
+{
+    "show_image_dock": 0,
+    "show_log_dock": 0,
+    "show_frame_dock": 0,
+    "image_dock_config": {
+        "rl": "top",
+        "sl": "top",
+        "fl": "top",
+        "fc": "top",
+        "fr": "top",
+        "sr": "top",
+        "rr": "top"
+    },
+    "point_dim": "7",
+    "xyz_dim": "0,1,2",
+    "wlh_dim": "-1",
+    "color_dim": "5"
+}
