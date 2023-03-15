@@ -24,9 +24,10 @@ class View(QObject):
     def __init__(self) -> None:
         super().__init__()
         self.ui = QUiLoader().load('Config/qviz.ui')
-        self.color_map = parse_json("Config/color_map.json")
-        self.layout_config = parse_json("Config/layout_config.json")
         self.canvas_cfg = parse_json("Config/init_canvas_cfg3d.json")
+
+        self.color_map = parse_json(self.get_user_config(".user/color_map.json"))
+        self.layout_config = parse_json(self.get_user_config(".user/layout_config.json"))
 
         self.canvas = Canvas()
         self.struct_canvas_init(self.canvas_cfg)
@@ -69,12 +70,22 @@ class View(QObject):
 
         self.revet_layout_config()
 
+    def get_user_config(self, p):
+        if not os.path.exists(p):
+            p = p.replace(".user", "Config")
+        return p
+
     def save_layout_config(self):
         self.layout_config["point_dim"] = self.ui.linetxt_point_dim.text()
         self.layout_config["xyz_dim"] = self.ui.linetxt_xyz_dim.text()
         self.layout_config["wlh_dim"] = self.ui.linetxt_wlh_dim.text()
         self.layout_config["color_dim"] = self.ui.linetxt_color_dim.text()
-        write_json(self.layout_config, "Config/layout_config.json")
+
+        if not os.path.exists(".user"):
+            os.mkdir(".user")
+
+        write_json(self.layout_config, ".user/layout_config.json")
+        write_json(self.color_map, ".user/color_map.json")
 
     def revet_layout_config(self):
         self.image_flag = bool(self.layout_config["show_image_dock"])
