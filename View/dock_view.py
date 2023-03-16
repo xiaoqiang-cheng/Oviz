@@ -93,8 +93,14 @@ class ImageDockWidget(QDockWidget):
 
 
     def select_topic_path(self):
-        self.file_path = self.linetxt.text()
+        self.folder_path = self.linetxt.text()
         self.SelectDone.emit(self.folder_path, self.dock_title)
+
+    def set_topic_path(self, txt_path):
+        if not os.path.exists(txt_path):
+            return
+        self.linetxt.setText(txt_path)
+        self.select_topic_path()
 
     def select_image(self):
         self.folder_path = choose_folder(self, self.dock_title, self.folder_path)

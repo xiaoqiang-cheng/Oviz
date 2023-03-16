@@ -1,7 +1,7 @@
 {
-    "show_image_dock": 0,
-    "show_log_dock": 0,
-    "show_frame_dock": 0,
+    "image_flag": 0,
+    "log_flag": 0,
+    "slide_flag": 0,
     "image_dock_config": {
         "rl": "top",
         "sl": "top",

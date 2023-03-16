@@ -143,3 +143,11 @@ def scale_lightness(rgb, scale_l):
     h, l, s = colorsys.rgb_to_hls(*rgb)
     # manipulate h, l, s values and return as rgb
     return colorsys.hls_to_rgb(h, min(1, l * scale_l), s = s)
+
+def rec_merge(d1, d2):
+    for key, value in d2.items():
+        if isinstance(value, dict):
+            d1[key] = rec_merge(d1.get(key, {}), value)
+        else:
+            d1[key] = value
+    return d1

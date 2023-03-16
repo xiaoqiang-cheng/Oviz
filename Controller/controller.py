@@ -31,10 +31,12 @@ class Controller():
         self.Timer.start(50)
 
         self.signal_connect()
-        send_log_msg(NORMAL, "Qviz 系統开始运行！")
+
         self.curr_frame_index = 0
         self.show_voxel = False
-        self.update_pointsetting_dims()
+
+        self.revert_user_config()
+        send_log_msg(NORMAL, "Qviz 系統开始运行！")
 
 
     def signal_connect(self):
@@ -52,6 +54,14 @@ class Controller():
         self.view.checkbox_show_car.stateChanged.connect(self.show_car_mode)
         self.view.ui.listwidget_id_color_map.itemDoubleClicked.connect(self.toggle_list_kind_color)
 
+    def revert_user_config(self):
+        self.view.revet_layout_config()
+        self.update_pointsetting_dims()
+        try:
+            self.update_system_vis(0)
+        except:
+            pass
+        send_log_msg(NORMAL, "加载配置结束，如果未能显示上一次数据，请检查文件路径或本地资源是否正常")
 
     def show_car_mode(self, state):
         flag = state > 0

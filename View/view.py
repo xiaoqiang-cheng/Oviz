@@ -26,8 +26,8 @@ class View(QObject):
         self.ui = QUiLoader().load('Config/qviz.ui')
         self.canvas_cfg = parse_json("Config/init_canvas_cfg3d.json")
 
-        self.color_map = parse_json(self.get_user_config(".user/color_map.json"))
-        self.layout_config = parse_json(self.get_user_config(".user/layout_config.json"))
+        self.color_map = self.get_user_config("color_map.json")
+        self.layout_config = self.get_user_config("layout_config.json")
 
         self.canvas = Canvas()
         self.struct_canvas_init(self.canvas_cfg)
@@ -68,18 +68,33 @@ class View(QObject):
         self.ui.action_show_log.triggered.connect(self.show_dock_log)
         self.ui.action_show_image.triggered.connect(self.show_dock_image)
 
-        self.revet_layout_config()
-
-    def get_user_config(self, p):
-        if not os.path.exists(p):
-            p = p.replace(".user", "Config")
-        return p
+    def get_user_config(self, config_name):
+        default_config_file = os.path.join("Config", config_name)
+        default_cfg = parse_json(default_config_file)
+        user_config_file = os.path.join(".user", config_name)
+        if os.path.exists(user_config_file):
+            user_cfg = parse_json(user_config_file)
+        else:
+            user_cfg = {}
+        return rec_merge(default_cfg, user_cfg)
 
     def save_layout_config(self):
+        self.layout_config["point_cloud_path"] = self.button_select_pointcloud.folder_path
+        self.layout_config["lane3d_path"] = self.button_select_lane3d.folder_path
+        self.layout_config["bbox2d_path"] = self.button_select_bbox2d.folder_path
+
         self.layout_config["point_dim"] = self.ui.linetxt_point_dim.text()
         self.layout_config["xyz_dim"] = self.ui.linetxt_xyz_dim.text()
         self.layout_config["wlh_dim"] = self.ui.linetxt_wlh_dim.text()
         self.layout_config["color_dim"] = self.ui.linetxt_color_dim.text()
+
+        self.layout_config["image_flag"] = not self.image_flag
+        self.layout_config["log_flag"]   = not self.log_flag
+        self.layout_config["slide_flag"] = not self.slide_flag
+
+
+        for key in self.layout_config['image_dock_path'].keys():
+            self.layout_config['image_dock_path'][key] = self.image_dock[key].folder_path
 
         if not os.path.exists(".user"):
             os.mkdir(".user")
@@ -88,16 +103,24 @@ class View(QObject):
         write_json(self.color_map, ".user/color_map.json")
 
     def revet_layout_config(self):
-        self.image_flag = bool(self.layout_config["show_image_dock"])
-        self.log_flag = bool(self.layout_config["show_log_dock"])
-        self.slide_flag = bool(self.layout_config["show_frame_dock"])
-        self.show_range_slide()
-        self.show_dock_image()
-        self.show_dock_log()
         self.ui.linetxt_point_dim.setText(self.layout_config["point_dim"])
         self.ui.linetxt_xyz_dim.setText(self.layout_config["xyz_dim"])
         self.ui.linetxt_wlh_dim.setText(self.layout_config["wlh_dim"])
         self.ui.linetxt_color_dim.setText(self.layout_config["color_dim"])
+
+        self.button_select_pointcloud.set_topic_path(self.layout_config["point_cloud_path"])
+        self.button_select_lane3d.set_topic_path(self.layout_config["lane3d_path"])
+        self.button_select_bbox2d.set_topic_path(self.layout_config["bbox2d_path"])
+
+        self.image_flag = self.layout_config["image_flag"]
+        self.log_flag = self.layout_config["log_flag"]
+        self.slide_flag = self.layout_config["slide_flag"]
+        self.show_range_slide()
+        self.show_dock_log()
+        self.show_dock_image()
+
+        for key, val in self.layout_config['image_dock_path'].items():
+            self.image_dock[key].set_topic_path(val)
 
     def show_range_slide(self):
         if self.slide_flag:
