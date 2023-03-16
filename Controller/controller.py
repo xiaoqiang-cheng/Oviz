@@ -55,8 +55,8 @@ class Controller():
         self.view.ui.listwidget_id_color_map.itemDoubleClicked.connect(self.toggle_list_kind_color)
 
     def revert_user_config(self):
-        self.view.revet_layout_config()
         self.update_pointsetting_dims()
+        self.view.revet_layout_config()
         try:
             self.update_system_vis(0)
         except:
@@ -148,6 +148,8 @@ class Controller():
 
     def sigint_handler(self, signum = None, frame = None):
         sys.exit(self.app.exec_())
+        self.view.save_layout_config()
+
 
     def image_callback(self, msg, topic, meta_form):
         self.view.set_image(msg, meta_form)

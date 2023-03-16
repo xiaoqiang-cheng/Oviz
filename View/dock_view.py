@@ -9,26 +9,29 @@ from PySide2.QtCore import *
 from PySide2.QtWidgets import *
 from Utils.common_utils import *
 import time
-
+import copy
 class ImageViewer(QtWidgets.QWidget):
     doubleClicked = Signal()
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setStyleSheet("border:1px;")
-
+        self.setStyleSheet("border:0px;")
+        self.cvimg = None
         self.image = QtGui.QImage()
 
 
+
     def cvimg_to_qtimg(self, cvimg):
-        height, width,_ = cvimg.shape
-        self.image = QtGui.QImage(cvimg.data, width, height, QtGui.QImage.Format_BGR888)
+        height, width, _ = cvimg.shape
+        self.image = QtGui.QImage(cvimg.data, width, height, width * 3, QtGui.QImage.Format_BGR888)
+        # self.image = QtGui.QPixmap(cvimg)
 
     def set_image(self, cvimg):
+        self.cvimg = copy.deepcopy(cvimg)
         if isinstance(cvimg, str):
             if os.path.exists(cvimg):
                 self.image.load(cvimg)
         else:
-            self.cvimg_to_qtimg(cvimg)
+            self.cvimg_to_qtimg(self.cvimg)
         self.update()
 
     def paintEvent(self, event):
@@ -66,7 +69,7 @@ class ImageDockWidget(QDockWidget):
         self.linetxt.setMinimumHeight(20)
         self.linetxt.setFrame(False)
         self.linetxt.setPlaceholderText("Enter text")
-        self.linetxt.setStyleSheet("background-color: white; border-radius: 1px;")
+        self.linetxt.setStyleSheet("border-radius: 5;")
         title_bar_layout.addWidget(self.linetxt)
 
         # Add a separator line between the title bar and the content area
@@ -84,8 +87,13 @@ class ImageDockWidget(QDockWidget):
         widget = QWidget()
         layout = QVBoxLayout()
         layout.addWidget(self.image_viewer)
+        layout.setContentsMargins(0, 0, 0, 0)
         widget.setLayout(layout)
+        self.setStyleSheet("border:1px;")
+        widget.setStyleSheet("border: 1px;")
+        widget.setContentsMargins(0, 0, 0, 0)
         self.setWidget(widget)
+        self.setContentsMargins(0, 0, 0, 0)
         self.set_image("Config/default.png")
         self.setMinimumSize(100, 100)
         self.image_viewer.doubleClicked.connect(self.select_image)
