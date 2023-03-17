@@ -197,9 +197,6 @@ class View(QObject):
         for n, v in wimage.items():
             self.image_dock[n] = ImageDockWidget(dock_title=n)
             self.ui.addDockWidget(dock_layout_map[v],  self.image_dock[n])
-        # keys_list = list(image_dock_config.keys())
-        # for i, d in enumerate(keys_list[:-1]):
-        #     self.ui.tabifyDockWidget(self.image_dock[d], self.image_dock[keys_list[i + 1]])
 
     def struct_canvas_init(self, cfg_dict:dict):
         for key, results in cfg_dict.items():

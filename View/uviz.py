@@ -268,27 +268,25 @@ class Canvas(scene.SceneCanvas):
 
     def create_voxel_vertex(self, pos, width, length, height):
         box_vertex = np.array([[-0.5, -0.5, -0.5],
-                                [-0.5, -0.5, 0.5],
-                                [0.5, -0.5, -0.5],
-                                [0.5, -0.5, 0.5],
-                                [0.5, 0.5, -0.5],
-                                [0.5, 0.5, 0.5],
-                                [-0.5, 0.5, -0.5],
-                                [-0.5, 0.5, 0.5]])
+                            [-0.5, -0.5, 0.5],
+                            [0.5, -0.5, -0.5],
+                            [0.5, -0.5, 0.5],
+                            [0.5, 0.5, -0.5],
+                            [0.5, 0.5, 0.5],
+                            [-0.5, 0.5, -0.5],
+                            [-0.5, 0.5, 0.5]])
         nb_v = box_vertex.shape[0]
         scale = np.hstack((width, length, height))
-        vertices = np.zeros((nb_v * pos.shape[0], 3))
-        p_idx = []
-        for i in range(pos.shape[0]):
-            idx_v_start  = nb_v*i
-            idx_v_end    = nb_v*(i+1)
-            vertices[idx_v_start:idx_v_end] = box_vertex * scale[i]
-            vertices[idx_v_start:idx_v_end] += pos[i]
-            for j in range(nb_v):
-                p_idx.append((j + idx_v_start, (2 + j) % nb_v + idx_v_start))
-            for j in range(int(nb_v / 2)):
-                p_idx.append((2 * j + idx_v_start, 2 *j + 1 + idx_v_start))
-        return vertices, np.array(p_idx)
+        vertices = box_vertex.reshape(1, nb_v, 3) * scale.reshape(-1, 1, 3) + pos.reshape(-1, 1, 3)
+
+        vertices = vertices.reshape(-1, 3)
+        module_list = [(0, 2), (1, 3), (2, 4), (3, 5), (4, 6), (5, 7), (6, 0), (7, 1), (0, 1), (2, 3), (4, 5), (6, 7)]
+        pt_idx = np.array((pos.shape[0] * module_list), dtype=np.int64)
+
+        arr_mask = np.repeat(np.arange(pos.shape[0]), 12).reshape(-1) * 8
+        pt_idx += arr_mask.reshape(-1, 1)
+        return vertices, pt_idx
+
 
     def create_box_vertex(self, pos, width, length, height,
             rotation):
