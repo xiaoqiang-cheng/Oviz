@@ -144,7 +144,7 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name].transform.scale((0.6, 0.6, 0.6))
         self.vis_module[vis_name].transform.translate((0., 0., 0.8))
 
-        self.vis_module[vis_name].transform.rotate(0, (0, 0, 1))
+        self.vis_module[vis_name].transform.rotate(90, (0, 0, 1))
         self.view_panel[parent_view].add(self.vis_module[vis_name] )
 
     @property
