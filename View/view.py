@@ -56,7 +56,11 @@ class View(QObject):
 
         self.add_list_kind_color()
 
+        self.author_info = QLabel("Author: xiaoqiang")
+        self.email_info = QLabel("Email: xiaoqiang.cheng@foxmail.com")
         self.version_label = QLabel("v0.0.1")
+        self.ui.statusbar.addWidget(self.author_info, 1)
+        self.ui.statusbar.addWidget(self.email_info, 2)
         self.ui.statusbar.addWidget(self.version_label)
 
         self.ui.installEventFilter(self)  # 将事件过滤器安装到UI对象上

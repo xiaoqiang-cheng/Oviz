@@ -59,8 +59,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>139</width>
-         <height>697</height>
+         <width>144</width>
+         <height>676</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -157,7 +157,7 @@
      <x>0</x>
      <y>0</y>
      <width>1149</width>
-     <height>23</height>
+     <height>31</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_new">
@@ -191,7 +191,14 @@
    <addaction name="menu_theme"/>
    <addaction name="menu_view"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
+   <property name="autoFillBackground">
+    <bool>true</bool>
+   </property>
+  </widget>
   <action name="actionDefault">
    <property name="text">
     <string>default</string>

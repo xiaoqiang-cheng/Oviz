@@ -115,6 +115,13 @@ class Controller():
             if cnt:
                 self.update_system_vis(0)
 
+    def select_lane3d(self,  topic_path, meta_form):
+        send_log_msg(NORMAL, "亲，你选择了lane3d的topic为: %s"%topic_path)
+        if self.system_online_mode:
+            pass
+        else:
+            pass
+
     def update_pointsetting_dims(self):
         try:
             self.points_dim, self.xyz_dims, self.wlh_dims, self.color_dims = self.view.get_pointsetting()
