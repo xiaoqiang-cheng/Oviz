@@ -50,8 +50,8 @@ class ImageDockWidget(QDockWidget):
     SelectDone = Signal(str, str)
     def __init__(self, parent=None, dock_title = "dockview", default_path=""):
         super().__init__(dock_title, parent)
-        # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-        self.setStyleSheet("border:1px;")
+        # self.setStyleSheet("QDockWidget::separator{ width: 0px; height: 0px; }")
+        # self.setStyleSheet("QDockWidget:separator {width: 1px; height: 1px; }")
         self.dock_title = dock_title
         self.folder_path = default_path
         # Create the custom title bar widget
@@ -89,8 +89,6 @@ class ImageDockWidget(QDockWidget):
         layout.addWidget(self.image_viewer)
         layout.setContentsMargins(0, 0, 0, 0)
         widget.setLayout(layout)
-        self.setStyleSheet("border:1px;")
-        widget.setStyleSheet("border: 1px;")
         widget.setContentsMargins(0, 0, 0, 0)
         self.setWidget(widget)
         self.setContentsMargins(0, 0, 0, 0)

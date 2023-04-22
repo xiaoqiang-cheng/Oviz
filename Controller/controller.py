@@ -20,7 +20,6 @@ os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 class Controller():
     def __init__(self) -> None:
         self.app = QApplication([])
-        self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
         self.view = View()
         self.model = Model()
         self.system_online_mode = False
@@ -144,6 +143,7 @@ class Controller():
         self.view.send_update_vis_flag()
 
     def run(self):
+        self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
         self.view.show()
         self.app.exec_()
         self.view.save_layout_config()

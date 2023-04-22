@@ -25,9 +25,18 @@ class View(QObject):
         super().__init__()
         self.ui = QUiLoader().load('Config/qviz.ui')
         self.canvas_cfg = parse_json("Config/init_canvas_cfg3d.json")
-
         self.color_map = self.get_user_config("color_map.json")
         self.layout_config = self.get_user_config("layout_config.json")
+
+        qss = '''
+            QMainWindow::separator {
+                background-color: #0070C0;
+                width: 6px; /* 设置分隔条宽度 */
+                height: 6px; /* 设置分隔条高度 */
+            }
+        '''
+
+        self.ui.setStyleSheet(qss)
 
         self.canvas = Canvas()
         self.struct_canvas_init(self.canvas_cfg)
@@ -46,7 +55,12 @@ class View(QObject):
                 [7, -1],
                 self.ui.centralwidget.layout())
 
+        self.ui.centralwidget.setContentsMargins(0, 0, 0, 0)
+        self.ui.centralwidget.layout().setMargin(0)
+        self.ui.pointcloud_vis_widget.setContentsMargins(0, 0, 0, 0)
+
         self.ui.pointcloud_vis_widget_layout.addWidget(self.canvas.native)
+        self.ui.pointcloud_vis_widget_layout.setContentsMargins(0, 0, 0, 0)
 
         self.add_pointcloud_setting_widget()
 
@@ -202,6 +216,7 @@ class View(QObject):
             self.image_dock[n] = ImageDockWidget(dock_title=n)
             self.ui.addDockWidget(dock_layout_map[v],  self.image_dock[n])
 
+
     def struct_canvas_init(self, cfg_dict:dict):
         for key, results in cfg_dict.items():
             self.canvas.create_view(results["type"], key)
@@ -215,6 +230,7 @@ class View(QObject):
                         layout_set):
         # Qt.Horizontal or v
         self.spliter_dict[spliter_name] = QSplitter(spliter_dir)
+        self.spliter_dict[spliter_name].setStyleSheet("QSplitter {width: 0px; height: 0px; }")
 
         for w in widget_list:
             self.spliter_dict[spliter_name].addWidget(w)
