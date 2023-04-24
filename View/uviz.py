@@ -161,7 +161,7 @@ class Canvas(scene.SceneCanvas):
                                             symbol = 'o')
 
     def draw_point_voxel(self, vis_name, pos, w, l, h, face, edge):
-        self.vis_module[vis_name].set_data(pos, width=w, height=l, depth=h, face_color=face, edge_color=edge)
+        self.vis_module[vis_name].set_voxel_data(pos, width=w, height=l, depth=h, face_color=face)
 
     def draw_voxel_line(self, vis_name, pos, w, l, h, box_line_width=0.8):
         vertex_point, p_idx = self.create_voxel_vertex(pos, w, l, h)

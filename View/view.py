@@ -310,15 +310,8 @@ class View(QObject):
         self.canvas.draw_point_cloud("point_cloud", points, color, size)
 
     def set_point_voxel(self, points, w, l, h, face):
-        import time
-        start = time.time()
         self.canvas.draw_point_voxel("point_voxel", points, w, l, h, face, face)
-        mid = time.time()
         self.canvas.draw_voxel_line("voxel_line", points, w, l, h)
-        end = time.time()
-
-        print("voxel :", mid-start)
-        print("line :", end-mid)
 
     def set_image(self, img, meta_form):
         self.image_dock[meta_form].set_image(img)

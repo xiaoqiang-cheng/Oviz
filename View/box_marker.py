@@ -140,6 +140,61 @@ class BoxMarkersVisual(CompoundVisual):
             #  self.rotation_mat.append(Rotation.from_rotvec([0., 0., theta]).as_matrix())
             self.rotation_mat.append(Rotation.from_euler('xyz', [0., 0., theta]).as_matrix())
 
+    def set_voxel_data(self, point_coords=None, width=None, height=None, depth=None,
+                        face_color = None):
+
+        if point_coords is None:
+            point_coords = self.point_coords
+        else:
+            self.point_coords = point_coords
+
+        if width is None:
+            width = self.width
+        else:
+            self.width = width
+
+        if height is None:
+            height = self.height
+        else:
+            self.height = height
+
+        if depth is None:
+            depth = self.depth
+        else:
+            self.depth = depth
+
+        if face_color is None:
+            face_color = self.face_color
+        else:
+            self.face_color = face_color
+
+
+        self.nb_points = point_coords.shape[0]
+
+        if self.face_color is not None:
+            self.set_face_colors()
+
+        scale = np.hstack((self.width, self.height, self.depth))
+        vertices = self.vertices_box['position'].reshape(1, self.nb_v, 3) * scale.reshape(-1, 1, 3) + point_coords.reshape(-1, 1, 3)
+        vertices = vertices.reshape(-1, 3)
+        filled_indices_list = [[ 0,  2,  1],
+                            [ 2,  3,  1],
+                            [ 4,  6,  5],
+                            [ 6,  7,  5],
+                            [ 8, 10,  9],
+                            [10, 11,  9],
+                            [12, 14, 13],
+                            [14, 15, 13],
+                            [16, 18, 17],
+                            [18, 19, 17],
+                            [20, 22, 21],
+                            [22, 23, 21]]
+        filled_indices = np.array((point_coords.shape[0] * filled_indices_list), dtype=np.int64)
+        arr_mask = np.repeat(np.arange(point_coords.shape[0]), 12).reshape(-1) * 24
+        filled_indices += arr_mask.reshape(-1, 1)
+
+        self.mesh.set_data(vertices, filled_indices, None, self.face_colors, None)
+
     def set_data(self, point_coords=None, width=None, height=None, depth=None, vertex_colors=None,
             face_color=None, color=None, edge_color=None, rotation=None):
 
