@@ -8,8 +8,8 @@
         "fl": "top",
         "fc": "top",
         "fr": "top",
-        "sr": "top",
-        "rr": "top"
+        "sr": "top"
+        //"rr": "top"
     },
     "point_dim": "7",
     "xyz_dim": "0,1,2",
@@ -22,8 +22,8 @@
         "fl": "",
         "fc": "",
         "fr": "",
-        "sr": "",
-        "rr": ""
+        "sr": ""
+        //"rr": ""
     },
     "point_cloud_path": "",
     "lane3d_path": "",

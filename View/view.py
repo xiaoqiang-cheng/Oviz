@@ -31,8 +31,8 @@ class View(QObject):
         qss = '''
             QMainWindow::separator {
                 background-color: #0070C0;
-                width: 6px; /* 设置分隔条宽度 */
-                height: 6px; /* 设置分隔条高度 */
+                width: 1px; /* 设置分隔条宽度 */
+                height: 1px; /* 设置分隔条高度 */
             }
         '''
 
