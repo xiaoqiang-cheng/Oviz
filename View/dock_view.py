@@ -192,14 +192,16 @@ class RangeSlideDockWidget(QDockWidget):
         self.auto.stateChanged.connect(self.auto_ctrl)
 
     def auto_play(self):
-        if self.update_handled:
-            self.next_frame()
+        # if self.update_handled:
+        self.auto_timer.stop()
+        self.next_frame()
+        self.auto_timer.start(10)
 
     def auto_ctrl(self, state):
         if state == 0:
             self.auto_timer.stop()
         else:
-            self.auto_timer.start(100)
+            self.auto_timer.start(50)
 
     def change_bar(self):
         self.curr_index = self.range_slider.value()
