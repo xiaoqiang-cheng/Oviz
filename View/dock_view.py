@@ -222,6 +222,8 @@ class RangeSlideDockWidget(QDockWidget):
             elif self.curr_index >= self.frame_range:
                 self.curr_index = self.frame_range - 1
                 self.set_frmae_text(self.curr_index)
+            # 如果频繁的按下 next 或者 拖动，可视化会很卡，然后会停不下来
+            # 可视化和这些东西还是放入异步线程比较好
             if self.update_handled:
                 self.update_handled = False
                 self.frameChanged.emit(self.curr_index)

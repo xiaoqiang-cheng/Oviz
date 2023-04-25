@@ -92,8 +92,6 @@ class Controller():
                 self.view.update_color_map(item.text(), cur_color.name())
                 self.update_buffer_vis()
 
-
-
     def select_image(self, topic_path, meta_form):
         send_log_msg(NORMAL, "亲，你选择了图像topic为: %s"%topic_path)
         if self.system_online_mode:
