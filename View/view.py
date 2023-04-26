@@ -40,6 +40,8 @@ class View(QObject):
 
         self.canvas = Canvas()
         self.struct_canvas_init(self.canvas_cfg)
+        self.ui.setDockNestingEnabled(True)
+
 
         self.spliter_dict = {}
         self.dock_log_info = LogDockWidget()
@@ -85,6 +87,7 @@ class View(QObject):
         self.ui.action_show_slide.triggered.connect(self.show_range_slide)
         self.ui.action_show_log.triggered.connect(self.show_dock_log)
         self.ui.action_show_image.triggered.connect(self.show_dock_image)
+        self.ui.action_show_image_titlebar.triggered.connect(self.show_image_titlebar)
 
     def get_user_config(self, config_name):
         default_config_file = os.path.join("Config", config_name)
@@ -147,6 +150,10 @@ class View(QObject):
             self.dock_range_slide.hide()
 
         self.slide_flag = not self.slide_flag
+
+    def show_image_titlebar(self):
+        for k, v in self.image_dock.items():
+            v.set_image_title_bar()
 
     def show_dock_image(self):
         for k, v in self.image_dock.items():
