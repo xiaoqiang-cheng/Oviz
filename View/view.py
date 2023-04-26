@@ -124,8 +124,10 @@ class View(QObject):
         write_json(self.color_map, ".user/color_map.json")
 
     def grab_form(self, image_name):
+        if not os.path.exists("Output"):
+            os.mkdir("Output")
         output_path = os.path.join("Output", image_name)
-        self.ui.grab().save(output_path, quality=100)
+        self.ui.grab().save(output_path, "PNG", quality=100)
 
     def revet_layout_config(self):
         self.ui.linetxt_point_dim.setText(self.layout_config["point_dim"])
