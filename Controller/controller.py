@@ -33,7 +33,10 @@ class Controller():
 
         self.curr_frame_index = 0
         self.show_voxel = False
+        self.record_screen = False
 
+        self.view.set_spilter_style()
+        self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
         self.revert_user_config()
         send_log_msg(NORMAL, "Qviz 系統开始运行！")
 
@@ -50,6 +53,7 @@ class Controller():
         self.view.ui.linetxt_color_dim.textChanged.connect(self.update_pointsetting_dims)
         self.view.pointSizeChanged.connect(self.change_point_size)
         self.view.show_voxel_mode.stateChanged.connect(self.change_voxel_mode)
+        self.view.checkbox_record_screen.stateChanged.connect(self.change_record_mode)
         self.view.checkbox_show_car.stateChanged.connect(self.show_car_mode)
         self.view.ui.listwidget_id_color_map.itemDoubleClicked.connect(self.toggle_list_kind_color)
 
@@ -65,6 +69,14 @@ class Controller():
     def show_car_mode(self, state):
         flag = state > 0
         self.view.set_car_visible(flag)
+
+    def change_record_mode(self, state):
+        if state > 0:
+            self.record_screen = True
+            send_log_msg(NORMAL, "开始录屏")
+        else:
+            self.record_screen = False
+            send_log_msg(NORMAL, "关闭录屏")
 
     def change_voxel_mode(self, state):
         if state > 0:
@@ -139,9 +151,10 @@ class Controller():
         self.model.get_curr_frame_data(index, self.points_dim)
         self.update_buffer_vis()
         self.view.send_update_vis_flag()
+        if self.record_screen:
+            self.view.grab_form(self.model.data_frame_list[index] + ".png")
 
     def run(self):
-        self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
         self.view.show()
         self.app.exec_()
         self.view.save_layout_config()
@@ -152,8 +165,8 @@ class Controller():
             self.view.dock_log_info.display_append_msg_list(get_msg)
 
     def sigint_handler(self, signum = None, frame = None):
-        sys.exit(self.app.exec_())
         self.view.save_layout_config()
+        sys.exit(self.app.exec_())
 
 
     def image_callback(self, msg, topic, meta_form):

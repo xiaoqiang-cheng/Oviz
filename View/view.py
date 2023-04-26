@@ -1,7 +1,7 @@
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QApplication, QSplitter, QTreeWidgetItem, QCheckBox,QListWidgetItem
 from PySide2.QtCore import QTimer, Qt, QModelIndex
-from PySide2.QtGui import QColor
+from PySide2.QtGui import QColor, QPixmap
 import time
 from Utils.common_utils import *
 from View.uviz import Canvas
@@ -27,16 +27,6 @@ class View(QObject):
         self.canvas_cfg = parse_json("Config/init_canvas_cfg3d.json")
         self.color_map = self.get_user_config("color_map.json")
         self.layout_config = self.get_user_config("layout_config.json")
-
-        qss = '''
-            QMainWindow::separator {
-                background-color: #0070C0;
-                width: 1px; /* 设置分隔条宽度 */
-                height: 1px; /* 设置分隔条高度 */
-            }
-        '''
-
-        self.ui.setStyleSheet(qss)
 
         self.canvas = Canvas()
         self.struct_canvas_init(self.canvas_cfg)
@@ -80,14 +70,22 @@ class View(QObject):
         self.ui.statusbar.addWidget(self.version_label)
 
         self.ui.installEventFilter(self)  # 将事件过滤器安装到UI对象上
-
         self.set_car_visible(False)
-
 
         self.ui.action_show_slide.triggered.connect(self.show_range_slide)
         self.ui.action_show_log.triggered.connect(self.show_dock_log)
         self.ui.action_show_image.triggered.connect(self.show_dock_image)
         self.ui.action_show_image_titlebar.triggered.connect(self.show_image_titlebar)
+        self.ui.action_show_status_bar.triggered.connect(self.show_status_bar)
+
+    def  set_spilter_style(self):
+        qss = '''
+            QMainWindow::separator {
+                width: 1px; /* 设置分隔条宽度 */
+                height: 1px; /* 设置分隔条高度 */
+            }
+        '''
+        self.ui.setStyleSheet(qss)
 
     def get_user_config(self, config_name):
         default_config_file = os.path.join("Config", config_name)
@@ -112,6 +110,8 @@ class View(QObject):
         self.layout_config["image_flag"] = not self.image_flag
         self.layout_config["log_flag"]   = not self.log_flag
         self.layout_config["slide_flag"] = not self.slide_flag
+        self.layout_config["status_bar_flag"] = not self.status_bar_flag
+
 
 
         for key in self.layout_config['image_dock_path'].keys():
@@ -122,6 +122,10 @@ class View(QObject):
 
         write_json(self.layout_config, ".user/layout_config.json")
         write_json(self.color_map, ".user/color_map.json")
+
+    def grab_form(self, image_name):
+        output_path = os.path.join("Output", image_name)
+        self.ui.grab().save(output_path, quality=100)
 
     def revet_layout_config(self):
         self.ui.linetxt_point_dim.setText(self.layout_config["point_dim"])
@@ -136,9 +140,12 @@ class View(QObject):
         self.image_flag = self.layout_config["image_flag"]
         self.log_flag = self.layout_config["log_flag"]
         self.slide_flag = self.layout_config["slide_flag"]
+        self.status_bar_flag = self.layout_config["status_bar_flag"]
+
         self.show_range_slide()
         self.show_dock_log()
         self.show_dock_image()
+        self.show_status_bar()
 
         for key, val in self.layout_config['image_dock_path'].items():
             self.image_dock[key].set_topic_path(val)
@@ -150,6 +157,13 @@ class View(QObject):
             self.dock_range_slide.hide()
 
         self.slide_flag = not self.slide_flag
+
+    def show_status_bar(self):
+        if self.status_bar_flag:
+            self.ui.statusbar.show()
+        else:
+            self.ui.statusbar.hide()
+        self.status_bar_flag = not self.status_bar_flag
 
     def show_image_titlebar(self):
         for k, v in self.image_dock.items():
@@ -194,6 +208,7 @@ class View(QObject):
         self.checkbox_show_car = QCheckBox("显示车模型")
         self.checkbox_online_mode = QCheckBox("保存数据")
         self.checkbox_dump_alldata = QCheckBox("在线模式")
+        self.checkbox_record_screen = QCheckBox("保存录屏")
 
 
         self.ui.pointcloud_vis_setting_frame.layout().addWidget(self.button_select_pointcloud)
@@ -205,6 +220,7 @@ class View(QObject):
         self.ui.pointcloud_vis_setting_frame.layout().addWidget(self.checkbox_show_car)
         self.ui.pointcloud_vis_setting_frame.layout().addWidget(self.checkbox_dump_alldata)
         self.ui.pointcloud_vis_setting_frame.layout().addWidget(self.checkbox_online_mode)
+        self.ui.pointcloud_vis_setting_frame.layout().addWidget(self.checkbox_record_screen)
 
 
     def add_list_kind_color(self):

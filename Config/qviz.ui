@@ -187,6 +187,7 @@
     <addaction name="action_show_log"/>
     <addaction name="action_show_slide"/>
     <addaction name="action_show_image_titlebar"/>
+    <addaction name="action_show_status_bar"/>
    </widget>
    <addaction name="menu_new"/>
    <addaction name="menu_theme"/>
@@ -263,6 +264,11 @@
   <action name="action_show_image_titlebar">
    <property name="text">
     <string>显示图片标题栏</string>
+   </property>
+  </action>
+  <action name="action_show_status_bar">
+   <property name="text">
+    <string>显示状态栏</string>
    </property>
   </action>
  </widget>
