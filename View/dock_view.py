@@ -55,7 +55,8 @@ class ImageDockWidget(QDockWidget):
         self.dock_title = dock_title
         self.folder_path = default_path
         # Create the custom title bar widget
-        title_bar_widget = QWidget(self)
+        self.title_bar_widget = QWidget(self)
+        self.show_title = True
         title_bar_layout = QHBoxLayout()
         title_bar_layout.setContentsMargins(0, 0, 0, 0)
 
@@ -80,10 +81,10 @@ class ImageDockWidget(QDockWidget):
         title_bar_layout.addWidget(separator_line)
 
         # Set the custom title bar widget as the title bar for the dock widget
-        title_bar_widget.setLayout(title_bar_layout)
-        self.setTitleBarWidget(title_bar_widget)
-        self.image_viewer = ImageViewer(self)
+        self.title_bar_widget.setLayout(title_bar_layout)
+        self.set_image_title_bar()
 
+        self.image_viewer = ImageViewer(self)
         widget = QWidget()
         layout = QVBoxLayout()
         layout.addWidget(self.image_viewer)
@@ -97,6 +98,13 @@ class ImageDockWidget(QDockWidget):
         self.image_viewer.doubleClicked.connect(self.select_image)
         self.linetxt.returnPressed.connect(self.select_topic_path)
 
+
+    def set_image_title_bar(self):
+        if self.show_title:
+            self.setTitleBarWidget(self.title_bar_widget)
+        else:
+            self.setTitleBarWidget(QWidget())
+        self.show_title = not self.show_title
 
     def select_topic_path(self):
         self.folder_path = self.linetxt.text()
