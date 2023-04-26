@@ -52,6 +52,7 @@ class ImageDockWidget(QDockWidget):
         super().__init__(dock_title, parent)
         # self.setStyleSheet("QDockWidget::separator{ width: 0px; height: 0px; }")
         # self.setStyleSheet("QDockWidget:separator {width: 1px; height: 1px; }")
+        self.setObjectName(dock_title)
         self.dock_title = dock_title
         self.folder_path = default_path
         # Create the custom title bar widget
@@ -131,6 +132,7 @@ class LogDockWidget(QDockWidget):
     def __init__(self, parent=None, titie = "Qlog"):
         super().__init__(titie, parent)
         # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.setObjectName(titie)
 
         widget = QWidget()
         layout = QVBoxLayout()
@@ -154,6 +156,8 @@ class RangeSlideDockWidget(QDockWidget):
     def __init__(self, parent=None, titie = "frame"):
         super().__init__(titie, parent)
         # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.setObjectName(titie)
+
         widget = QWidget()
         layout = QVBoxLayout()
         layout2 = QHBoxLayout()

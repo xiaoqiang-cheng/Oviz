@@ -122,6 +122,7 @@ class View(QObject):
 
         write_json(self.layout_config, ".user/layout_config.json")
         write_json(self.color_map, ".user/color_map.json")
+        self.save_layout()
 
     def grab_form(self, image_name):
         if not os.path.exists("Output"):
@@ -151,6 +152,22 @@ class View(QObject):
 
         for key, val in self.layout_config['image_dock_path'].items():
             self.image_dock[key].set_topic_path(val)
+
+        self.load_layout()
+
+    def save_layout(self):
+        p = '.user/layout.ini'
+        with open(p, 'wb') as f:
+            s = self.ui.saveState()
+            f.write(bytes(s))
+            f.flush()
+
+    def load_layout(self):
+        p = '.user/layout.ini'
+        if os.path.exists(p):
+            with open(p, 'rb') as f:
+                s = f.read()
+                self.ui.restoreState(s)
 
     def show_range_slide(self):
         if self.slide_flag:
