@@ -142,9 +142,9 @@ class Canvas(scene.SceneCanvas):
         # and the face direction need adjust
         self.vis_module[vis_name].transform = transforms.MatrixTransform()
         self.vis_module[vis_name].transform.scale((0.6, 0.6, 0.6))
-        self.vis_module[vis_name].transform.translate((0., 0., 0.8))
+        self.vis_module[vis_name].transform.translate((0., 0., 1.0))
 
-        self.vis_module[vis_name].transform.rotate(90, (0, 0, 1))
+        self.vis_module[vis_name].transform.rotate(0, (0, 0, 1))
         self.view_panel[parent_view].add(self.vis_module[vis_name] )
 
     @property
