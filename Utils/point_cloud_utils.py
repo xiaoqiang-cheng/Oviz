@@ -88,10 +88,17 @@ def get_plane_pcd_base(pcd_path):
     plane.append(0.0) # add z
     return plane
 
-def write_pcd(path, nparray):
-    pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(nparray)
-    o3d.io.write_point_cloud(path, pcd)
+def write_pcd(path, nparray,
+        filed = [('x', np.float32) , ('y', np.float32), ('z', np.float32), ('i', np.uint8)]):
+    dtype = np.dtype(filed)
+
+    new_bin = []
+    for i, dt in enumerate(filed):
+        new_bin.append(nparray[:, i].astype(dt[-1]))
+    out = np.rec.fromarrays(new_bin, dtype=dtype)
+
+    pc = pypcd.PointCloud.from_array(out)
+    pypcd.save_point_cloud(pc, path)
 
 def rotation_mat(theta):
    """ same as Rotation.from_euler('xyz', rot).as_matrix() """
