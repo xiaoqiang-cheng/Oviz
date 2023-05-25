@@ -1,0 +1,10 @@
+numpy==1.24.2
+opencv_python==4.7.0.72
+PySide2==5.15.2.1
+python_lzf==0.2.4
+PyYAML==6.0
+QDarkStyle==3.1
+qt_material==2.14
+scipy==1.10.1
+trimesh==3.20.1
+vispy==0.12.1
