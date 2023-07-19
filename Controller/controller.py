@@ -187,7 +187,7 @@ class Controller():
 
         real_color, state = self.view.color_id_to_color_list(color_id_list)
 
-        if not state and max(self.color_dims) != -1:
+        if not state:
             send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
 
         if self.show_voxel:
