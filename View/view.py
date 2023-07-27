@@ -24,7 +24,7 @@ class View(QObject):
     def __init__(self) -> None:
         super().__init__()
         self.ui = QUiLoader().load('Config/qviz.ui')
-        self.canvas_cfg = parse_json("Config/init_canvas_cfg3d.json")
+        self.canvas_cfg = self.get_user_config("init_canvas_cfg3d.json")
         self.color_map = self.get_user_config("color_map.json")
         self.layout_config = self.get_user_config("layout_config.json")
 
@@ -112,6 +112,9 @@ class View(QObject):
         self.layout_config["slide_flag"] = not self.slide_flag
         self.layout_config["status_bar_flag"] = not self.status_bar_flag
 
+        for key in self.canvas_cfg.keys():
+            if "camera" in self.canvas_cfg[key].keys():
+                self.canvas_cfg[key]['camera'] = self.canvas.get_canvas_camera(key)
 
 
         for key in self.layout_config['image_dock_path'].keys():
@@ -122,6 +125,7 @@ class View(QObject):
 
         write_json(self.layout_config, ".user/layout_config.json")
         write_json(self.color_map, ".user/color_map.json")
+        write_json(self.canvas_cfg, ".user/init_canvas_cfg3d.json")
         self.save_layout()
 
     def grab_form(self, image_name):
@@ -263,7 +267,10 @@ class View(QObject):
 
     def struct_canvas_init(self, cfg_dict:dict):
         for key, results in cfg_dict.items():
-            self.canvas.create_view(results["type"], key)
+            if "camera" in results.keys():
+                self.canvas.create_view(results["type"], key, results['camera'])
+            else:
+                self.canvas.create_view(results["type"], key)
             for vis_key, vis_res in results["vis"].items():
                 self.canvas.creat_vis(vis_res['type'], vis_key, key)
 

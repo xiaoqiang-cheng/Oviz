@@ -1,6 +1,13 @@
 {
     "view3d": {
         "type": "add_3dview",
+        "camera": {
+            "fov": 45,
+            "elevation": 34.5,
+            "azimuth" : -61.5,
+            "roll" : 0.0,
+            "distance":60
+        },
         "vis": {
             "point_cloud": {
                 "type": "add_pointcloud_vis"

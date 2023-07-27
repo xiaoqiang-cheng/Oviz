@@ -65,12 +65,12 @@ class Canvas(scene.SceneCanvas):
     #     if event.key == vispy.keys.ESCAPE:
     #         event.handled = True
 
-    def create_view(self, view_type, view_name):
+    def create_view(self, view_type, view_name, camera = None):
         create_method = getattr(self, view_type, None)
         if create_method is None:
             raise RuntimeError('无此类型视图面板')
         else:
-            create_method(view_name)
+            create_method(view_name, camera)
 
     def creat_vis(self, vis_type, vis_name, parent_view):
         create_method = getattr(self, vis_type, None)
@@ -80,7 +80,7 @@ class Canvas(scene.SceneCanvas):
             create_method(vis_name, parent_view)
 
 
-    def add_3dview(self, view_name = "3d"):
+    def add_3dview(self, view_name = "3d", camera = None):
         self.view_panel[view_name] = self.grid.add_view(row=0, col=0, margin=2, border_color=(1, 1, 1))
         # self.view_panel[view_name].camera = 'turntable' # arcball
         # self.view_panel[view_name].camera.fov = 30
@@ -92,16 +92,31 @@ class Canvas(scene.SceneCanvas):
         # roll: float = 0.0,
         # distance: None | float = None,
         # translate_speed: float = 1.0,
-        self.view_panel[view_name].camera  = scene.TurntableCamera(
-                elevation = 30,
-                azimuth = 50,
-                roll = 0,
-                distance = 60
-            )
+        if camera is None:
+            self.view_panel[view_name].camera  = scene.TurntableCamera(
+                    elevation = 30,
+                    azimuth = 50,
+                    roll = 0,
+                    distance = 60
+                )
+        else:
+            self.view_panel[view_name].camera  = scene.TurntableCamera(
+                    **camera
+                )
         # vispy.scene.visuals.GridLines(color = 'w',parent=self.view_panel[view_name].scene)
+
+    def get_canvas_camera(self, view_name):
+        return {
+            "fov": self.view_panel[view_name].camera._fov,
+            "elevation": self.view_panel[view_name].camera._elevation,
+            "azimuth" : self.view_panel[view_name].camera._azimuth,
+            "roll" : self.view_panel[view_name].camera._roll,
+            "distance": self.view_panel[view_name].camera._distance
+        }
 
     def print_3dview_camera_params(self, view_name = "view3d"):
         print("=================3D view Camera Params:============")
+        print("fov: ", self.view_panel[view_name].camera._fov)
         print("elevation: ", self.view_panel[view_name].camera._elevation)
         print("azimuth:", self.view_panel[view_name].camera._azimuth)
         print("roll:", self.view_panel[view_name].camera._roll)
