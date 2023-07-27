@@ -213,6 +213,8 @@ class View(QObject):
                 if self.point_size < 1:
                     self.point_size = 1
                 self.pointSizeChanged.emit(self.point_size)
+            elif event.key() == Qt.Key_P:
+                self.canvas.print_3dview_camera_params()
             return True
         return False
 

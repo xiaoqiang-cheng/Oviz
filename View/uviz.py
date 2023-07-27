@@ -82,10 +82,31 @@ class Canvas(scene.SceneCanvas):
 
     def add_3dview(self, view_name = "3d"):
         self.view_panel[view_name] = self.grid.add_view(row=0, col=0, margin=2, border_color=(1, 1, 1))
-        self.view_panel[view_name].camera = 'turntable' # arcball
-        self.view_panel[view_name].camera.fov = 30
+        # self.view_panel[view_name].camera = 'turntable' # arcball
+        # self.view_panel[view_name].camera.fov = 30
+        # print(self.view_panel[view_name].camera.__dict__)
+
+        # fov: float = 45.0,
+        # elevation: float = 30.0,
+        # azimuth: float = 30.0,
+        # roll: float = 0.0,
+        # distance: None | float = None,
+        # translate_speed: float = 1.0,
+        self.view_panel[view_name].camera  = scene.TurntableCamera(
+                elevation = 30,
+                azimuth = 50,
+                roll = 0,
+                distance = 60
+            )
         # vispy.scene.visuals.GridLines(color = 'w',parent=self.view_panel[view_name].scene)
 
+    def print_3dview_camera_params(self, view_name = "view3d"):
+        print("=================3D view Camera Params:============")
+        print("elevation: ", self.view_panel[view_name].camera._elevation)
+        print("azimuth:", self.view_panel[view_name].camera._azimuth)
+        print("roll:", self.view_panel[view_name].camera._roll)
+        print("distance:", self.view_panel[view_name].camera._distance)
+        print("=======================ending=====================\n")
 
     def add_2dview(self, view_name = "2d"):
         self.view_panel[view_name] = self.grid.add_view(row=self.curr_col_image_view, col=0, margin=10,
