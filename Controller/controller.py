@@ -183,7 +183,7 @@ class Controller():
             send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.color_dims), max_dim))
             color_id_list = -1
         else:
-            color_id_list = msg[..., self.color_dims].astype(np.uint8)
+            color_id_list = msg[..., self.color_dims]
 
         real_color, state = self.view.color_id_to_color_list(color_id_list)
 
