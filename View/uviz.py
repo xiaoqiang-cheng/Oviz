@@ -177,7 +177,7 @@ class Canvas(scene.SceneCanvas):
 
     def add_veh_model(self, vis_name, parent_view,
                         obj_path="Config/colorful_car/car.obj",
-                        texture_path='Config/colorful_car/00006.BMP'):
+                        texture_path='Config/colorful_car/00001.BMP'):
         mesh_path = load_data_file(obj_path, directory=".")
         texture_path = load_data_file(texture_path,  directory=".")
         vertices, faces, normals, texcoords = read_mesh(mesh_path)
