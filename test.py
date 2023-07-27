@@ -1,69 +1,67 @@
-import seaborn as sns
-import matplotlib.pyplot as plt
+import argparse
+
+import numpy as np
+from vispy import app, scene
+from vispy.io import imread, load_data_file, read_mesh
+from vispy.scene.visuals import Mesh
+from vispy.scene import transforms
+from vispy.visuals.filters import TextureFilter
 
 
-# RGB格式颜色转换为16进制颜色格式
-def RGB_to_Hex(rgb):
-    RGB = rgb.split(',')  # 将RGB格式划分开来
-    color = '#'
-    for i in RGB:
-        num = int(i)
-        # 将R、G、B分别转化为16进制拼接转换并大写  hex() 函数用于将10进制整数转换成16进制，以字符串形式表示
-        color += str(hex(num))[-2:].replace('x', '0').upper()
-    print(color)
-    return color
+parser = argparse.ArgumentParser()
+parser.add_argument('--shading', default='smooth',
+                    choices=['none', 'flat', 'smooth'],
+                    help="shading mode")
+args, _ = parser.parse_known_args()
+
+mesh_path = load_data_file('/home/uisee/Downloads/fuck/Porsche_911_GT2.obj')
+texture_path = load_data_file('/home/uisee/Downloads/fuck/skin06/0000.BMP')
+vertices, faces, normals, texcoords = read_mesh(mesh_path)
+texture = np.flipud(imread(texture_path))
+
+canvas = scene.SceneCanvas(keys='interactive', bgcolor='white',
+                           size=(800, 600))
+view = canvas.central_widget.add_view()
+
+view.camera = 'arcball'
+# Adapt the depth to the scale of the mesh to avoid rendering artefacts.
+view.camera.depth_value = 10 * (vertices.max() - vertices.min())
+
+shading = None if args.shading == 'none' else args.shading
+mesh = Mesh(vertices, faces, shading=shading, color='white')
+mesh.transform = transforms.MatrixTransform()
+mesh.transform.rotate(90, (1, 0, 0))
+mesh.transform.rotate(135, (0, 0, 1))
+mesh.shading_filter.shininess = 1e+1
+view.add(mesh)
+
+texture_filter = TextureFilter(texture, texcoords)
+mesh.attach(texture_filter)
 
 
-# RGB格式颜色转换为16进制颜色格式
-def RGB_list_to_Hex(RGB):
-    # RGB = rgb.split(',')  # 将RGB格式划分开来
-    color = '#'
-    for i in RGB:
-        num = int(i)
-        # 将R、G、B分别转化为16进制拼接转换并大写  hex() 函数用于将10进制整数转换成16进制，以字符串形式表示
-        color += str(hex(num))[-2:].replace('x', '0').upper()
-    print(color)
-    return color
+@canvas.events.key_press.connect
+def on_key_press(event):
+    if event.key == "t":
+        texture_filter.enabled = not texture_filter.enabled
+        mesh.update()
 
 
-# 16进制颜色格式颜色转换为RGB格式
-def Hex_to_RGB(hex):
-    r = int(hex[1:3], 16)
-    g = int(hex[3:5], 16)
-    b = int(hex[5:7], 16)
-    rgb = str(r) + ',' + str(g) + ',' + str(b)
-    print(rgb)
-    return rgb, [r, g, b]
+def attach_headlight(mesh, view, canvas):
+    light_dir = (0, 1, 0, 0)
+    mesh.shading_filter.light_dir = light_dir[:3]
+    initial_light_dir = view.camera.transform.imap(light_dir)
+
+    @view.scene.transform.changed.connect
+    def on_transform_change(event):
+        transform = view.camera.transform
+        mesh.shading_filter.light_dir = transform.map(initial_light_dir)[:3]
 
 
-# 生成渐变色
-def gradient_color(color_list, color_sum=700):
-    color_center_count = len(color_list)
-    # if color_center_count == 2:
-    #     color_center_count = 1
-    color_sub_count = int(color_sum / (color_center_count - 1))
-    color_index_start = 0
-    color_map = []
-    for color_index_end in range(1, color_center_count):
-        color_rgb_start = Hex_to_RGB(color_list[color_index_start])[1]
-        color_rgb_end = Hex_to_RGB(color_list[color_index_end])[1]
-        r_step = (color_rgb_end[0] - color_rgb_start[0]) / color_sub_count
-        g_step = (color_rgb_end[1] - color_rgb_start[1]) / color_sub_count
-        b_step = (color_rgb_end[2] - color_rgb_start[2]) / color_sub_count
-        # 生成中间渐变色
-        now_color = color_rgb_start
-        color_map.append(RGB_list_to_Hex(now_color))
-        for color_index in range(1, color_sub_count):
-            now_color = [now_color[0] + r_step, now_color[1] + g_step, now_color[2] + b_step]
-            color_map.append(RGB_list_to_Hex(now_color))
-        color_index_start = color_index_end
-    return color_map
+attach_headlight(mesh, view, canvas)
 
 
-if __name__ == '__main__':
-    # input_colors = ["#40FAFF", "#00EBEB", "#00EB00", "#FFC800", "#FC9600", "#FA0000", "#C800FA", "#FF64FF"]
-    input_colors = ["#00e400", "#00EBEB",]
-    colors = gradient_color(input_colors)
-    sns.palplot(colors)
-    print(len(colors))
-    plt.show()
+canvas.show()
+
+
+if __name__ == "__main__":
+    app.run()
