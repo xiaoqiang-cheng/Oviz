@@ -21,6 +21,12 @@ from Utils.common_utils import *
 
 from PySide2.QtCore import Signal
 
+from vispy.io import imread, load_data_file, read_mesh
+from vispy.scene.visuals import Mesh
+from vispy.visuals.filters import TextureFilter
+
+
+
 class Canvas(scene.SceneCanvas):
     """Class that creates and handles a visualizer for a pointcloud"""
     # view相当于是面板，下面可以有好多vis
@@ -169,19 +175,35 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name] = visuals.Text(font_size=1000, color=(0,1,1))
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
+    def add_veh_model(self, vis_name, parent_view,
+                        obj_path="Config/colorful_car/car.obj",
+                        texture_path='Config/colorful_car/00006.BMP'):
+        mesh_path = load_data_file(obj_path, directory=".")
+        texture_path = load_data_file(texture_path,  directory=".")
+        vertices, faces, normals, texcoords = read_mesh(mesh_path)
+        texture = np.flipud(imread(texture_path))
 
-    def add_veh_model(self, vis_name, parent_view, stl_path = "Config/car.obj"):
-        car_mesh = trimesh.load(stl_path)
-        self.vis_module[vis_name] = visuals.Mesh(vertices=car_mesh.vertices, faces=car_mesh.faces,
-                shading='smooth')
-        # The size of model from internet is not the actual size of a car
-        # and the face direction need adjust
-        self.vis_module[vis_name].transform = transforms.MatrixTransform()
-        self.vis_module[vis_name].transform.scale((0.6, 0.6, 0.6))
-        self.vis_module[vis_name].transform.translate((0., 0., 1.0))
+        mesh = Mesh(vertices, faces, shading="smooth", color=(1, 1, 1, 0.9))
+        mesh.transform = transforms.MatrixTransform()
 
-        self.vis_module[vis_name].transform.rotate(0, (0, 0, 1))
+        mesh.transform.rotate(90, (1, 0, 0))
+        mesh.transform.rotate(-90, (0, 0, 1))
+        mesh.transform.scale((1.1, 1.1, 1.1))
+        mesh.transform.translate((0., 0., 1.0))
+        texture_filter = TextureFilter(texture, texcoords)
+        self.initial_camera_dir = (0, -1, 0)  # for a default initialised camera
+        self.initial_light_dir = self.view_panel[parent_view].camera.transform.imap(self.initial_camera_dir)[:3]
+        mesh.shading_filter.light_dir = self.initial_camera_dir
+
+        self.vis_module[vis_name] = mesh
         self.view_panel[parent_view].add(self.vis_module[vis_name] )
+        self.vis_module[vis_name].attach(texture_filter)
+
+    def on_mouse_move(self, event):
+        mesh = self.vis_module['car_model']
+        transform = self.view_panel['view3d'].camera.transform
+        dir = np.concatenate((self.initial_light_dir, [0]))
+        mesh.shading_filter.light_dir = transform.map(dir)[:3]
 
     @property
     def visuals(self):
