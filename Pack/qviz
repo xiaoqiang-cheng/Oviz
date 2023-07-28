@@ -1,0 +1,8 @@
+#!/bin/bash
+
+unset PYTHONPATH
+
+. /usr/local/qviz_env/bin/activate
+
+cd ~/.qviz/
+    python main.py
