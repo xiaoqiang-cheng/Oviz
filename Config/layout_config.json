@@ -3,6 +3,7 @@
     "log_flag": 0,
     "slide_flag": 0,
     "status_bar_flag" : 1,
+    "control_box_flag" : 1,
     "image_dock_config": {
         "rl": "top",
         "sl": "top",

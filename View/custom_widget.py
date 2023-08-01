@@ -47,6 +47,30 @@ class FolderSelectWidget(QtWidgets.QWidget):
         return self.folder_path
 
 
+class LineTextWithLabelWidget(QtWidgets.QWidget):
+    textChanged = QtCore.Signal(str)
+    def __init__(self, parent=None,  widget_titie="", default_value = ""):
+        super().__init__(parent)
+        layout = QHBoxLayout(self)
+        self.label = QLabel(widget_titie)
+        self.linetxt = QLineEdit(default_value)
+        layout.addWidget(self.label)
+        layout.addWidget(self.linetxt)
+        self.setLayout(layout)
+
+        self.linetxt.textChanged.connect(self.txtchange)
+
+    def txtchange(self, cstr):
+        self.textChanged.emit(cstr)
+
+    def text(self):
+        return self.linetxt.text()
+
+    def setText(self, cstr):
+        self.linetxt.setText(cstr)
+
+
+
 class FileSelectWidget(QtWidgets.QWidget):
     SelectDone = QtCore.Signal(str, str)
     def __init__(self, parent=None, widget_titie="选择", default_path = ""):

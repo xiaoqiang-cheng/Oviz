@@ -1,67 +1,112 @@
-import argparse
-
-import numpy as np
-from vispy import app, scene
-from vispy.io import imread, load_data_file, read_mesh
-from vispy.scene.visuals import Mesh
-from vispy.scene import transforms
-from vispy.visuals.filters import TextureFilter
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--shading', default='flat',
-                    choices=['none', 'flat', 'smooth'],
-                    help="shading mode")
-args, _ = parser.parse_known_args()
+class CollapsibleBox(QtWidgets.QWidget):
+    def __init__(self, title="", parent=None):
+        super(CollapsibleBox, self).__init__(parent)
 
+        self.toggle_button = QtWidgets.QToolButton(
+            text=title, checkable=True, checked=False
+        )
+        self.toggle_button.setStyleSheet("QToolButton { border: none; }")
+        self.toggle_button.setToolButtonStyle(
+            QtCore.Qt.ToolButtonTextBesideIcon
+        )
+        self.toggle_button.setArrowType(QtCore.Qt.RightArrow)
+        self.toggle_button.pressed.connect(self.on_pressed)
 
-canvas = scene.SceneCanvas(keys='interactive', bgcolor='white',
-                           size=(800, 600))
-view = canvas.central_widget.add_view()
+        self.toggle_animation = QtCore.QParallelAnimationGroup(self)
 
-view.camera = 'arcball'
-# Adapt the depth to the scale of the mesh to avoid rendering artefacts.
-# view.camera.depth_value = 10 * (vertices.max() - vertices.min())
+        self.content_area = QtWidgets.QScrollArea(
+            maximumHeight=0, minimumHeight=0
+        )
+        self.content_area.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+        )
+        self.content_area.setFrameShape(QtWidgets.QFrame.NoFrame)
 
-mesh_path = load_data_file("Config/colorful_car/car.obj", directory=".")
-texture_path = load_data_file('Config/colorful_car/00008.BMP',  directory=".")
-vertices, faces, normals, texcoords = read_mesh(mesh_path)
-texture = np.flipud(imread(texture_path))
+        lay = QtWidgets.QVBoxLayout(self)
+        lay.setSpacing(0)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.addWidget(self.toggle_button)
+        lay.addWidget(self.content_area)
 
-mesh = Mesh(vertices, faces, shading="smooth", color=(1, 1, 1, 0.9))
-mesh.transform = transforms.MatrixTransform()
-mesh.transform.rotate(90, (1, 0, 0))
-# mesh.transform.rotate(135, (0, 0, 1))
-mesh.shading_filter.shininess = 1e+1
-view.add(mesh)
+        self.toggle_animation.addAnimation(
+            QtCore.QPropertyAnimation(self, b"minimumHeight")
+        )
+        self.toggle_animation.addAnimation(
+            QtCore.QPropertyAnimation(self, b"maximumHeight")
+        )
+        self.toggle_animation.addAnimation(
+            QtCore.QPropertyAnimation(self.content_area, b"maximumHeight")
+        )
 
-texture_filter = TextureFilter(texture, texcoords)
-mesh.attach(texture_filter)
+    @QtCore.pyqtSlot()
+    def on_pressed(self):
+        checked = self.toggle_button.isChecked()
+        self.toggle_button.setArrowType(
+            QtCore.Qt.DownArrow if not checked else QtCore.Qt.RightArrow
+        )
+        self.toggle_animation.setDirection(
+            QtCore.QAbstractAnimation.Forward
+            if not checked
+            else QtCore.QAbstractAnimation.Backward
+        )
+        self.toggle_animation.start()
 
+    def setContentLayout(self, layout):
+        lay = self.content_area.layout()
+        del lay
+        self.content_area.setLayout(layout)
+        collapsed_height = (
+            self.sizeHint().height() - self.content_area.maximumHeight()
+        )
+        content_height = layout.sizeHint().height()
+        for i in range(self.toggle_animation.animationCount()):
+            animation = self.toggle_animation.animationAt(i)
+            animation.setDuration(500)
+            animation.setStartValue(collapsed_height)
+            animation.setEndValue(collapsed_height + content_height)
 
-# @canvas.events.key_press.connect
-# def on_key_press(event):
-#     if event.key == "t":
-#         texture_filter.enabled = not texture_filter.enabled
-#         mesh.update()
-
-
-def attach_headlight(mesh, view, canvas):
-    light_dir = (0, 1, 0, 0)
-    mesh.shading_filter.light_dir = light_dir[:3]
-    initial_light_dir = view.camera.transform.imap(light_dir)
-
-    @view.scene.transform.changed.connect
-    def on_transform_change(event):
-        transform = view.camera.transform
-        mesh.shading_filter.light_dir = transform.map(initial_light_dir)[:3]
-
-
-attach_headlight(mesh, view, canvas)
-
-
-canvas.show()
+        content_animation = self.toggle_animation.animationAt(
+            self.toggle_animation.animationCount() - 1
+        )
+        content_animation.setDuration(500)
+        content_animation.setStartValue(0)
+        content_animation.setEndValue(content_height)
 
 
 if __name__ == "__main__":
-    app.run()
+    import sys
+    import random
+
+    app = QtWidgets.QApplication(sys.argv)
+
+    w = QtWidgets.QMainWindow()
+    w.setCentralWidget(QtWidgets.QWidget())
+    dock = QtWidgets.QDockWidget("Collapsible Demo")
+    w.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock)
+    scroll = QtWidgets.QScrollArea()
+    dock.setWidget(scroll)
+    content = QtWidgets.QWidget()
+    scroll.setWidget(content)
+    scroll.setWidgetResizable(True)
+    vlay = QtWidgets.QVBoxLayout(content)
+    for i in range(10):
+        box = CollapsibleBox("Collapsible Box Header-{}".format(i))
+        vlay.addWidget(box)
+        lay = QtWidgets.QVBoxLayout()
+        for j in range(8):
+            label = QtWidgets.QLabel("{}".format(j))
+            color = QtGui.QColor(*[random.randint(0, 255) for _ in range(3)])
+            label.setStyleSheet(
+                "background-color: {}; color : white;".format(color.name())
+            )
+            label.setAlignment(QtCore.Qt.AlignCenter)
+            lay.addWidget(label)
+
+        box.setContentLayout(lay)
+    vlay.addStretch()
+    w.resize(640, 480)
+    w.show()
+    sys.exit(app.exec_())

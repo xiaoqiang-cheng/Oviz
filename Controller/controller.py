@@ -47,15 +47,15 @@ class Controller():
         for key in self.view.image_dock.keys():
             self.view.image_dock[key].SelectDone.connect(self.select_image)
 
-        self.view.ui.linetxt_point_dim.textChanged.connect(self.update_pointsetting_dims)
-        self.view.ui.linetxt_xyz_dim.textChanged.connect(self.update_pointsetting_dims)
-        self.view.ui.linetxt_wlh_dim.textChanged.connect(self.update_pointsetting_dims)
-        self.view.ui.linetxt_color_dim.textChanged.connect(self.update_pointsetting_dims)
+        self.view.linetxt_point_dim.textChanged.connect(self.update_pointsetting_dims)
+        self.view.linetxt_xyz_dim.textChanged.connect(self.update_pointsetting_dims)
+        self.view.linetxt_wlh_dim.textChanged.connect(self.update_pointsetting_dims)
+        self.view.linetxt_color_dim.textChanged.connect(self.update_pointsetting_dims)
         self.view.pointSizeChanged.connect(self.change_point_size)
         self.view.show_voxel_mode.stateChanged.connect(self.change_voxel_mode)
         self.view.checkbox_record_screen.stateChanged.connect(self.change_record_mode)
         self.view.checkbox_show_car.stateChanged.connect(self.show_car_mode)
-        self.view.ui.listwidget_id_color_map.itemDoubleClicked.connect(self.toggle_list_kind_color)
+        self.view.color_id_map_list.itemDoubleClicked.connect(self.toggle_list_kind_color)
 
     def revert_user_config(self):
         self.update_pointsetting_dims()
@@ -96,7 +96,7 @@ class Controller():
         dlg = QColorDialog()
         dlg.setWindowFlags(self.view.ui.windowFlags() | PySide2.QtCore.Qt.WindowStaysOnTopHint)
 
-        item = self.view.ui.listwidget_id_color_map.currentItem()
+        item = self.view.color_id_map_list.currentItem()
         if dlg.exec_():
             cur_color = dlg.currentColor()
             if item.background().color() != cur_color:
