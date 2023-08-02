@@ -103,13 +103,14 @@ class Canvas(scene.SceneCanvas):
                     elevation = 30,
                     azimuth = 50,
                     roll = 0,
-                    distance = 60
+                    distance = None
                 )
         else:
+
             self.view_panel[view_name].camera  = scene.TurntableCamera(
-                    **camera
+                    **camera,
+                    translate_speed = 10
                 )
-        # vispy.scene.visuals.GridLines(color = 'w',parent=self.view_panel[view_name].scene)
 
     def get_canvas_camera(self, view_name):
         return {
