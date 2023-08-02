@@ -127,6 +127,10 @@ class ImageDockWidget(QDockWidget):
     def set_image(self, image_path):
         self.image_viewer.set_image(image_path)
 
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # 强制进行重新绘制
+        self.update()
 
 class LogDockWidget(QDockWidget):
     def __init__(self, parent=None, titie = "Qlog"):
@@ -150,6 +154,10 @@ class LogDockWidget(QDockWidget):
         self.text_edit.verticalScrollBar().setValue(
                 self.text_edit.verticalScrollBar().maximum()
             )
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # 强制进行重新绘制
+        self.update()
 
 class RangeSlideDockWidget(QDockWidget):
     frameChanged = Signal(int)
@@ -157,6 +165,7 @@ class RangeSlideDockWidget(QDockWidget):
         super().__init__(titie, parent)
         # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
         self.setObjectName(titie)
+        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
         widget = QWidget()
         layout = QVBoxLayout()
@@ -268,14 +277,20 @@ class RangeSlideDockWidget(QDockWidget):
         self.range_slider.setRange(0, self.frame_range - 1)
         self.set_frame_cnt(self.frame_range - 1)
 
+    # def resizeEvent(self, event):
+    #     super().resizeEvent(event)
+    #     # 强制进行重新绘制
+    #     self.update()
+
 
 class CollapsibleBox(QtWidgets.QWidget):
     def __init__(self, title="", parent=None):
         super(CollapsibleBox, self).__init__(parent)
 
         self.toggle_button = QtWidgets.QToolButton(
-            text=title, checkable=True, checked=True
+            text=title, checkable=True, checked=False
         )
+        self.toggle_button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         self.toggle_button.setStyleSheet("QToolButton { border: none; }")
         self.toggle_button.setToolButtonStyle(
             QtCore.Qt.ToolButtonTextBesideIcon
@@ -285,14 +300,14 @@ class CollapsibleBox(QtWidgets.QWidget):
 
         self.toggle_animation = QtCore.QParallelAnimationGroup(self)
 
-        self.content_area = QtWidgets.QScrollArea(
+        self.content_area = QtWidgets.QWidget(
             maximumHeight=0,
             minimumHeight=0
         )
         self.content_area.setSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
         )
-        self.content_area.setFrameShape(QtWidgets.QFrame.NoFrame)
+        # self.content_area.setFrameShape(QtWidgets.QFrame.NoFrame)
 
         lay = QtWidgets.QVBoxLayout(self)
         lay.setSpacing(0)
@@ -309,10 +324,6 @@ class CollapsibleBox(QtWidgets.QWidget):
         self.toggle_animation.addAnimation(
             QtCore.QPropertyAnimation(self.content_area, b"maximumHeight")
         )
-
-        # self.on_pressed()
-        # self.toggle_button.setChecked(True)
-        # self.toggle_animation.stop()
 
     def unfold(self):
         self.toggle_animation.start()
@@ -340,42 +351,50 @@ class CollapsibleBox(QtWidgets.QWidget):
         content_height = layout.sizeHint().height()
         for i in range(self.toggle_animation.animationCount()):
             animation = self.toggle_animation.animationAt(i)
-            animation.setDuration(100)
+            animation.setDuration(200)
             animation.setStartValue(collapsed_height)
             animation.setEndValue(collapsed_height + content_height)
 
         content_animation = self.toggle_animation.animationAt(
             self.toggle_animation.animationCount() - 1
         )
-        content_animation.setDuration(100)
+        content_animation.setDuration(200)
         content_animation.setStartValue(0)
         content_animation.setEndValue(content_height)
 
 
-class ControlBoxDockWidget(QDockWidget):
-    def __init__(self, parent=None, titie = "controlbox", layout_dict=dict()):
-        super().__init__(titie, parent)
-        self.setObjectName(titie)
-        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-        widget = QWidget()
+
+class ControlBoxDockWidget(QtWidgets.QDockWidget):
+    def __init__(self, parent=None, title="控制台", layout_dict=dict()):
+        super().__init__(title, parent)
+        self.setObjectName(title)
+        self.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea | QtCore.Qt.RightDockWidgetArea)
+
+        scroll_area = QtWidgets.QScrollArea()
+        scroll_area.setWidgetResizable(True)  # 设置为可调整大小
+        scroll_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)  # 仅当需要时显示垂直滚动条
+
+        widget = QtWidgets.QWidget()
+        scroll_area.setWidget(widget)
+
+        vlay = QtWidgets.QVBoxLayout(widget)  # 在widget上使用垂直布局
         self.boxes = {}
-        # 垂直布局
-        # layout_dict必须是 title : layout的形式
-        vlay = QtWidgets.QVBoxLayout(self)
         for key, val in layout_dict.items():
             box = CollapsibleBox(key)
             self.boxes[key] = box
             vlay.addWidget(box)
             box.setContentLayout(val)
         vlay.addStretch()
-        widget.setLayout(vlay)
-        self.setWidget(widget)
+        self.setWidget(scroll_area)  # 将QScrollArea作为QDockWidget的widget
 
     def unfold(self):
         for key, val in self.boxes.items():
             val.unfold()
 
-
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # 强制进行重新绘制
+        self.update()
 # class MainWindow(QMainWindow):
 #     def __init__(self):
 #         super().__init__()
