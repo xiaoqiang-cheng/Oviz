@@ -145,6 +145,11 @@ class Canvas(scene.SceneCanvas):
     def add_axis_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = visuals.XYZAxis(parent=self.view_panel[parent_view].scene)
 
+    def add_reference_grid_vis(self, vis_name, parent_view):
+        self.vis_module[vis_name] = visuals.Markers(parent=self.view_panel[parent_view].scene)
+        self.vis_module[vis_name].set_gl_state('translucent', depth_test=False)
+        self.view_panel[parent_view].add(self.vis_module[vis_name])
+
     def add_pointcloud_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = visuals.Markers(parent=self.view_panel[parent_view].scene)
         self.vis_module[vis_name].set_gl_state('translucent', depth_test=False)
@@ -197,7 +202,7 @@ class Canvas(scene.SceneCanvas):
         mesh.shading_filter.light_dir = self.initial_camera_dir
 
         self.vis_module[vis_name] = mesh
-        self.view_panel[parent_view].add(self.vis_module[vis_name] )
+        self.view_panel[parent_view].add(self.vis_module[vis_name])
         self.vis_module[vis_name].attach(texture_filter)
 
     def on_mouse_move(self, event):

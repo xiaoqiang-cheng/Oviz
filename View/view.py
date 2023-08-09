@@ -351,42 +351,42 @@ class View(QObject):
 
 
     def color_id_to_color_list(self, id_list):
-        # try:
-        if id_list.shape[-1] == 1:
-            id_list = id_list.reshape(-1).astype(np.uint8)
-            color_dim = 3
-            rgb_color_map = {}
-            for key, value in self.color_map.items():
-                rgb_color_map[key] = self.color_str_to_rgb(value)
-                color_dim = len(rgb_color_map[key])
-            ret_color = np.zeros((len(id_list), color_dim))
-            for key, value in rgb_color_map.items():
-                mask = id_list == int(key)
-                ret_color[mask] = value
-            return ret_color, True
-        elif (id_list.shape[-1] == 2):
-            color_dim = 3
-            rgb_color_map = {}
-            for key, value in self.color_map.items():
-                rgb_color_map[key] = self.color_str_to_rgb(value)
-                color_dim = len(rgb_color_map[key])
-            ret_color = np.zeros((len(id_list), color_dim))
-            for key, value in rgb_color_map.items():
-                mask = (id_list[:, 0].astype(np.uint8) == int(key))
-                ret_color[mask] = value
-                ret_color[mask, -1] = np.clip(id_list[mask, -1], 0.0, 1.0)
-            return ret_color, True
-        elif (id_list.shape[-1] == 3):
-            ret_color = np.ones((len(id_list), 4))
-            ret_color[:, :3] = np.clip(id_list, 0.0, 1.0)
-            return ret_color, True
-        elif (id_list.shape[-1] == 4):
-            # you must supply normal rgb|a array
-            return np.clip(id_list, 0.0, 1.0), True
-        else:
-            return self.color_map["-1"], True
-        # except:
-        #     return self.color_map["-1"], False
+        try:
+            if id_list.shape[-1] == 1:
+                id_list = id_list.reshape(-1).astype(np.uint8)
+                color_dim = 3
+                rgb_color_map = {}
+                for key, value in self.color_map.items():
+                    rgb_color_map[key] = self.color_str_to_rgb(value)
+                    color_dim = len(rgb_color_map[key])
+                ret_color = np.zeros((len(id_list), color_dim))
+                for key, value in rgb_color_map.items():
+                    mask = id_list == int(key)
+                    ret_color[mask] = value
+                return ret_color, True
+            elif (id_list.shape[-1] == 2):
+                color_dim = 3
+                rgb_color_map = {}
+                for key, value in self.color_map.items():
+                    rgb_color_map[key] = self.color_str_to_rgb(value)
+                    color_dim = len(rgb_color_map[key])
+                ret_color = np.zeros((len(id_list), color_dim))
+                for key, value in rgb_color_map.items():
+                    mask = (id_list[:, 0].astype(np.uint8) == int(key))
+                    ret_color[mask] = value
+                    ret_color[mask, -1] = np.clip(id_list[mask, -1], 0.0, 1.0)
+                return ret_color, True
+            elif (id_list.shape[-1] == 3):
+                ret_color = np.ones((len(id_list), 4))
+                ret_color[:, :3] = np.clip(id_list, 0.0, 1.0)
+                return ret_color, True
+            elif (id_list.shape[-1] == 4):
+                # you must supply normal rgb|a array
+                return np.clip(id_list, 0.0, 1.0), True
+            else:
+                return self.color_map["-1"], True
+        except:
+            return self.color_map["-1"], False
 
 
 
