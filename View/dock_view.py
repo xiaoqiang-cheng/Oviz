@@ -326,7 +326,9 @@ class CollapsibleBox(QtWidgets.QWidget):
         )
 
     def unfold(self):
-        self.toggle_animation.start()
+        self.on_pressed()
+        self.toggle_button.setChecked(not self.toggle_button.isChecked())
+        # self.toggle_animation.start()
 
     @QtCore.Slot()
     def on_pressed(self):
@@ -395,20 +397,3 @@ class ControlBoxDockWidget(QtWidgets.QDockWidget):
         super().resizeEvent(event)
         # 强制进行重新绘制
         self.update()
-# class MainWindow(QMainWindow):
-#     def __init__(self):
-#         super().__init__()
-#         self.initUI()
-
-#     def initUI(self):
-#         self.setWindowTitle("Custom Dock Widget Example")
-#         self.setGeometry(100, 100, 800, 600)
-#         self.dock_widget = ImageDockWidget(self)
-#         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_widget )
-
-#         self.show()
-
-#     def set_image(self, image_path):
-#         self.dock_widget.set_image(image_path)
-
-
