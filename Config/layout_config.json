@@ -13,10 +13,6 @@
         "sr": "top"
         //"rr": "top"
     },
-    "point_dim": "7",
-    "xyz_dim": "0,1,2",
-    "wlh_dim": "-1",
-    "color_dim": "5",
     "image_dock_path":
     {
         "rl": "",
@@ -27,7 +23,173 @@
         "sr": ""
         //"rr": ""
     },
-    "point_cloud_path": "",
-    "lane3d_path": "",
-    "bbox2d_path": ""
+    "control_box":
+    {
+        "global_setting":
+        {
+            "type": "QVBoxLayout",
+            "widget" : {
+                "color_id_map_list" : {
+                    "type": "self.create_color_map_widget",
+                    "params": {}
+                },
+                "checkbox_show_grid" : {
+                    "type" : "QCheckBox",
+                    "params":{
+                        "text": "显示grid"
+                    }
+                },
+                "checkbox_show_car":{
+                    "type" : "QCheckBox",
+                    "params":{
+                        "text": "显示车模型"
+                    }
+                },
+                "checkbox_online_mode":{
+                    "type" : "QCheckBox",
+                    "params":{
+                        "text": "在线模式"
+                    }
+                },
+                "checkbox_dump_alldata":{
+                    "type" : "QCheckBox",
+                    "params":{
+                        "text": "保存数据"
+                    }
+                },
+                "checkbox_record_screen":{
+                    "type" : "QCheckBox",
+                    "params":{
+                        "text": "保存录屏"
+                    }
+                }
+            }
+        },
+        "point_setting":{
+            "type": "QVBoxLayout",
+            "widget":{
+                "linetxt_point_dim":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "dim",
+                        "default_value": {
+                            "value": "7"
+                        }
+                    }
+                },
+
+                "linetxt_xyz_dim" : {
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "x,y,z",
+                        "default_value": {
+                            "value": "0,1,2"
+                        }
+                    }
+                },
+
+                "linetxt_wlh_dim" : {
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "w,l,h",
+                        "default_value": {
+                            "value": "-1"
+                        }
+                    }
+                },
+
+                "linetxt_color_dim" : {
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "color",
+                        "default_value": {
+                            "value": "5"
+                        }
+                    }
+                },
+
+                "button_select_pointcloud" : {
+                    "type": "FolderSelectWidget",
+                    "params":{
+                        "widget_titie" : "Point Cloud",
+                        "default_value": {
+                            "value": ""
+                        }
+                    }
+                },
+
+                "show_voxel_mode" : {
+                    "type": "QCheckBox",
+                    "params":{
+                        "text": "voxel模式"
+                    }
+                }
+            }
+        },
+
+        "bbox3d_setting":{
+            "type": "QVBoxLayout",
+            "widget":{
+                "button_select_bbox3d" : {
+                    "type": "FolderSelectWidget",
+                    "params":{
+                        "widget_titie" : "3D Bbox",
+                        "default_value": {
+                            "value": ""
+                        }
+                    }
+                },
+
+                "bbox3d_txt_xyzwhlt_dim":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "x,y,z,w,l,h,θ",
+                        "default_value": {
+                            "value": "1,2,3,4,5,6,7"
+                        }
+                    }
+                },
+
+                "bbox3d_txt_color_dim":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "color (cls/id)",
+                        "default_value": {
+                            "value": "0"
+                        }
+                    }
+                }
+            }
+        },
+
+        "lane3d_setting": {
+            "type": "QVBoxLayout",
+            "widget":{
+                "button_select_bbox3d" : {
+                    "type": "FolderSelectWidget",
+                    "params":{
+                        "widget_titie" : "3D Lane",
+                        "default_value": {
+                            "value": ""
+                        }
+                    }
+                }
+            }
+        },
+
+        "bbox2d_setting" : {
+            "type": "QVBoxLayout",
+            "widget":{
+                "button_select_bbox2d" : {
+                    "type": "FolderSelectWidget",
+                    "params":{
+                        "widget_titie" : "2D Bbox",
+                        "default_value": {
+                            "value": ""
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

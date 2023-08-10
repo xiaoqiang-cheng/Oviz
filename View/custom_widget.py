@@ -9,13 +9,13 @@ import time
 
 class FolderSelectWidget(QtWidgets.QWidget):
     SelectDone = QtCore.Signal(str, str)
-    def __init__(self, parent=None, widget_titie="选择", default_path = ""):
+    def __init__(self, parent=None, widget_titie="选择", default_value = {}):
         super().__init__(parent)
         self.widget_title = widget_titie
-        self.folder_path = default_path
+        self.folder_path = default_value['value']
         layout = QHBoxLayout()
         self.button = QPushButton(widget_titie)
-        self.linetxt = QLineEdit()
+        self.linetxt = QLineEdit(default_value['value'])
 
         layout.addWidget(self.button)
         layout.addWidget(self.linetxt)
@@ -23,11 +23,16 @@ class FolderSelectWidget(QtWidgets.QWidget):
 
         self.button.clicked.connect(self.select_folder)
         self.linetxt.returnPressed.connect(self.select_topic_path)
+        self.default_value = default_value
+
+    def revert(self):
+        self.set_topic_path(self.folder_path)
 
     def select_topic_path(self):
         self.folder_path = self.linetxt.text()
         if not os.path.exists(self.folder_path):
             return
+        self.default_value['value'] = self.folder_path
         self.SelectDone.emit(self.folder_path, self.widget_title)
 
     def set_topic_path(self, txt_path):
@@ -41,6 +46,7 @@ class FolderSelectWidget(QtWidgets.QWidget):
         if not self.folder_path:
             return
         self.linetxt.setText(self.folder_path)
+        self.default_value['value'] = self.folder_path
         self.SelectDone.emit(self.folder_path, self.widget_title)
 
     def get_folder_path(self):
@@ -49,25 +55,31 @@ class FolderSelectWidget(QtWidgets.QWidget):
 
 class LineTextWithLabelWidget(QtWidgets.QWidget):
     textChanged = QtCore.Signal(str)
-    def __init__(self, parent=None,  widget_titie="", default_value = ""):
+    def __init__(self, parent=None, widget_titie="", default_value = {}):
         super().__init__(parent)
         layout = QHBoxLayout(self)
         self.label = QLabel(widget_titie)
-        self.linetxt = QLineEdit(default_value)
+        self.linetxt = QLineEdit(default_value['value'])
         layout.addWidget(self.label)
         layout.addWidget(self.linetxt)
         self.setLayout(layout)
-
         self.linetxt.textChanged.connect(self.txtchange)
+        self.default_value = default_value
+
 
     def txtchange(self, cstr):
         self.textChanged.emit(cstr)
+        self.default_value['value'] = cstr
 
     def text(self):
         return self.linetxt.text()
 
     def setText(self, cstr):
         self.linetxt.setText(cstr)
+
+    def revert(self):
+        self.setText(self.default_value['value'])
+
 
 
 

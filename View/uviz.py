@@ -103,7 +103,8 @@ class Canvas(scene.SceneCanvas):
                     elevation = 30,
                     azimuth = 50,
                     roll = 0,
-                    distance = None
+                    distance = None,
+                    translate_speed = 10
                 )
         else:
 

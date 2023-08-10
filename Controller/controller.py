@@ -43,19 +43,22 @@ class Controller():
 
     def signal_connect(self):
         self.view.dock_range_slide.frameChanged.connect(self.update_system_vis)
-        self.view.button_select_pointcloud.SelectDone.connect(self.select_pointcloud)
         for key in self.view.image_dock.keys():
             self.view.image_dock[key].SelectDone.connect(self.select_image)
 
-        self.view.linetxt_point_dim.textChanged.connect(self.update_pointsetting_dims)
-        self.view.linetxt_xyz_dim.textChanged.connect(self.update_pointsetting_dims)
-        self.view.linetxt_wlh_dim.textChanged.connect(self.update_pointsetting_dims)
-        self.view.linetxt_color_dim.textChanged.connect(self.update_pointsetting_dims)
+        self.view.control_box_layout_dict['point_setting']['button_select_pointcloud'].SelectDone.connect(self.select_pointcloud)
+        self.view.control_box_layout_dict['point_setting']['linetxt_point_dim'].textChanged.connect(self.update_pointsetting_dims)
+        self.view.control_box_layout_dict['point_setting']['linetxt_xyz_dim'].textChanged.connect(self.update_pointsetting_dims)
+        self.view.control_box_layout_dict['point_setting']['linetxt_wlh_dim'].textChanged.connect(self.update_pointsetting_dims)
+        self.view.control_box_layout_dict['point_setting']['linetxt_color_dim'].textChanged.connect(self.update_pointsetting_dims)
+        self.view.control_box_layout_dict['point_setting']['show_voxel_mode'].stateChanged.connect(self.change_voxel_mode)
+
+        self.view.control_box_layout_dict['global_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
+        self.view.control_box_layout_dict['global_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
+        self.view.control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
+
         self.view.pointSizeChanged.connect(self.change_point_size)
-        self.view.show_voxel_mode.stateChanged.connect(self.change_voxel_mode)
-        self.view.checkbox_record_screen.stateChanged.connect(self.change_record_mode)
-        self.view.checkbox_show_car.stateChanged.connect(self.show_car_mode)
-        self.view.color_id_map_list.itemDoubleClicked.connect(self.toggle_list_kind_color)
+
 
     def revert_user_config(self):
         self.update_pointsetting_dims()
@@ -96,7 +99,7 @@ class Controller():
         dlg = QColorDialog()
         dlg.setWindowFlags(self.view.ui.windowFlags() | PySide2.QtCore.Qt.WindowStaysOnTopHint)
 
-        item = self.view.color_id_map_list.currentItem()
+        item = self.view.control_box_layout_dict['global_setting']['color_id_map_list'].currentItem()
         if dlg.exec_():
             cur_color = dlg.currentColor()
             if item.background().color() != cur_color:

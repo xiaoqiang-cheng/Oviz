@@ -62,7 +62,7 @@ def parse_json(filename):
 def write_json(json_data,json_name):
     # Writing JSON data
     with open(json_name, 'w', encoding="utf-8") as f:
-        json.dump(json_data, f,indent=4)
+        json.dump(json_data, f, indent=4, ensure_ascii = False)
 
 
 def get_mac_address():

@@ -38,8 +38,8 @@ class View(QObject):
         self.dock_range_slide = RangeSlideDockWidget()
         # need add some layout
         self.control_box_layout_dict = {}
-        control_result_dict = self.set_control_box()
-        self.dock_control_box = ControlBoxDockWidget(layout_dict=control_result_dict)
+        self.control_box_layout_dict = self.set_control_box()
+        self.dock_control_box = ControlBoxDockWidget(layout_dict=self.control_box_layout_dict)
 
         self.image_dock = {}
         self.point_size = 1
@@ -79,58 +79,29 @@ class View(QObject):
 
         self.dock_control_box.unfold()
 
-    def set_control_box(self):
-        ret = dict()
-        ret["global_setting"] = QVBoxLayout()
-        self.color_id_map_list = QListWidget()
-        self.color_id_map_list.clear()
+    def create_color_map_widget(self):
+        color_id_map_list = QListWidget()
+        color_id_map_list.clear()
         for c, val in self.color_map.items():
             lw = QListWidgetItem(c)
             lw.setBackground(QColor(val))
-            self.color_id_map_list.addItem(lw)
-        self.checkbox_show_grid = QCheckBox("显示grid")
-        self.checkbox_show_car = QCheckBox("显示车模型")
-        self.checkbox_online_mode = QCheckBox("保存数据")
-        self.checkbox_dump_alldata = QCheckBox("在线模式")
-        self.checkbox_record_screen = QCheckBox("保存录屏")
+            color_id_map_list.addItem(lw)
+        return color_id_map_list
 
-        ret["global_setting"].addWidget(self.color_id_map_list)
-        ret["global_setting"].addWidget(self.checkbox_show_grid)
-        ret["global_setting"].addWidget(self.checkbox_show_car)
-        ret["global_setting"].addWidget(self.checkbox_online_mode)
-        ret["global_setting"].addWidget(self.checkbox_dump_alldata)
-        ret["global_setting"].addWidget(self.checkbox_record_screen)
+    def set_control_box(self):
+        ret = dict()
 
-        ret["point_setting"] = QVBoxLayout()
-        self.linetxt_point_dim = LineTextWithLabelWidget(widget_titie="dim", default_value="7")
-        self.linetxt_xyz_dim = LineTextWithLabelWidget(widget_titie="x,y,z", default_value="0,1,2")
-        self.linetxt_wlh_dim = LineTextWithLabelWidget(widget_titie="w,l,h", default_value="-1")
-        self.linetxt_color_dim = LineTextWithLabelWidget(widget_titie="color", default_value="5")
-        self.button_select_pointcloud = FolderSelectWidget(widget_titie="Point Cloud")
-        self.show_voxel_mode = QCheckBox("voxel模式")
-        ret["point_setting"].addWidget(self.linetxt_point_dim)
-        ret["point_setting"].addWidget(self.linetxt_xyz_dim)
-        ret["point_setting"].addWidget(self.linetxt_wlh_dim)
-        ret["point_setting"].addWidget(self.linetxt_color_dim)
-
-        ret["point_setting"].addWidget(self.button_select_pointcloud)
-        ret["point_setting"].addWidget(self.show_voxel_mode)
-
-        ret["lane3d_setting"] = QVBoxLayout()
-        self.button_select_lane3d = FolderSelectWidget(widget_titie="3D Lane")
-        ret["lane3d_setting"].addWidget(self.button_select_lane3d)
-
-        ret["bbox2d_setting"] = QVBoxLayout()
-        self.button_select_bbox2d = FolderSelectWidget(widget_titie="2D Bbox")
-        ret["bbox2d_setting"].addWidget(self.button_select_bbox2d)
-
-
-
+        for key, value in self.layout_config['control_box'].items():
+            ret[key] = {}
+            ret[key]["layout"] = eval(value['type'])()
+            for wk, wv in value["widget"].items():
+                ret[key][wk] = eval(wv['type'])(**wv['params'])
+                ret[key]["layout"] .addWidget(ret[key][wk])
 
         return ret
 
 
-    def  set_spilter_style(self):
+    def set_spilter_style(self):
         qss = '''
             QMainWindow::separator {
                 width: 1px; /* 设置分隔条宽度 */
@@ -150,15 +121,6 @@ class View(QObject):
         return rec_merge(default_cfg, user_cfg)
 
     def save_layout_config(self):
-        self.layout_config["point_cloud_path"] = self.button_select_pointcloud.folder_path
-        self.layout_config["lane3d_path"] = self.button_select_lane3d.folder_path
-        self.layout_config["bbox2d_path"] = self.button_select_bbox2d.folder_path
-
-        self.layout_config["point_dim"] = self.linetxt_point_dim.text()
-        self.layout_config["xyz_dim"] = self.linetxt_xyz_dim.text()
-        self.layout_config["wlh_dim"] = self.linetxt_wlh_dim.text()
-        self.layout_config["color_dim"] = self.linetxt_color_dim.text()
-
         self.layout_config["image_flag"] = not self.image_flag
         self.layout_config["log_flag"]   = not self.log_flag
         self.layout_config["slide_flag"] = not self.slide_flag
@@ -188,14 +150,13 @@ class View(QObject):
         self.ui.grab().save(output_path, "PNG", quality=100)
 
     def revet_layout_config(self):
-        self.linetxt_point_dim.setText(self.layout_config["point_dim"])
-        self.linetxt_xyz_dim.setText(self.layout_config["xyz_dim"])
-        self.linetxt_wlh_dim.setText(self.layout_config["wlh_dim"])
-        self.linetxt_color_dim.setText(self.layout_config["color_dim"])
 
-        self.button_select_pointcloud.set_topic_path(self.layout_config["point_cloud_path"])
-        self.button_select_lane3d.set_topic_path(self.layout_config["lane3d_path"])
-        self.button_select_bbox2d.set_topic_path(self.layout_config["bbox2d_path"])
+        for module, value in self.control_box_layout_dict.items():
+            for wk, wv in value.items():
+                try:
+                    wv.revert()
+                except:
+                    pass
 
         self.image_flag = self.layout_config["image_flag"]
         self.log_flag = self.layout_config["log_flag"]
@@ -327,10 +288,10 @@ class View(QObject):
         self.dock_range_slide.update_handled = True
 
     def get_pointsetting(self):
-        pt_dim = int(self.linetxt_point_dim.text())
-        xyz_dims = list(map(int, self.linetxt_xyz_dim.text().split(',')))
-        wlh_dims = list(map(int, self.linetxt_wlh_dim.text().split(',')))
-        color_dims = list(map(int, self.linetxt_color_dim.text().split(',')))
+        pt_dim = int(self.control_box_layout_dict['point_setting']['linetxt_point_dim'].text())
+        xyz_dims = list(map(int, self.control_box_layout_dict['point_setting']['linetxt_xyz_dim'].text().split(',')))
+        wlh_dims = list(map(int, self.control_box_layout_dict['point_setting']['linetxt_wlh_dim'].text().split(',')))
+        color_dims = list(map(int, self.control_box_layout_dict['point_setting']['linetxt_color_dim'].text().split(',')))
         return pt_dim, xyz_dims, wlh_dims, color_dims
 
     def rgb_to_hex_numpy(self, rgb_list):

@@ -383,7 +383,7 @@ class ControlBoxDockWidget(QtWidgets.QDockWidget):
             box = CollapsibleBox(key)
             self.boxes[key] = box
             vlay.addWidget(box)
-            box.setContentLayout(val)
+            box.setContentLayout(val['layout'])
         vlay.addStretch()
         self.setWidget(scroll_area)  # 将QScrollArea作为QDockWidget的widget
 
