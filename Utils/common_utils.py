@@ -9,6 +9,8 @@ import numpy as np
 POINTCLOUD = "pointcloud"
 IMAGE = "image"
 BBOX3D = "bbox3d"
+BBOX2D = "lane3d"
+BBOX2D = "bbox2d"
 
 INSTALL_MODE = 1
 DEPLOY_MODE = 2

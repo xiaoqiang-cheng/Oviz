@@ -8,7 +8,6 @@ from View.uviz import Canvas
 from log_sys import send_log_msg
 from View.custom_widget import *
 from View.dock_view import *
-import vispy
 
 dock_layout_map = {
     "top"    : Qt.TopDockWidgetArea,
@@ -294,6 +293,11 @@ class View(QObject):
         color_dims = list(map(int, self.control_box_layout_dict['point_setting']['linetxt_color_dim'].text().split(',')))
         return pt_dim, xyz_dims, wlh_dims, color_dims
 
+    def get_bbox3dsetting(self):
+        size_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_xyzwhlt_dim'].text().split(',')))
+        color_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_color_dim'].text().split(',')))
+        return size_dims, color_dims
+
     def rgb_to_hex_numpy(self, rgb_list):
         rgb_array = np.array(rgb_list)
         hex_array = np.zeros((len(rgb_list),), dtype='U7')
@@ -350,6 +354,17 @@ class View(QObject):
             return self.color_map["-1"], False
 
 
+    def set_color_map_list(self):
+        dlg = QColorDialog()
+        dlg.setWindowFlags(self.ui.windowFlags() | PySide2.QtCore.Qt.WindowStaysOnTopHint)
+        item = self.control_box_layout_dict['global_setting']['color_id_map_list'].currentItem()
+        if dlg.exec_():
+            cur_color = dlg.currentColor()
+            if item.background().color() != cur_color:
+                item.setBackground(cur_color)
+                self.update_color_map(item.text(), cur_color.name())
+                return True
+        return False
 
     def set_data_range(self, listname):
         self.dock_range_slide.set_range(listname)
@@ -375,3 +390,6 @@ class View(QObject):
 
     def set_image(self, img, meta_form):
         self.image_dock[meta_form].set_image(img)
+
+    def set_bbox3d(self):
+        pass

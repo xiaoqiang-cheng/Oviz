@@ -130,16 +130,6 @@
         "bbox3d_setting":{
             "type": "QVBoxLayout",
             "widget":{
-                "button_select_bbox3d" : {
-                    "type": "FolderSelectWidget",
-                    "params":{
-                        "widget_titie" : "3D Bbox",
-                        "default_value": {
-                            "value": ""
-                        }
-                    }
-                },
-
                 "bbox3d_txt_xyzwhlt_dim":{
                     "type": "LineTextWithLabelWidget",
                     "params":{
@@ -156,6 +146,16 @@
                         "widget_titie" : "color (cls/id)",
                         "default_value": {
                             "value": "0"
+                        }
+                    }
+                },
+
+                "button_select_bbox3d" : {
+                    "type": "FolderSelectWidget",
+                    "params":{
+                        "widget_titie" : "3D Bbox",
+                        "default_value": {
+                            "value": ""
                         }
                     }
                 }

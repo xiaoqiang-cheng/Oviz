@@ -27,6 +27,11 @@ class Model():
                     self.curr_frame_data[meta_form] = self.smart_read_pointcloud(data_path, dim)
                 elif topic_type == IMAGE:
                     self.curr_frame_data[meta_form] = self.smart_read_image(data_path)
+                elif topic_type == BBOX3D:
+                    self.curr_frame_data[meta_form] = self.smart_read_bbox3d(data_path)
+
+    def smart_read_bbox3d(self, bbox_path):
+        return np.loadtxt(bbox_path, dtype=np.float32)
 
     def smart_read_pointcloud(self, pc_path, dim = 7):
         if self.point_cloud_ext == ".pcd":
@@ -78,6 +83,22 @@ class Model():
         send_log_msg(NORMAL, "共发现了%s格式的文件 %d 帧"%(self.point_cloud_ext, pc_cnt))
         return pc_cnt
 
+    def deal_bbox3d_folder(self, pc_path, meta_form):
+        self.database[meta_form] = {}
+        self.topic_path_meta[meta_form] = BBOX3D
+
+        datanames = os.listdir(pc_path)
+        for f in datanames:
+            key, ext = os.path.splitext(f)
+            if ext in [".txt"]:
+                self.database[meta_form][key] = os.path.join(pc_path, f)
+
+        cnt = len(self.database[meta_form].keys())
+        self.data_frame_list = list(self.database[meta_form].keys())
+        self.data_frame_list.sort()
+        self.offline_frame_cnt = cnt
+        send_log_msg(NORMAL, "共发现了%s格式的文件 %d 帧"%(ext, cnt))
+        return cnt
 
 
 

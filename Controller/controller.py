@@ -12,10 +12,13 @@ import PySide2
 import sys
 import qdarkstyle
 from qdarkstyle.dark.palette import DarkPalette
+from Controller.core import *
 
 dirname = os.path.dirname(PySide2.__file__)
 plugin_path = os.path.join(dirname, 'plugins', 'platforms')
 os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
+
+
 
 class Controller():
     def __init__(self) -> None:
@@ -32,8 +35,10 @@ class Controller():
         self.signal_connect()
 
         self.curr_frame_index = 0
-        self.show_voxel = False
-        self.record_screen = False
+
+        self.global_setting = GlobalSetting()
+        self.points_setting = PointCloudSetting()
+        self.bbox3d_setting = Bbox3DSetting()
 
         self.view.set_spilter_style()
         self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
@@ -75,20 +80,20 @@ class Controller():
 
     def change_record_mode(self, state):
         if state > 0:
-            self.record_screen = True
+            self.global_setting.record_screen = True
             send_log_msg(NORMAL, "开始录屏")
         else:
-            self.record_screen = False
+            self.global_setting.record_screen = False
             send_log_msg(NORMAL, "关闭录屏")
 
     def change_voxel_mode(self, state):
         if state > 0:
-            self.show_voxel = True
+            self.points_setting.show_voxel = True
             send_log_msg(NORMAL, "当前是体素模式")
         else:
-            self.show_voxel = False
+            self.points_setting.show_voxel = False
             send_log_msg(NORMAL, "当前是点云模式")
-        self.view.set_voxel_mode(self.show_voxel)
+        self.view.set_voxel_mode(self.points_setting.show_voxel)
         self.update_buffer_vis()
 
 
@@ -96,50 +101,53 @@ class Controller():
         self.update_buffer_vis()
 
     def toggle_list_kind_color(self):
-        dlg = QColorDialog()
-        dlg.setWindowFlags(self.view.ui.windowFlags() | PySide2.QtCore.Qt.WindowStaysOnTopHint)
+        if self.view.set_color_map_list():
+            self.update_buffer_vis()
 
-        item = self.view.control_box_layout_dict['global_setting']['color_id_map_list'].currentItem()
-        if dlg.exec_():
-            cur_color = dlg.currentColor()
-            if item.background().color() != cur_color:
-                item.setBackground(cur_color)
-                self.view.update_color_map(item.text(), cur_color.name())
-                self.update_buffer_vis()
+    def select_format(self, format, topic_path, meta_form):
+        send_log_msg(NORMAL, "亲，你选择了 [%s] topic为: %s"%(format, topic_path))
+        if self.system_online_mode:
+            pass
+        else:
+            eval("self.model.deal_%s_folder"%format)(topic_path, meta_form)
+            self.select_done_update_range_and_vis()
+        import ipdb
+        ipdb.set_trace()
 
     def select_image(self, topic_path, meta_form):
-        send_log_msg(NORMAL, "亲，你选择了图像topic为: %s"%topic_path)
-        if self.system_online_mode:
-            pass
-        else:
-            cnt = self.model.deal_image_folder(topic_path, meta_form)
-            self.view.set_data_range(self.model.data_frame_list)
-            if cnt:
-                self.update_system_vis(0)
+        self.select_format(IMAGE, topic_path, meta_form)
+
 
     def select_pointcloud(self, topic_path, meta_form):
-        send_log_msg(NORMAL, "亲，你选择了点云topic为: %s"%topic_path)
-        if self.system_online_mode:
-            pass
-        else:
-            cnt = self.model.deal_pointcloud_folder(topic_path, meta_form)
-            self.view.set_data_range(self.model.data_frame_list)
-            if cnt:
-                self.update_system_vis(0)
+        self.select_format(POINTCLOUD, topic_path, meta_form)
 
-    def select_lane3d(self,  topic_path, meta_form):
-        send_log_msg(NORMAL, "亲，你选择了lane3d的topic为: %s"%topic_path)
-        if self.system_online_mode:
-            pass
-        else:
-            pass
+
+    def select_bbox3d(self, topic_path, meta_form):
+        self.select_format(BBOX3D, topic_path, meta_form)
+
+    def select_done_update_range_and_vis(self):
+        self.view.set_data_range(self.model.data_frame_list)
+        if self.model.offline_frame_cnt:
+            self.update_system_vis(0)
 
     def update_pointsetting_dims(self):
         try:
-            self.points_dim, self.xyz_dims, self.wlh_dims, self.color_dims = self.view.get_pointsetting()
+            self.points_setting.points_dim, \
+                self.points_setting.xyz_dims, \
+                    self.points_setting.wlh_dims, \
+                        self.points_setting.color_dims = \
+                self.view.get_pointsetting()
         except:
-            print(self.points_dim, self.xyz_dims, self.wlh_dims, self.color_dims)
+            print(self.points_setting.__dict__)
         self.update_buffer_vis()
+
+    def update_bbox3dsetting_dims(self):
+        try:
+            self.bbox3d_setting.bbox_dims, self.bbox3d_setting.color_dims = self.view.get_bbox3dsetting()
+        except:
+            print(self.bbox3d_setting.__dict__)
+        self.update_buffer_vis()
+
 
     def update_buffer_vis(self):
         data_dict = self.model.curr_frame_data
@@ -151,10 +159,10 @@ class Controller():
 
     def update_system_vis(self, index):
         self.curr_frame_index = index
-        self.model.get_curr_frame_data(index, self.points_dim)
+        self.model.get_curr_frame_data(index, self.points_setting.points_dim)
         self.update_buffer_vis()
         self.view.send_update_vis_flag()
-        if self.record_screen:
+        if self.global_setting.record_screen:
             self.view.grab_form(self.model.data_frame_list[index] + ".png")
 
     def run(self):
@@ -171,37 +179,60 @@ class Controller():
         self.view.save_layout_config()
         sys.exit(self.app.exec_())
 
+    def bbox3d_callback(self, msg, topic, meta_form):
+        self.set_bbox3d()
+
 
     def image_callback(self, msg, topic, meta_form):
         self.view.set_image(msg, meta_form)
 
-    def pointcloud_callback(self, msg, topic, meta_form):
+    def bbox3d_callback(self, msg, topic, meta_form):
         max_dim = msg.shape[-1]
-        if max(self.xyz_dims) >= max_dim:
-            send_log_msg(ERROR, "xyz维度无效:%s,最大维度为%d"%(str(self.xyz_dims, max_dim)))
+        if max(self.bbox3d_setting.bbox_dims) >= max_dim:
+            send_log_msg(ERROR, "bbox_dims维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.bbox_dims, max_dim)))
             return
-        points = msg[...,self.xyz_dims]
 
-        if len(self.color_dims) <= 0 or min(self.color_dims) < 0 or max(self.color_dims) >= max_dim:
-            send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.color_dims), max_dim))
+        bboxes = msg[..., self.bbox3d_setting.bbox_dims]
+
+        if len(self.bbox3d_setting.color_dims) <= 0 or min(self.bbox3d_setting.color_dims) < 0 or max(self.bbox3d_setting.color_dims) >= max_dim:
+            send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.color_dims), max_dim))
             color_id_list = -1
         else:
-            color_id_list = msg[..., self.color_dims]
+            color_id_list = msg[..., self.bbox3d_setting.color_dims]
+
+        real_color, state = self.view.color_id_to_color_list(color_id_list)
+
+        if not state:
+            send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
+        self.view.set_bbox3d()
+
+    def pointcloud_callback(self, msg, topic, meta_form):
+        max_dim = msg.shape[-1]
+        if max(self.points_setting.xyz_dims) >= max_dim:
+            send_log_msg(ERROR, "xyz维度无效:%s,最大维度为%d"%(str(self.points_setting.xyz_dims, max_dim)))
+            return
+        points = msg[...,self.points_setting.xyz_dims]
+
+        if len(self.points_setting.color_dims) <= 0 or min(self.points_setting.color_dims) < 0 or max(self.points_setting.color_dims) >= max_dim:
+            send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.points_setting.color_dims), max_dim))
+            color_id_list = -1
+        else:
+            color_id_list = msg[..., self.points_setting.color_dims]
 
         real_color, state = self.view.color_id_to_color_list(color_id_list)
 
         if not state:
             send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
 
-        if self.show_voxel:
-            if len(self.color_dims) <= 0 or min(self.wlh_dims) < 0 or max(self.wlh_dims) > max_dim:
+        if self.points_setting.show_voxel:
+            if len(self.points_setting.color_dims) <= 0 or min(self.points_setting.wlh_dims) < 0 or max(self.points_setting.wlh_dims) > max_dim:
                 w = np.ones((len(points), 1)) * 0.4
                 l = np.ones((len(points), 1)) * 0.4
                 h = np.ones((len(points), 1)) * 0.4
             else:
-                w = msg[..., self.wlh_dims[0]]
-                l = msg[..., self.wlh_dims[1]]
-                h = msg[..., self.wlh_dims[2]]
+                w = msg[..., self.points_setting.wlh_dims[0]]
+                l = msg[..., self.points_setting.wlh_dims[1]]
+                h = msg[..., self.points_setting.wlh_dims[2]]
             if isinstance(real_color, str):
                 real_color = np.array([self.view.color_str_to_rgb(real_color)] * len(points))
             self.view.set_point_voxel(points, w, l, h, real_color)
