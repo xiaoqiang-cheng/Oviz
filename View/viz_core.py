@@ -243,23 +243,23 @@ class Canvas(scene.SceneCanvas):
         # pos, arrow = self.create_box_vel_arrow(boxes)
         self.vis_module[vis_name].set_data(pos, connect='segments', arrows=arrow, width=width)
 
-    # def draw_box_line(self, vis_name, boxes, box_line_lightness_scale=1.2,
-    #                                             box_line_width=2):
-    #     pos, width, length, height, theta = self.prepare_box_data(boxes)
-    #     fc, _ = self.prepare_box_color(boxes,
-    #             lightness_ratio = box_line_lightness_scale)
-    #     fc = np.tile(fc, 8).reshape(-1, 4)
-    #     vertex_point, p_idx = self.create_box_vertex(pos,
-    #             width, length, height, theta)
-    #     self.vis_module[vis_name].set_data(pos=vertex_point, connect=p_idx,
-    #             color=fc, width=box_line_width)
+    # def draw_bbox3d(self, vis_name, boxes, color, box_line_width=2):
+    #     self.draw_box3d_line(vis_name, boxes, color, box_line_width=2)
 
-    # def draw_box_surface(self, vis_name, boxes, box_surface_opacity = 0.8):
-    #     pos, width, length, height, theta = self.prepare_box_data(boxes)
-    #     fc, ec = self.prepare_box_color(boxes,
-    #             opacity = box_surface_opacity)
-    #     self.vis_module[vis_name].set_data(pos, width=width, height=length, depth=height,
-    #         face_color=fc, edge_color=ec, rotation=theta)
+    def draw_box3d_line(self, vis_name, boxes, color, box_line_width=2):
+        pos, width, length, height, theta = self.prepare_box_data(boxes)
+        vertex_point, p_idx = self.create_box_vertex(pos,
+                width, length, height, theta)
+
+        color = np.tile(color, 8).reshape(-1, 4)
+        self.vis_module[vis_name].set_data(pos=vertex_point, connect=p_idx,
+                    color=color, width=box_line_width)
+
+    def draw_box_surface(self, vis_name, boxes, color, box_surface_opacity = 0.5):
+        pos, width, length, height, theta = self.prepare_box_data(boxes)
+        color[:, -1] *= box_surface_opacity
+        self.vis_module[vis_name].set_data(pos, width=width, height=length, depth=height,
+            face_color=color, edge_color=color, rotation=theta)
 
     def draw_id_vel(self, vis_name, box, show_id = 1, show_vel = 0):
         if show_id:
@@ -300,23 +300,23 @@ class Canvas(scene.SceneCanvas):
 
     def prepare_box_data(self, boxes, enlarge_ratio=1.0):
         pos = []
-        width = []
-        height = []
-        depth = []
-        theta = []
-        for b in boxes:
-            pos.append([b.x, b.y, b.z])
-            width.append([b.width])
-            height.append([b.length])
-            depth.append([b.height])
-            theta.append([b.dir])
+        # width = []
+        # height = []
+        # depth = []
+        # theta = []
+        # for b in boxes:
+        #     pos.append([b.x, b.y, b.z])
+        #     width.append([b.width])
+        #     height.append([b.length])
+        #     depth.append([b.height])
+        #     theta.append([b.dir])
 
-        pos = np.array(pos)
+        pos = boxes[:, 0:3]
         # enlarge box a little bit
-        width = np.array(width) * enlarge_ratio
-        height = np.array(height) * enlarge_ratio
-        depth = np.array(depth) * enlarge_ratio
-        theta = np.array(theta)
+        width = boxes[:, 3].reshape(-1, 1) * enlarge_ratio
+        height = boxes[:, 4].reshape(-1, 1)  * enlarge_ratio
+        depth = boxes[:, 5].reshape(-1, 1)  * enlarge_ratio
+        theta = boxes[:, 6]
         return pos, width, height, depth, theta
 
     def prepare_box_color(self, boxes, lightness_ratio=1.0, opacity=1.0):
@@ -358,7 +358,7 @@ class Canvas(scene.SceneCanvas):
 
         rotation_mat = []
         for theta in rotation:
-            rotation_mat.append(Rotation.from_euler('xyz', [0., 0., theta]).as_matrix())
+            rotation_mat.append(Rotation.from_euler('zyx', [0., 0., theta]).as_matrix())
 
         box_vertex = np.array([[-0.5, -0.5, -0.5],
                                 [-0.5, -0.5, 0.5],

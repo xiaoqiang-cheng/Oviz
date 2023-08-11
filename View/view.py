@@ -4,7 +4,7 @@ from PySide2.QtCore import QTimer, Qt, QModelIndex
 from PySide2.QtGui import QColor, QPixmap
 import time
 from Utils.common_utils import *
-from View.uviz import Canvas
+from View.viz_core import Canvas
 from log_sys import send_log_msg
 from View.custom_widget import *
 from View.dock_view import *
@@ -391,5 +391,5 @@ class View(QObject):
     def set_image(self, img, meta_form):
         self.image_dock[meta_form].set_image(img)
 
-    def set_bbox3d(self):
-        pass
+    def set_bbox3d(self, bboxes3d, color):
+        self.canvas.draw_box3d_line("bbox_line", bboxes3d, color)

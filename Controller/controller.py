@@ -51,12 +51,18 @@ class Controller():
         for key in self.view.image_dock.keys():
             self.view.image_dock[key].SelectDone.connect(self.select_image)
 
+
         self.view.control_box_layout_dict['point_setting']['button_select_pointcloud'].SelectDone.connect(self.select_pointcloud)
         self.view.control_box_layout_dict['point_setting']['linetxt_point_dim'].textChanged.connect(self.update_pointsetting_dims)
         self.view.control_box_layout_dict['point_setting']['linetxt_xyz_dim'].textChanged.connect(self.update_pointsetting_dims)
         self.view.control_box_layout_dict['point_setting']['linetxt_wlh_dim'].textChanged.connect(self.update_pointsetting_dims)
         self.view.control_box_layout_dict['point_setting']['linetxt_color_dim'].textChanged.connect(self.update_pointsetting_dims)
         self.view.control_box_layout_dict['point_setting']['show_voxel_mode'].stateChanged.connect(self.change_voxel_mode)
+
+        self.view.control_box_layout_dict['bbox3d_setting']['button_select_bbox3d'].SelectDone.connect(self.select_bbox3d)
+        self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_xyzwhlt_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+        self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_color_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+
 
         self.view.control_box_layout_dict['global_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.control_box_layout_dict['global_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
@@ -67,6 +73,7 @@ class Controller():
 
     def revert_user_config(self):
         self.update_pointsetting_dims()
+        self.update_bbox3dsetting_dims()
         self.view.revet_layout_config()
         try:
             self.update_system_vis(0)
@@ -111,8 +118,6 @@ class Controller():
         else:
             eval("self.model.deal_%s_folder"%format)(topic_path, meta_form)
             self.select_done_update_range_and_vis()
-        import ipdb
-        ipdb.set_trace()
 
     def select_image(self, topic_path, meta_form):
         self.select_format(IMAGE, topic_path, meta_form)
@@ -204,7 +209,8 @@ class Controller():
 
         if not state:
             send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
-        self.view.set_bbox3d()
+
+        self.view.set_bbox3d(bboxes, real_color)
 
     def pointcloud_callback(self, msg, topic, meta_form):
         max_dim = msg.shape[-1]
