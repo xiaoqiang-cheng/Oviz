@@ -144,7 +144,9 @@ class Canvas(scene.SceneCanvas):
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_axis_vis(self, vis_name, parent_view):
-        self.vis_module[vis_name] = visuals.XYZAxis(parent=self.view_panel[parent_view].scene)
+        # Simple 3D axis for indicating coordinate system orientation. Axes are
+        # x=red, y=green, z=blue.
+        self.vis_module[vis_name] = visuals.XYZAxis(parent=self.view_panel[parent_view].scene, width = 5)
 
     def add_reference_grid_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = visuals.Markers(parent=self.view_panel[parent_view].scene)
@@ -300,24 +302,14 @@ class Canvas(scene.SceneCanvas):
 
     def prepare_box_data(self, boxes, enlarge_ratio=1.0):
         pos = []
-        # width = []
-        # height = []
-        # depth = []
-        # theta = []
-        # for b in boxes:
-        #     pos.append([b.x, b.y, b.z])
-        #     width.append([b.width])
-        #     height.append([b.length])
-        #     depth.append([b.height])
-        #     theta.append([b.dir])
 
         pos = boxes[:, 0:3]
         # enlarge box a little bit
         width = boxes[:, 3].reshape(-1, 1) * enlarge_ratio
-        height = boxes[:, 4].reshape(-1, 1)  * enlarge_ratio
-        depth = boxes[:, 5].reshape(-1, 1)  * enlarge_ratio
+        depth = boxes[:, 4].reshape(-1, 1)  * enlarge_ratio
+        height = boxes[:, 5].reshape(-1, 1)  * enlarge_ratio
         theta = boxes[:, 6]
-        return pos, width, height, depth, theta
+        return pos, width, depth, height, theta
 
     def prepare_box_color(self, boxes, lightness_ratio=1.0, opacity=1.0):
         fc = []
@@ -352,13 +344,41 @@ class Canvas(scene.SceneCanvas):
         pt_idx += arr_mask.reshape(-1, 1)
         return vertices, pt_idx
 
+    # def create_box_vertex(self, pos, width, length, height,rotation):
 
-    def create_box_vertex(self, pos, width, length, height,
-            rotation):
+    #     rotation_mat = []
+    #     for theta in rotation:
+    #         rotation_mat.append(Rotation.from_euler('xyz', [0., 0., theta]).as_matrix())
+
+    #     import ipdb
+    #     ipdb.set_trace()
+
+    #     box_vertex = np.array([[-0.5, -0.5, -0.5],
+    #                         [-0.5, -0.5, 0.5],
+    #                         [0.5, -0.5, -0.5],
+    #                         [0.5, -0.5, 0.5],
+    #                         [0.5, 0.5, -0.5],
+    #                         [0.5, 0.5, 0.5],
+    #                         [-0.5, 0.5, -0.5],
+    #                         [-0.5, 0.5, 0.5]])
+    #     nb_v = box_vertex.shape[0]
+    #     scale = np.hstack((width, length, height))
+    #     vertices = box_vertex.reshape(1, nb_v, 3) * scale.reshape(-1, 1, 3) + pos.reshape(-1, 1, 3)
+
+    #     vertices = vertices.reshape(-1, 3)
+    #     module_list = [(0, 2), (1, 3), (2, 4), (3, 5), (4, 6), (5, 7), (6, 0), (7, 1), (0, 1), (2, 3), (4, 5), (6, 7)]
+    #     pt_idx = np.array((pos.shape[0] * module_list), dtype=np.int64)
+
+    #     arr_mask = np.repeat(np.arange(pos.shape[0]), 12).reshape(-1) * 8
+    #     pt_idx += arr_mask.reshape(-1, 1)
+    #     return vertices, pt_idx
+
+
+    def create_box_vertex(self, pos, width, length, height,rotation):
 
         rotation_mat = []
         for theta in rotation:
-            rotation_mat.append(Rotation.from_euler('zyx', [0., 0., theta]).as_matrix())
+            rotation_mat.append(Rotation.from_euler('xyz', [0., 0, theta]).as_matrix())
 
         box_vertex = np.array([[-0.5, -0.5, -0.5],
                                 [-0.5, -0.5, 0.5],
