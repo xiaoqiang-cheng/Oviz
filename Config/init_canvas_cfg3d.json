@@ -24,6 +24,9 @@
             "bbox_line": {
                 "type": "add_box_line_vis"
             },
+            "reference_line":{
+                "type" : "add_referenceline_vis"
+            },
             "obj_vel": {
                 "type": "add_obj_vel_vis"
             },

@@ -168,6 +168,10 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name].transform = transforms.MatrixTransform()
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
+    def add_referenceline_vis(self, vis_name, parent_view):
+        self.vis_module[vis_name] = visuals.Line(antialias=True)
+        self.view_panel[parent_view].add(self.vis_module[vis_name])
+
     def add_voxelline_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = visuals.Line(antialias=True)
         self.view_panel[parent_view].add(self.vis_module[vis_name])
@@ -230,6 +234,46 @@ class Canvas(scene.SceneCanvas):
     def draw_point_voxel(self, vis_name, pos, w, l, h, face, edge):
         self.vis_module[vis_name].set_voxel_data(pos, width=w, height=l, depth=h, face_color=face)
 
+    def draw_reference_line(self, vis_name, x_range = [-100, 100], y_range = [-100, 100], x_step = 10, y_step = 10,
+                                color = (0.5, 0.5, 0.5, 0.9), ref_type = 0, box_line_width = 1):
+        '''
+            x_range, y_range, z_range (TODO): like [min, max] /m,
+            step:
+                if ref_type == 0: x_step y_step is m
+                if ref_type == 1: x_step is m, y_step is angle
+            color defaulte gray
+            ref_type :
+                0 Decare;
+                1 Polar
+        '''
+        if ref_type == 0:
+            idx = []
+            all_pos = []
+            index = 0
+            for i in np.arange(x_range[0], x_range[1] + 1, step=x_step):
+                pos = np.empty((2, 3), np.float32)
+                pos[:, 0] = y_range
+                pos[:, 1] = [i, i]
+                pos[:, 2] = [0, 0]
+                all_pos.append(pos)
+                idx.append([index, index + 1])
+                index += 2
+
+            for i in np.arange(y_range[0], y_range[1] + 1, step=y_step):
+                pos = np.empty((2, 3), np.float32)
+                pos[:, 0] = [i, i]
+                pos[:, 1] = x_range
+                pos[:, 2] = [0, 0]
+                all_pos.append(pos)
+                idx.append([index, index + 1])
+                index += 2
+            all_pos = np.array(all_pos).reshape(-1, 3)
+            idx = np.array(idx)
+            self.vis_module[vis_name].set_data(pos=all_pos, connect = idx, color=color, width=box_line_width)
+        else:
+            pass
+
+
     def draw_voxel_line(self, vis_name, pos, w, l, h, box_line_width=0.8):
         vertex_point, p_idx = self.create_voxel_vertex(pos, w, l, h)
         self.vis_module[vis_name].set_data(pos=vertex_point, connect=p_idx,
@@ -252,7 +296,6 @@ class Canvas(scene.SceneCanvas):
         pos, width, length, height, theta = self.prepare_box_data(boxes)
         vertex_point, p_idx = self.create_box_vertex(pos,
                 width, length, height, theta)
-
         color = np.tile(color, 8).reshape(-1, 4)
         self.vis_module[vis_name].set_data(pos=vertex_point, connect=p_idx,
                     color=color, width=box_line_width)

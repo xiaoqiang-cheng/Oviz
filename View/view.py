@@ -77,6 +77,7 @@ class View(QObject):
         self.ui.action_show_control_box.triggered.connect(self.show_control_box)
 
         self.dock_control_box.unfold()
+        self.set_reference_line()
 
     def create_color_map_widget(self):
         color_id_map_list = QListWidget()
@@ -393,3 +394,6 @@ class View(QObject):
 
     def set_bbox3d(self, bboxes3d, color):
         self.canvas.draw_box3d_line("bbox_line", bboxes3d, color)
+
+    def set_reference_line(self):
+        self.canvas.draw_reference_line("reference_line")
