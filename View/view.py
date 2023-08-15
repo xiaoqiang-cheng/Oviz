@@ -77,7 +77,7 @@ class View(QObject):
         self.ui.action_show_control_box.triggered.connect(self.show_control_box)
 
         self.dock_control_box.unfold()
-        self.set_reference_line()
+
 
     def create_color_map_widget(self):
         color_id_map_list = QListWidget()
@@ -381,6 +381,14 @@ class View(QObject):
     def set_car_visible(self, mode):
         self.canvas.set_visible("car_model", mode)
 
+    def set_reference_line_visible(self, mode):
+        if mode:
+            self.set_reference_line()
+        self.canvas.set_visible("reference_line", mode)
+
+    def set_bbox3d_visible(self, mode):
+        self.canvas.set_visible("bbox3d_line", mode)
+
     def set_point_cloud(self, points, color = "#00ff00", size = 1):
         # self.canvas.clear_voxel("point_voxel", "view3d")
         self.canvas.draw_point_cloud("point_cloud", points, color, size)
@@ -393,7 +401,7 @@ class View(QObject):
         self.image_dock[meta_form].set_image(img)
 
     def set_bbox3d(self, bboxes3d, color):
-        self.canvas.draw_box3d_line("bbox_line", bboxes3d, color)
+        self.canvas.draw_box3d_line("bbox3d_line", bboxes3d, color)
 
     def set_reference_line(self):
         self.canvas.draw_reference_line("reference_line")

@@ -21,7 +21,7 @@
             "bbox_surface": {
                 "type": "add_bbox_vis"
             },
-            "bbox_line": {
+            "bbox3d_line": {
                 "type": "add_box_line_vis"
             },
             "reference_line":{

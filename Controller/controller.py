@@ -67,6 +67,8 @@ class Controller():
         self.view.control_box_layout_dict['global_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.control_box_layout_dict['global_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
         self.view.control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
+        self.view.control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
+
 
         self.view.pointSizeChanged.connect(self.change_point_size)
 
@@ -84,6 +86,11 @@ class Controller():
     def show_car_mode(self, state):
         flag = state > 0
         self.view.set_car_visible(flag)
+
+    def show_global_grid(self, state):
+        flag = state > 0
+        self.view.set_reference_line_visible(flag)
+
 
     def change_record_mode(self, state):
         if state > 0:
@@ -163,6 +170,7 @@ class Controller():
             callback_fun(data, meta_form, meta_form)
 
     def update_system_vis(self, index):
+        print(index)
         self.curr_frame_index = index
         self.model.get_curr_frame_data(index, self.points_setting.points_dim)
         self.update_buffer_vis()
@@ -193,6 +201,11 @@ class Controller():
 
     def bbox3d_callback(self, msg, topic, meta_form):
         max_dim = msg.shape[-1]
+        self.view.set_bbox3d_visible(False)
+        if max_dim == 0:
+            return
+
+        msg = msg.reshape(-1, max_dim)
         if max(self.bbox3d_setting.bbox_dims) >= max_dim:
             send_log_msg(ERROR, "bbox_dims维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.bbox_dims, max_dim)))
             return
@@ -209,7 +222,7 @@ class Controller():
 
         if not state:
             send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
-
+        self.view.set_bbox3d_visible(True)
         self.view.set_bbox3d(bboxes, real_color)
 
     def pointcloud_callback(self, msg, topic, meta_form):
