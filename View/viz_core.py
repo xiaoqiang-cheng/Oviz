@@ -202,7 +202,7 @@ class Canvas(scene.SceneCanvas):
         mesh.transform.rotate(90, (1, 0, 0))
         mesh.transform.rotate(-90, (0, 0, 1))
         mesh.transform.scale((1.1, 1.1, 1.1))
-        mesh.transform.translate((0., 0., 1.0))
+        mesh.transform.translate((0.5, 0., 1.0))
         texture_filter = TextureFilter(texture, texcoords)
         self.initial_camera_dir = (0, -1, 0)  # for a default initialised camera
         self.initial_light_dir = self.view_panel[parent_view].camera.transform.imap(self.initial_camera_dir)[:3]

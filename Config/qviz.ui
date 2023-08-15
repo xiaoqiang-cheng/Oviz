@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>config/xshow.ico</normaloff>config/xshow.ico</iconset>
+    <normaloff>Config/xshow.ico</normaloff>Config/xshow.ico</iconset>
   </property>
   <property name="autoFillBackground">
    <bool>false</bool>

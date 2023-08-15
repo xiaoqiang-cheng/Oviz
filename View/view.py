@@ -380,6 +380,15 @@ class View(QObject):
 
     def set_car_visible(self, mode):
         self.canvas.set_visible("car_model", mode)
+        if mode:
+            self.set_car_model_pos()
+
+    def set_car_model_pos(self, x = 0, y = 0, z = 0,
+                    r = -90,s = 1):
+        mesh = self.canvas.vis_module['car_model']
+        mesh.transform.rotate(r, (0, 0, 1))
+        mesh.transform.scale((s, s, s))
+        # mesh.transform.translate((x, y, z))
 
     def set_reference_line_visible(self, mode):
         if mode:

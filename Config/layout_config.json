@@ -39,12 +39,6 @@
                         "text": "显示grid"
                     }
                 },
-                "checkbox_show_car":{
-                    "type" : "QCheckBox",
-                    "params":{
-                        "text": "显示车模型"
-                    }
-                },
                 "checkbox_online_mode":{
                     "type" : "QCheckBox",
                     "params":{
@@ -61,6 +55,19 @@
                     "type" : "QCheckBox",
                     "params":{
                         "text": "保存录屏"
+                    }
+                }
+            }
+        },
+
+        "car_model_setting":
+        {
+            "type": "QVBoxLayout",
+            "widget" : {
+                "checkbox_show_car":{
+                    "type" : "QCheckBox",
+                    "params":{
+                        "text": "显示车模型"
                     }
                 }
             }
