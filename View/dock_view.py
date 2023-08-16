@@ -187,6 +187,10 @@ class RangeSlideDockWidget(QDockWidget):
         self.frame_cnt = QLabel("\\N")
         self.curr_filename = QLabel("filename")
         self.curr_filename.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.fps = QLineEdit("20")
+        self.fps.setMaximumWidth(50)
+
+        self.fps_label = QLabel("HZ")
 
         layout2.addWidget(self.last)
         layout2.addWidget(self.auto)
@@ -196,6 +200,10 @@ class RangeSlideDockWidget(QDockWidget):
         layout2.addWidget(self.frame)
         layout2.addWidget(self.frame_cnt)
         layout2.addWidget(self.curr_filename)
+        layout2.addWidget(self.fps)
+        layout2.addWidget(self.fps_label)
+
+
 
         widget.setLayout(layout2)
         self.setWidget(widget)
@@ -214,15 +222,17 @@ class RangeSlideDockWidget(QDockWidget):
 
     def auto_play(self):
         # if self.update_handled:
-        self.auto_timer.stop()
+        # self.auto_timer.stop()
         self.next_frame()
-        self.auto_timer.start(10)
+
+        # self.auto_timer.start(100)
 
     def auto_ctrl(self, state):
+        hz = int(self.fps.text())
         if state == 0:
             self.auto_timer.stop()
         else:
-            self.auto_timer.start(50)
+            self.auto_timer.start(int(1000.0 / hz))
 
     def change_bar(self):
         self.curr_index = self.range_slider.value()
