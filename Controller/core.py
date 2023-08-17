@@ -11,6 +11,7 @@ class PointCloudSetting:
 class Bbox3DSetting:
     bbox_dims = 0
     color_dims = 0
+    show_obj_arrow = False
 
 
 class GlobalSetting:

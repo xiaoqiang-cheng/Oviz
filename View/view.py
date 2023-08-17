@@ -96,7 +96,7 @@ class View(QObject):
             ret[key]["layout"] = eval(value['type'])()
             for wk, wv in value["widget"].items():
                 ret[key][wk] = eval(wv['type'])(**wv['params'])
-                ret[key]["layout"] .addWidget(ret[key][wk])
+                ret[key]["layout"].addWidget(ret[key][wk])
 
         return ret
 
@@ -409,8 +409,16 @@ class View(QObject):
     def set_image(self, img, meta_form):
         self.image_dock[meta_form].set_image(img)
 
-    def set_bbox3d(self, bboxes3d, color):
+    def set_bbox3d(self, bboxes3d, color, show_arrow = False):
         self.canvas.draw_box3d_line("bbox3d_line", bboxes3d, color)
+        if show_arrow:
+            self.canvas.set_visible("obj_arrow", True)
+            self.set_bbox_arrow(bboxes3d, color)
+        else:
+            self.canvas.set_visible("obj_arrow", False)
+
+    def set_bbox_arrow(self, bboxes, color):
+        self.canvas.draw_bbox3d_arrow("obj_arrow", bboxes, color)
 
     def set_reference_line(self):
         self.canvas.draw_reference_line("reference_line")

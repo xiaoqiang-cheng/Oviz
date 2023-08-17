@@ -62,6 +62,8 @@ class Controller():
         self.view.control_box_layout_dict['bbox3d_setting']['button_select_bbox3d'].SelectDone.connect(self.select_bbox3d)
         self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_xyzwhlt_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
         self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_color_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+        self.view.control_box_layout_dict['bbox3d_setting']['show_bbox3d_arrow'].stateChanged.connect(self.show_bbox3d_arrow)
+
 
         self.view.control_box_layout_dict['car_model_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
 
@@ -82,6 +84,10 @@ class Controller():
         except:
             pass
         send_log_msg(NORMAL, "加载配置结束，如果未能显示上一次数据，请检查文件路径或本地资源是否正常")
+
+    def show_bbox3d_arrow(self, state):
+        self.bbox3d_setting.show_obj_arrow = state > 0
+        self.update_buffer_vis()
 
     def show_car_mode(self, state):
         flag = state > 0
@@ -223,7 +229,7 @@ class Controller():
         if not state:
             send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
         self.view.set_bbox3d_visible(True)
-        self.view.set_bbox3d(bboxes, real_color)
+        self.view.set_bbox3d(bboxes, real_color, self.bbox3d_setting.show_obj_arrow)
 
     def pointcloud_callback(self, msg, topic, meta_form):
         max_dim = msg.shape[-1]

@@ -80,7 +80,7 @@
                     "params":{
                         "widget_titie" : "dim",
                         "default_value": {
-                            "value": "7"
+                            "value": "4"
                         }
                     }
                 },
@@ -154,6 +154,23 @@
                         "default_value": {
                             "value": "0"
                         }
+                    }
+                },
+
+                "bbox3d_txt_arrow_dim":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "arrow (x|xy|xyz)",
+                        "default_value": {
+                            "value": "-1"
+                        }
+                    }
+                },
+
+                "show_bbox3d_arrow" : {
+                    "type": "QCheckBox",
+                    "params":{
+                        "text": "显示速度/方向箭头"
                     }
                 },
 

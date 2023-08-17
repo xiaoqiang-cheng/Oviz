@@ -176,7 +176,7 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name] = visuals.Line(antialias=True)
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
-    def add_obj_vel_vis(self, vis_name, parent_view):
+    def add_arrow_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = visuals.Arrow(arrow_type='stealth', antialias=True, width=2)
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
@@ -285,9 +285,12 @@ class Canvas(scene.SceneCanvas):
     def set_visible(self, vis_name, status):
         self.vis_module[vis_name].visible = status
 
-    def draw_velocity(self, vis_name, pos, arrow, width = 4):
-        # pos, arrow = self.create_box_vel_arrow(boxes)
+    def draw_arrow(self, vis_name, pos, arrow, color, width):
         self.vis_module[vis_name].set_data(pos, connect='segments', arrows=arrow, width=width)
+
+    def draw_bbox3d_arrow(self, vis_name, bboxes, color, width = 3):
+        pos, arrow = self.create_box_arrow(bboxes)
+        self.draw_arrow(vis_name, pos, arrow, color, width)
 
     # def draw_bbox3d(self, vis_name, boxes, color, box_line_width=2):
     #     self.draw_box3d_line(vis_name, boxes, color, box_line_width=2)
@@ -330,18 +333,6 @@ class Canvas(scene.SceneCanvas):
             rgba = self.color_map[self.label_map[b.kind]].rgba
             show_text_color.append(rgba)
         return show_text, show_text_pos, show_text_color
-
-    # def prepare_box_color(self, boxes, lightness_ratio=1.0, opacity=1.0):
-    #     fc = []
-    #     for b in boxes:
-    #         rgba = self.color_map[self.label_map[b.kind]].rgba
-    #         if lightness_ratio != 1.0:
-    #             rgba[:3] = scale_lightness(rgba[:3], lightness_ratio)
-    #         fc.append(rgba)
-    #     fc = np.array(fc)
-    #     ec = np.copy(fc)
-    #     fc[..., 3] = opacity
-    #     return fc, ec
 
     def prepare_box_data(self, boxes, enlarge_ratio=1.0):
         pos = []
@@ -387,36 +378,6 @@ class Canvas(scene.SceneCanvas):
         pt_idx += arr_mask.reshape(-1, 1)
         return vertices, pt_idx
 
-    # def create_box_vertex(self, pos, width, length, height,rotation):
-
-    #     rotation_mat = []
-    #     for theta in rotation:
-    #         rotation_mat.append(Rotation.from_euler('xyz', [0., 0., theta]).as_matrix())
-
-    #     import ipdb
-    #     ipdb.set_trace()
-
-    #     box_vertex = np.array([[-0.5, -0.5, -0.5],
-    #                         [-0.5, -0.5, 0.5],
-    #                         [0.5, -0.5, -0.5],
-    #                         [0.5, -0.5, 0.5],
-    #                         [0.5, 0.5, -0.5],
-    #                         [0.5, 0.5, 0.5],
-    #                         [-0.5, 0.5, -0.5],
-    #                         [-0.5, 0.5, 0.5]])
-    #     nb_v = box_vertex.shape[0]
-    #     scale = np.hstack((width, length, height))
-    #     vertices = box_vertex.reshape(1, nb_v, 3) * scale.reshape(-1, 1, 3) + pos.reshape(-1, 1, 3)
-
-    #     vertices = vertices.reshape(-1, 3)
-    #     module_list = [(0, 2), (1, 3), (2, 4), (3, 5), (4, 6), (5, 7), (6, 0), (7, 1), (0, 1), (2, 3), (4, 5), (6, 7)]
-    #     pt_idx = np.array((pos.shape[0] * module_list), dtype=np.int64)
-
-    #     arr_mask = np.repeat(np.arange(pos.shape[0]), 12).reshape(-1) * 8
-    #     pt_idx += arr_mask.reshape(-1, 1)
-    #     return vertices, pt_idx
-
-
     def create_box_vertex(self, pos, width, length, height,rotation):
 
         rotation_mat = []
@@ -452,17 +413,17 @@ class Canvas(scene.SceneCanvas):
                 p_idx.append((2 * j + idx_v_start, 2 *j + 1 + idx_v_start))
         return vertices, np.array(p_idx)
 
-    def create_box_vel_arrow(self, boxes):
+    def create_box_arrow(self, boxes):
         pos = []
         arrow = []
         for i, b in enumerate(boxes):
-            theta = np.pi * 0.5 - b.dir
-            vel = b.vel * 0.5
-            x = b.x + vel * math.cos(theta)
-            y = b.y + vel * math.sin(theta)
-            pos.append([b.x, b.y, b.z])
-            pos.append([x, y, b.z])
-            arrow.append([b.x, b.y, b.z, x, y, b.z])
+            theta = np.pi * 0.5 - b[-1]
+            vel = 3.0
+            x = b[0] + vel * math.cos(theta)
+            y = b[1] + vel * math.sin(theta)
+            pos.append(b[0:3])
+            pos.append([x, y, b[2]])
+            arrow.append([b[0],b[1], b[2], x, y, b[2]])
 
         pos = np.array(pos)
         arrow = np.array(arrow)
