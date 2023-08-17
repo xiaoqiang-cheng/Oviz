@@ -10,11 +10,19 @@ class Model():
         self.global_cfg_path = cfg_path
         self.global_cfg = parse_json(self.global_cfg_path)
         self.offline_frame_cnt = 0
-        self.point_cloud_ext = ".bin"
         self.data_frame_list = []
         self.database = {}
         self.topic_path_meta = {}
         self.curr_frame_data = {}
+
+    def dump_database(self, target_path):
+        serialize_data([self.database, self.topic_path_meta] , target_path)
+
+    def reload_database(self, datapkl_path):
+        self.database, self.topic_path_meta = deserialize_data(datapkl_path)
+        for meta_form, value in self.database.items():
+            self.data_frame_list = list(value.keys())
+            self.data_frame_list.sort()
 
     def get_curr_frame_data(self, index, dim = 7):
         key = self.data_frame_list[index]
@@ -34,9 +42,9 @@ class Model():
         return np.loadtxt(bbox_path, dtype=np.float32)
 
     def smart_read_pointcloud(self, pc_path, dim = 7):
-        if self.point_cloud_ext == ".pcd":
+        if pc_path.endswith(".pcd"):
             pc = read_pcd(pc_path)
-        elif self.point_cloud_ext == ".bin":
+        elif pc_path.endswith(".bin"):
             pc = read_bin(pc_path, dim)
         return pc
 
@@ -69,17 +77,13 @@ class Model():
         for f in datanames:
             key, ext = os.path.splitext(f)
             if ext in [".pcd", ".bin"]:
-                self.point_cloud_ext = ext
-            else:
-                continue
-
-            self.database[meta_form][key] = os.path.join(pc_path, f)
+                self.database[meta_form][key] = os.path.join(pc_path, f)
 
         pc_cnt = len(self.database[meta_form].keys())
         self.data_frame_list = list(self.database[meta_form].keys())
         self.data_frame_list.sort()
         self.offline_frame_cnt = pc_cnt
-        send_log_msg(NORMAL, "共发现了%s格式的文件 %d 帧"%(self.point_cloud_ext, pc_cnt))
+        send_log_msg(NORMAL, "共发现了%s格式的文件 %d 帧"%(ext, pc_cnt))
         return pc_cnt
 
     def deal_bbox3d_folder(self, pc_path, meta_form):

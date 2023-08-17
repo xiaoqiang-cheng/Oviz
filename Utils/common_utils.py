@@ -1,4 +1,4 @@
-from os import stat_result
+import os
 from PySide2.QtWidgets import QFileDialog
 import json
 import re
@@ -6,6 +6,12 @@ from vispy.color import Color
 import colorsys
 import numpy as np
 import pickle
+import time
+
+
+USER_CONFIG_DIR = ".user"
+DUMP_HISTORY_DIR = ".history"
+
 
 POINTCLOUD = "pointcloud"
 IMAGE = "image"
@@ -78,6 +84,8 @@ def deserialize_data(file_path):
     return data
 
 
+def get_wall_time_str():
+    return time.strftime("%Y-%m-%d_%H_%M_%S",time.localtime())
 
 def get_mac_address():
     import uuid
@@ -165,3 +173,11 @@ def rec_merge(d1, d2):
         else:
             d1[key] = value
     return d1
+
+
+def if_not_exist_create(dir_path):
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+if_not_exist_create(USER_CONFIG_DIR)
+if_not_exist_create(DUMP_HISTORY_DIR)

@@ -2,3 +2,4 @@ __pycache__/
 qviz_env/
 .user/
 Output/
+.history/

@@ -76,8 +76,18 @@ class View(QObject):
         self.ui.action_show_status_bar.triggered.connect(self.show_status_bar)
         self.ui.action_show_control_box.triggered.connect(self.show_control_box)
 
-        self.dock_control_box.unfold()
 
+        # TODO: use Qaction and Ctrl+S to save data, instead button
+        self.load_history_menu = self.ui.menubar.addMenu("历史记录")
+
+        if os.path.exists(DUMP_HISTORY_DIR):
+            for pkl_name in os.listdir(DUMP_HISTORY_DIR):
+                self.load_history_menu.addAction(pkl_name)
+        else:
+            self.load_history_menu.addAction("[empty]")
+        self.load_history_menu_triggered = self.load_history_menu.triggered[QAction]
+
+        # self.dock_control_box.unfold()
 
     def create_color_map_widget(self):
         color_id_map_list = QListWidget()
@@ -113,7 +123,7 @@ class View(QObject):
     def get_user_config(self, config_name):
         default_config_file = os.path.join("Config", config_name)
         default_cfg = parse_json(default_config_file)
-        user_config_file = os.path.join(".user", config_name)
+        user_config_file = os.path.join(USER_CONFIG_DIR, config_name)
         if os.path.exists(user_config_file):
             user_cfg = parse_json(user_config_file)
         else:
@@ -135,12 +145,12 @@ class View(QObject):
         for key in self.layout_config['image_dock_path'].keys():
             self.layout_config['image_dock_path'][key] = self.image_dock[key].folder_path
 
-        if not os.path.exists(".user"):
-            os.mkdir(".user")
+        if not os.path.exists(USER_CONFIG_DIR):
+            os.mkdir(USER_CONFIG_DIR)
 
-        write_json(self.layout_config, ".user/layout_config.json")
-        write_json(self.color_map, ".user/color_map.json")
-        write_json(self.canvas_cfg, ".user/init_canvas_cfg3d.json")
+        write_json(self.layout_config, "%s/layout_config.json"%USER_CONFIG_DIR)
+        write_json(self.color_map, "%s/color_map.json"%USER_CONFIG_DIR)
+        write_json(self.canvas_cfg, "%s/init_canvas_cfg3d.json"%USER_CONFIG_DIR)
         self.save_layout()
 
     def grab_form(self, image_name):
@@ -176,14 +186,14 @@ class View(QObject):
         self.load_layout()
 
     def save_layout(self):
-        p = '.user/layout.ini'
+        p = '%s/layout.ini'%USER_CONFIG_DIR
         with open(p, 'wb') as f:
             s = self.ui.saveState()
             f.write(bytes(s))
             f.flush()
 
     def load_layout(self):
-        p = '.user/layout.ini'
+        p = '%slayout.ini'%USER_CONFIG_DIR
         if os.path.exists(p):
             with open(p, 'rb') as f:
                 s = f.read()

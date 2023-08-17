@@ -72,6 +72,7 @@ class Controller():
         self.view.control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
         self.view.control_box_layout_dict['global_setting']['pushbutton_dump_alldata'].clicked.connect(self.dump_database)
 
+        self.view.load_history_menu_triggered.connect(self.reload_database)
 
 
         self.view.pointSizeChanged.connect(self.change_point_size)
@@ -88,7 +89,13 @@ class Controller():
         send_log_msg(NORMAL, "加载配置结束，如果未能显示上一次数据，请检查文件路径或本地资源是否正常")
 
     def dump_database(self):
-        pass
+        target_path = os.path.join(DUMP_HISTORY_DIR, get_wall_time_str())
+        self.model.dump_database(target_path)
+
+    def reload_database(self, q):
+        target_pkl_path = os.path.join(DUMP_HISTORY_DIR, q.text())
+        self.model.reload_database(target_pkl_path)
+        self.update_system_vis(0)
 
     def show_bbox3d_arrow(self, state):
         self.bbox3d_setting.show_obj_arrow = state > 0
