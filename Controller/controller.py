@@ -70,6 +70,8 @@ class Controller():
         self.view.control_box_layout_dict['global_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
         self.view.control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
+        self.view.control_box_layout_dict['global_setting']['pushbutton_dump_alldata'].clicked.connect(self.dump_database)
+
 
 
         self.view.pointSizeChanged.connect(self.change_point_size)
@@ -84,6 +86,9 @@ class Controller():
         except:
             pass
         send_log_msg(NORMAL, "加载配置结束，如果未能显示上一次数据，请检查文件路径或本地资源是否正常")
+
+    def dump_database(self):
+        pass
 
     def show_bbox3d_arrow(self, state):
         self.bbox3d_setting.show_obj_arrow = state > 0

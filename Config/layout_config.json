@@ -45,16 +45,16 @@
                         "text": "在线模式"
                     }
                 },
-                "checkbox_dump_alldata":{
-                    "type" : "QCheckBox",
-                    "params":{
-                        "text": "保存数据"
-                    }
-                },
                 "checkbox_record_screen":{
                     "type" : "QCheckBox",
                     "params":{
                         "text": "保存录屏"
+                    }
+                },
+                "pushbutton_dump_alldata":{
+                    "type" : "QPushButton",
+                    "params":{
+                        "text": "保存数据"
                     }
                 }
             }

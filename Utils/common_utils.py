@@ -5,6 +5,7 @@ import re
 from vispy.color import Color
 import colorsys
 import numpy as np
+import pickle
 
 POINTCLOUD = "pointcloud"
 IMAGE = "image"
@@ -65,6 +66,17 @@ def write_json(json_data,json_name):
     # Writing JSON data
     with open(json_name, 'w', encoding="utf-8") as f:
         json.dump(json_data, f, indent=4, ensure_ascii = False)
+
+
+def serialize_data(data:dict, file_path):
+    with open(file_path, 'wb') as file:
+        pickle.dump(data, file)
+
+def deserialize_data(file_path):
+    with open(file_path, 'rb') as file:
+        data = pickle.load(file)
+    return data
+
 
 
 def get_mac_address():

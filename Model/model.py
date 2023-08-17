@@ -38,7 +38,6 @@ class Model():
             pc = read_pcd(pc_path)
         elif self.point_cloud_ext == ".bin":
             pc = read_bin(pc_path, dim)
-
         return pc
 
     def smart_read_image(self, image_path):
