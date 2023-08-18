@@ -206,6 +206,7 @@ class Controller():
     def run(self):
         self.view.show()
         self.app.exec_()
+        self.view.save_last_frame_num(self.curr_frame_index)
         self.view.save_layout_config()
 
     def monitor_timer(self):
