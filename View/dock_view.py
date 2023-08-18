@@ -172,6 +172,7 @@ class RangeSlideDockWidget(QDockWidget):
         layout2 = QHBoxLayout()
 
         self.range_slider = QSlider()
+        # self.range_slider.setTracking(False)
         self.range_slider.setOrientation(Qt.Horizontal)
 
         self.auto_timer = QTimer()
@@ -202,8 +203,6 @@ class RangeSlideDockWidget(QDockWidget):
         layout2.addWidget(self.curr_filename)
         layout2.addWidget(self.fps)
         layout2.addWidget(self.fps_label)
-
-
 
         widget.setLayout(layout2)
         self.setWidget(widget)
@@ -286,6 +285,7 @@ class RangeSlideDockWidget(QDockWidget):
         self.frame_range = len(self.listname)
         self.range_slider.setRange(0, self.frame_range - 1)
         self.set_frame_cnt(self.frame_range - 1)
+        self.set_frmae_text(0)
 
     # def resizeEvent(self, event):
     #     super().resizeEvent(event)

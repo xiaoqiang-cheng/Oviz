@@ -133,6 +133,9 @@ class View(QObject):
             user_cfg = {}
         return rec_exsit_merge(default_cfg, user_cfg)
 
+    def save_last_frame_num(self, num):
+        self.layout_config["last_slide_num"] = num
+
     def save_layout_config(self):
         self.layout_config["image_flag"] = not self.image_flag
         self.layout_config["log_flag"]   = not self.log_flag
@@ -185,6 +188,7 @@ class View(QObject):
         for key, val in self.layout_config['image_dock_path'].items():
             self.image_dock[key].set_topic_path(val)
 
+        self.dock_range_slide.set_frmae_text(self.layout_config["last_slide_num"])
         self.load_layout()
 
     def save_layout(self):

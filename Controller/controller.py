@@ -83,31 +83,26 @@ class Controller():
         self.update_bbox3dsetting_dims()
         self.view.revet_layout_config()
         try:
-            self.update_system_vis(0)
+            self.update_system_vis(self.view.layout_config["last_slide_num"])
         except:
             pass
         send_log_msg(NORMAL, "加载配置结束，如果未能显示上一次数据，请检查文件路径或本地资源是否正常")
 
     def dump_database(self, target_path):
-        dump_dict = {}
-        dump_dict["model"] = self.model.dump_database()
-        dump_dict["controller"] = [self.global_setting, self.points_setting,
-                                    self.bbox3d_setting]
-        serialize_data(dump_dict, target_path)
+        serialize_data(self.view.layout_config, target_path)
 
     def operation_menu_triggered(self, q):
         if q.text() == "保存":
             name, ok = self.view.create_input_dialog("提示", "请输入数据名称")
             if ok:
+                self.view.save_last_frame_num(self.curr_frame_index)
                 self.dump_database(os.path.join(DUMP_HISTORY_DIR, name))
 
     def reload_database(self, q):
         target_pkl_path = os.path.join(DUMP_HISTORY_DIR, q.text())
-        dump_dict = deserialize_data(target_pkl_path)
-        self.model.reload_database(dump_dict["model"])
-        self.global_setting, self.points_setting, self.bbox3d_setting = dump_dict["controller"]
-        self.select_done_update_range_and_vis()
-        self.update_system_vis(0)
+        history_config = deserialize_data(target_pkl_path)
+        rec_exsit_merge(self.view.layout_config, history_config)
+        self.revert_user_config()
 
     def show_bbox3d_arrow(self, state):
         self.bbox3d_setting.show_obj_arrow = state > 0
@@ -219,6 +214,7 @@ class Controller():
             self.view.dock_log_info.display_append_msg_list(get_msg)
 
     def sigint_handler(self, signum = None, frame = None):
+        self.view.save_last_frame_num(self.curr_frame_index)
         self.view.save_layout_config()
         sys.exit(self.app.exec_())
 

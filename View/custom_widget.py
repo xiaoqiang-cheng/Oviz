@@ -26,7 +26,7 @@ class FolderSelectWidget(QtWidgets.QWidget):
         self.default_value = default_value
 
     def revert(self):
-        self.set_topic_path(self.folder_path)
+        self.set_topic_path(self.default_value['value'])
 
     def select_topic_path(self):
         self.folder_path = self.linetxt.text()
