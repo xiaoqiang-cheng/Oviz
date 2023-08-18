@@ -162,6 +162,26 @@
                     }
                 },
 
+                "bbox3d_txt_text_dim":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "text_dim",
+                        "default_value": {
+                            "value": "-1"
+                        }
+                    }
+                },
+
+                "bbox3d_txt_format_dim":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "show_format",
+                        "default_value": {
+                            "value": "[ID: %d]"
+                        }
+                    }
+                },
+
                 "show_bbox3d_arrow" : {
                     "type": "QCheckBox",
                     "params":{

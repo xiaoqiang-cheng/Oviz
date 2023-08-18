@@ -317,7 +317,11 @@ class View(QObject):
     def get_bbox3dsetting(self):
         size_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_xyzwhlt_dim'].text().split(',')))
         color_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_color_dim'].text().split(',')))
-        return size_dims, color_dims
+        arrow_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_arrow_dim'].text().split(',')))
+        text_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_text_dim'].text().split(',')))
+        format_dims = self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_format_dim'].text()
+
+        return size_dims, color_dims, arrow_dims, text_dims, format_dims
 
     def rgb_to_hex_numpy(self, rgb_list):
         rgb_array = np.array(rgb_list)
@@ -429,15 +433,32 @@ class View(QObject):
     def set_image(self, img, meta_form):
         self.image_dock[meta_form].set_image(img)
 
-    def set_bbox3d(self, bboxes3d, color, show_arrow = False):
+    def set_bbox3d(self, bboxes3d, color, arrow, text_info, show_format):
         self.canvas.draw_box3d_line("bbox3d_line", bboxes3d, color)
-        if show_arrow:
+        # show arrow
+        if len(arrow) !=  0:
             self.canvas.set_visible("obj_arrow", True)
-            self.set_bbox_arrow(bboxes3d, color)
+            self.set_bbox3d_arrow(bboxes3d, color)
         else:
             self.canvas.set_visible("obj_arrow", False)
 
-    def set_bbox_arrow(self, bboxes, color):
+        # show text
+        if len(text_info) != 0:
+            text_pos = bboxes3d[:, 0:3]
+            text_pos[:, -1] += 2.0
+            text = []
+            for txt in text_info:
+                text.append(show_format%txt)
+            # import ipdb
+            # ipdb.set_trace()
+            self.set_bbox3d_text(text_pos, text, (0.5, 0.5, 0.5, 1))
+        else:
+            self.canvas.set_visible("text", False)
+
+    def set_bbox3d_text(self, pos, txt, color):
+        self.canvas.draw_text("text", txt, pos, color)
+
+    def set_bbox3d_arrow(self, bboxes, color):
         self.canvas.draw_bbox3d_arrow("obj_arrow", bboxes, color)
 
     def set_reference_line(self):

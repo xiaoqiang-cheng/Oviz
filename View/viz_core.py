@@ -185,7 +185,7 @@ class Canvas(scene.SceneCanvas):
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_text_vis(self, vis_name, parent_view):
-        self.vis_module[vis_name] = visuals.Text(font_size=1000, color=(0,1,1))
+        self.vis_module[vis_name] = visuals.Text(font_size=600, color=(0,1,1))
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_veh_model(self, vis_name, parent_view,
@@ -314,7 +314,7 @@ class Canvas(scene.SceneCanvas):
     def draw_text(self, vis_name, text, text_pos, text_color):
         self.vis_module[vis_name].text = text
         self.vis_module[vis_name].pos = text_pos
-        self.vis_module[vis_name].color = text_color
+        # self.vis_module[vis_name].color = text_color
 
     def prepare_box_id_vel(self, boxes, draw_box_vel = 0):
         show_text = []

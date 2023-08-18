@@ -62,6 +62,10 @@ class Controller():
         self.view.control_box_layout_dict['bbox3d_setting']['button_select_bbox3d'].SelectDone.connect(self.select_bbox3d)
         self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_xyzwhlt_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
         self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_color_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+        self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_format_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+        self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_text_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+        self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_arrow_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+
         self.view.control_box_layout_dict['bbox3d_setting']['show_bbox3d_arrow'].stateChanged.connect(self.show_bbox3d_arrow)
 
 
@@ -180,7 +184,9 @@ class Controller():
 
     def update_bbox3dsetting_dims(self):
         try:
-            self.bbox3d_setting.bbox_dims, self.bbox3d_setting.color_dims = self.view.get_bbox3dsetting()
+            self.bbox3d_setting.bbox_dims, self.bbox3d_setting.color_dims, self.bbox3d_setting.arrow_dims, \
+                    self.bbox3d_setting.text_dims, self.bbox3d_setting.text_format \
+                        = self.view.get_bbox3dsetting()
         except:
             print(self.bbox3d_setting.__dict__)
         self.update_buffer_vis()
@@ -219,10 +225,6 @@ class Controller():
         self.view.save_layout_config()
         sys.exit(self.app.exec_())
 
-    def bbox3d_callback(self, msg, topic, meta_form):
-        self.set_bbox3d()
-
-
     def image_callback(self, msg, topic, meta_form):
         self.view.set_image(msg, meta_form)
 
@@ -239,6 +241,25 @@ class Controller():
 
         bboxes = msg[..., self.bbox3d_setting.bbox_dims]
 
+        if max(self.bbox3d_setting.arrow_dims) >= max_dim:
+            send_log_msg(ERROR, "arrow_dims维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.arrow_dims, max_dim)))
+            return
+
+        if max(self.bbox3d_setting.arrow_dims) == -1:
+            arrow = []
+        else:
+            arrow = msg[..., self.bbox3d_setting.arrow_dims]
+
+        if max(self.bbox3d_setting.text_dims) >= max_dim:
+            send_log_msg(ERROR, "text_dims维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.text_dims, max_dim)))
+            return
+
+        if max(self.bbox3d_setting.text_dims) == -1:
+            text_info = []
+        else:
+            text_info = msg[..., self.bbox3d_setting.text_dims]
+
+
         if len(self.bbox3d_setting.color_dims) <= 0 or min(self.bbox3d_setting.color_dims) < 0 or max(self.bbox3d_setting.color_dims) >= max_dim:
             send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.color_dims), max_dim))
             color_id_list = -1
@@ -250,7 +271,7 @@ class Controller():
         if not state:
             send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
         self.view.set_bbox3d_visible(True)
-        self.view.set_bbox3d(bboxes, real_color, self.bbox3d_setting.show_obj_arrow)
+        self.view.set_bbox3d(bboxes, real_color, arrow, text_info, self.bbox3d_setting.text_format)
 
     def pointcloud_callback(self, msg, topic, meta_form):
         max_dim = msg.shape[-1]
