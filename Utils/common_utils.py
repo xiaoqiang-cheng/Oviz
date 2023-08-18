@@ -175,6 +175,15 @@ def rec_merge(d1, d2):
     return d1
 
 
+def rec_exsit_merge(d1, d2):
+    for key, value in d2.items():
+        if key not in d1.keys(): continue
+        if isinstance(value, dict):
+            d1[key] = rec_exsit_merge(d1.get(key, {}), value)
+        else:
+            d1[key] = value
+    return d1
+
 def if_not_exist_create(dir_path):
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)

@@ -70,9 +70,9 @@ class Controller():
         self.view.control_box_layout_dict['global_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
         self.view.control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
-        self.view.control_box_layout_dict['global_setting']['pushbutton_dump_alldata'].clicked.connect(self.dump_database)
 
         self.view.load_history_menu_triggered.connect(self.reload_database)
+        self.view.operation_menu_triggered.connect(self.operation_menu_triggered)
 
 
         self.view.pointSizeChanged.connect(self.change_point_size)
@@ -88,13 +88,25 @@ class Controller():
             pass
         send_log_msg(NORMAL, "加载配置结束，如果未能显示上一次数据，请检查文件路径或本地资源是否正常")
 
-    def dump_database(self):
-        target_path = os.path.join(DUMP_HISTORY_DIR, get_wall_time_str())
-        self.model.dump_database(target_path)
+    def dump_database(self, target_path):
+        dump_dict = {}
+        dump_dict["model"] = self.model.dump_database()
+        dump_dict["controller"] = [self.global_setting, self.points_setting,
+                                    self.bbox3d_setting]
+        serialize_data(dump_dict, target_path)
+
+    def operation_menu_triggered(self, q):
+        if q.text() == "保存":
+            name, ok = self.view.create_input_dialog("提示", "请输入数据名称")
+            if ok:
+                self.dump_database(os.path.join(DUMP_HISTORY_DIR, name))
 
     def reload_database(self, q):
         target_pkl_path = os.path.join(DUMP_HISTORY_DIR, q.text())
-        self.model.reload_database(target_pkl_path)
+        dump_dict = deserialize_data(target_pkl_path)
+        self.model.reload_database(dump_dict["model"])
+        self.global_setting, self.points_setting, self.bbox3d_setting = dump_dict["controller"]
+        self.select_done_update_range_and_vis()
         self.update_system_vis(0)
 
     def show_bbox3d_arrow(self, state):

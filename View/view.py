@@ -76,6 +76,9 @@ class View(QObject):
         self.ui.action_show_status_bar.triggered.connect(self.show_status_bar)
         self.ui.action_show_control_box.triggered.connect(self.show_control_box)
 
+        self.operation_menu = self.ui.menubar.addMenu("操作")
+        self.operation_menu.addAction("保存").setShortcut("Ctrl+S")
+        self.operation_menu_triggered = self.operation_menu.triggered[QAction]
 
         # TODO: use Qaction and Ctrl+S to save data, instead button
         self.load_history_menu = self.ui.menubar.addMenu("历史记录")
@@ -87,7 +90,7 @@ class View(QObject):
             self.load_history_menu.addAction("[empty]")
         self.load_history_menu_triggered = self.load_history_menu.triggered[QAction]
 
-        # self.dock_control_box.unfold()
+        self.dock_control_box.unfold()
 
     def create_color_map_widget(self):
         color_id_map_list = QListWidget()
@@ -128,7 +131,7 @@ class View(QObject):
             user_cfg = parse_json(user_config_file)
         else:
             user_cfg = {}
-        return rec_merge(default_cfg, user_cfg)
+        return rec_exsit_merge(default_cfg, user_cfg)
 
     def save_layout_config(self):
         self.layout_config["image_flag"] = not self.image_flag
@@ -160,7 +163,6 @@ class View(QObject):
         self.ui.grab().save(output_path, "PNG", quality=100)
 
     def revet_layout_config(self):
-
         for module, value in self.control_box_layout_dict.items():
             for wk, wv in value.items():
                 try:
@@ -198,6 +200,10 @@ class View(QObject):
             with open(p, 'rb') as f:
                 s = f.read()
                 self.ui.restoreState(s)
+
+    def create_input_dialog(self, title, info):
+        inputs_name, ok = QInputDialog.getText(self.ui, title, info, QLineEdit.Normal)
+        return inputs_name, ok
 
     def show_control_box(self):
         if self.control_box_flag:

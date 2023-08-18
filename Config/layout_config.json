@@ -50,12 +50,6 @@
                     "params":{
                         "text": "保存录屏"
                     }
-                },
-                "pushbutton_dump_alldata":{
-                    "type" : "QPushButton",
-                    "params":{
-                        "text": "保存数据"
-                    }
                 }
             }
         },

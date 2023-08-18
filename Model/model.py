@@ -15,11 +15,11 @@ class Model():
         self.topic_path_meta = {}
         self.curr_frame_data = {}
 
-    def dump_database(self, target_path):
-        serialize_data([self.database, self.topic_path_meta] , target_path)
+    def dump_database(self):
+        return [self.database, self.topic_path_meta]
 
-    def reload_database(self, datapkl_path):
-        self.database, self.topic_path_meta = deserialize_data(datapkl_path)
+    def reload_database(self, model_data):
+        self.database, self.topic_path_meta = model_data
         for meta_form, value in self.database.items():
             self.data_frame_list = list(value.keys())
             self.data_frame_list.sort()
