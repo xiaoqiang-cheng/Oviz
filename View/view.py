@@ -9,6 +9,10 @@ from log_sys import send_log_msg
 from View.custom_widget import *
 from View.dock_view import *
 
+'''
+TODO: 扩展，magic link， filter，在线，录
+BUG： show multi text
+'''
 dock_layout_map = {
     "top"    : Qt.TopDockWidgetArea,
     "buttom" : Qt.BottomDockWidgetArea,
@@ -444,13 +448,12 @@ class View(QObject):
 
         # show text
         if len(text_info) != 0:
+            self.canvas.set_visible("text", True)
             text_pos = bboxes3d[:, 0:3]
             text_pos[:, -1] += 2.0
             text = []
             for txt in text_info:
-                text.append(show_format%txt)
-            # import ipdb
-            # ipdb.set_trace()
+                text.append(show_format%tuple(txt))
             self.set_bbox3d_text(text_pos, text, (0.5, 0.5, 0.5, 1))
         else:
             self.canvas.set_visible("text", False)

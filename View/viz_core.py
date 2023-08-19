@@ -314,7 +314,7 @@ class Canvas(scene.SceneCanvas):
     def draw_text(self, vis_name, text, text_pos, text_color):
         self.vis_module[vis_name].text = text
         self.vis_module[vis_name].pos = text_pos
-        # self.vis_module[vis_name].color = text_color
+        self.vis_module[vis_name].color = text_color
 
     def prepare_box_id_vel(self, boxes, draw_box_vel = 0):
         show_text = []
