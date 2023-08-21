@@ -24,8 +24,7 @@ from PySide2.QtCore import Signal
 from vispy.io import imread, load_data_file, read_mesh
 from vispy.scene.visuals import Mesh
 from vispy.visuals.filters import TextureFilter
-
-
+from collections import Iterable
 
 class Canvas(scene.SceneCanvas):
     """Class that creates and handles a visualizer for a pointcloud"""
@@ -288,8 +287,8 @@ class Canvas(scene.SceneCanvas):
     def draw_arrow(self, vis_name, pos, arrow, color, width):
         self.vis_module[vis_name].set_data(pos, connect='segments', arrows=arrow, width=width)
 
-    def draw_bbox3d_arrow(self, vis_name, bboxes, color, width = 3):
-        pos, arrow = self.create_box_arrow(bboxes)
+    def draw_bbox3d_arrow(self, vis_name, bboxes, vel_list, color, width = 3):
+        pos, arrow = self.create_box_arrow(bboxes, vel_list)
         self.draw_arrow(vis_name, pos, arrow, color, width)
 
     def draw_box3d_line(self, vis_name, boxes, color, box_line_width=2):
@@ -410,14 +409,18 @@ class Canvas(scene.SceneCanvas):
                 p_idx.append((2 * j + idx_v_start, 2 *j + 1 + idx_v_start))
         return vertices, np.array(p_idx)
 
-    def create_box_arrow(self, boxes):
+    def create_box_arrow(self, boxes, vel_list):
         pos = []
         arrow = []
-        for i, b in enumerate(boxes):
-            theta = np.pi * 0.5 - b[-1]
-            vel = 3.0
-            x = b[0] + vel * math.cos(theta)
-            y = b[1] + vel * math.sin(theta)
+        for i, vel in enumerate(vel_list):
+            b = boxes[i]
+            if len(vel) == 1:
+                theta = np.pi * 0.5 - b[-1]
+                x = b[0] + vel[0] * math.cos(theta)
+                y = b[1] + vel[0] * math.sin(theta)
+            else:
+                x, y = vel[0], vel[1]
+
             pos.append(b[0:3])
             pos.append([x, y, b[2]])
             arrow.append([b[0],b[1], b[2], x, y, b[2]])

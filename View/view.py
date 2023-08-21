@@ -442,7 +442,7 @@ class View(QObject):
         # show arrow
         if len(arrow) !=  0:
             self.canvas.set_visible("obj_arrow", True)
-            self.set_bbox3d_arrow(bboxes3d, color)
+            self.set_bbox3d_arrow(bboxes3d, arrow, color)
         else:
             self.canvas.set_visible("obj_arrow", False)
 
@@ -461,8 +461,8 @@ class View(QObject):
     def set_bbox3d_text(self, pos, txt, color):
         self.canvas.draw_text("text", txt, pos, color)
 
-    def set_bbox3d_arrow(self, bboxes, color):
-        self.canvas.draw_bbox3d_arrow("obj_arrow", bboxes, color)
+    def set_bbox3d_arrow(self, bboxes, vel_list, color):
+        self.canvas.draw_bbox3d_arrow("obj_arrow", bboxes, vel_list, color)
 
     def set_reference_line(self):
         self.canvas.draw_reference_line("reference_line")
