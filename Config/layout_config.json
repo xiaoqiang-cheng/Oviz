@@ -182,13 +182,6 @@
                     }
                 },
 
-                "show_bbox3d_arrow" : {
-                    "type": "QCheckBox",
-                    "params":{
-                        "text": "显示速度/方向箭头"
-                    }
-                },
-
                 "button_select_bbox3d" : {
                     "type": "FolderSelectWidget",
                     "params":{

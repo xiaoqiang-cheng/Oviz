@@ -66,9 +66,6 @@ class Controller():
         self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_text_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
         self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_arrow_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
 
-        self.view.control_box_layout_dict['bbox3d_setting']['show_bbox3d_arrow'].stateChanged.connect(self.show_bbox3d_arrow)
-
-
         self.view.control_box_layout_dict['car_model_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
 
         self.view.control_box_layout_dict['global_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
@@ -107,10 +104,6 @@ class Controller():
         history_config = deserialize_data(target_pkl_path)
         rec_exsit_merge(self.view.layout_config, history_config)
         self.revert_user_config()
-
-    def show_bbox3d_arrow(self, state):
-        self.bbox3d_setting.show_obj_arrow = state > 0
-        self.update_buffer_vis()
 
     def show_car_mode(self, state):
         flag = state > 0

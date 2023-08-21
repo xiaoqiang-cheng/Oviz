@@ -14,7 +14,6 @@ class Bbox3DSetting:
     arrow_dims = -1
     text_dims = -1
     text_format = ""
-    show_obj_arrow = False
 
 
 class GlobalSetting:
