@@ -10,8 +10,7 @@ from View.custom_widget import *
 from View.dock_view import *
 
 '''
-TODO: 扩展，magic link， filter，在线，录
-BUG： show multi text
+TODO: 扩展|magic link|filter|在线录
 '''
 dock_layout_map = {
     "top"    : Qt.TopDockWidgetArea,
@@ -31,10 +30,9 @@ class View(QObject):
         self.color_map = self.get_user_config("color_map.json")
         self.layout_config = self.get_user_config("layout_config.json")
 
-        self.canvas = Canvas()
+        self.canvas = Canvas(self.color_map["-2"])
         self.struct_canvas_init(self.canvas_cfg)
         self.ui.setDockNestingEnabled(True)
-
 
         self.spliter_dict = {}
         self.dock_log_info = LogDockWidget()
@@ -84,7 +82,6 @@ class View(QObject):
         self.operation_menu.addAction("保存").setShortcut("Ctrl+S")
         self.operation_menu_triggered = self.operation_menu.triggered[QAction]
 
-        # TODO: use Qaction and Ctrl+S to save data, instead button
         self.load_history_menu = self.ui.menubar.addMenu("历史记录")
 
         if os.path.exists(DUMP_HISTORY_DIR):
@@ -98,6 +95,15 @@ class View(QObject):
 
     def create_color_map_widget(self):
         color_id_map_list = QListWidget()
+        style_sheet = '''
+                QListView::item:selected {
+                    color: #FFFFFF;
+                    padding: 10px;
+                    border-left: 3px solid black;
+                }
+        '''
+        color_id_map_list.setStyleSheet(style_sheet)
+
         color_id_map_list.clear()
         for c, val in self.color_map.items():
             lw = QListWidgetItem(c)
@@ -355,6 +361,7 @@ class View(QObject):
                     color_dim = len(rgb_color_map[key])
                 ret_color = np.zeros((len(id_list), color_dim))
                 for key, value in rgb_color_map.items():
+                    # TODO bug if key is not int str
                     mask = id_list == int(key)
                     ret_color[mask] = value
                 return ret_color, True
@@ -392,7 +399,11 @@ class View(QObject):
             if item.background().color() != cur_color:
                 item.setBackground(cur_color)
                 self.update_color_map(item.text(), cur_color.name())
+                if (item.text() == "-2"):
+                    self.set_canvas_bgcolor()
+                self.control_box_layout_dict["global_setting"]["color_id_map_list"].clearSelection()
                 return True
+        self.control_box_layout_dict["global_setting"]["color_id_map_list"].clearSelection()
         return False
 
     def set_data_range(self, listname):
@@ -466,3 +477,6 @@ class View(QObject):
 
     def set_reference_line(self):
         self.canvas.draw_reference_line("reference_line")
+
+    def set_canvas_bgcolor(self):
+        self.canvas.set_vis_bgcolor(value=self.color_map["-2"])

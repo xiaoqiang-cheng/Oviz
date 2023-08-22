@@ -33,31 +33,15 @@ class Canvas(scene.SceneCanvas):
 
     capturerKey = Signal(str)
 
-    def __init__(self, **kwargs):
+    def __init__(self, background=(1,1,1,1)):
         scene.SceneCanvas.__init__(self, keys='interactive')
         self.unfreeze()
-        self.grid = self.central_widget.add_grid(spacing=5, bgcolor=(1, 1, 1, 1), border_color='k')
+        self.grid = self.central_widget.add_grid(spacing=5, bgcolor=background, border_color='k')
         # Bind the escape key to a custom function
         # vispy.app.use_app().bind_key("Escape", self.on_escape)
         self.view_panel = {}
         self.vis_module = {}
         self.curr_col_image_view = 0
-
-        self.label_map = {
-                    "0": "car",
-                    "1": "car",
-                    "2": "truck",
-                    "3": "bus",
-                    "4": "bicycle",
-                    "5": "tricycle",
-                    "6": "pedestrian",
-                    "7": "barrier",
-                    "8": "construction_vehicle",
-                    "9": "motorcycle",
-                    "10": "traffic_cone",
-                    "11": "trailer"
-                }
-
 
     #     self.canvas.events.key_press.connect(on_escape)
 
@@ -217,6 +201,9 @@ class Canvas(scene.SceneCanvas):
         dir = np.concatenate((self.initial_light_dir, [0]))
         mesh.shading_filter.light_dir = transform.map(dir)[:3]
 
+    def set_vis_bgcolor(self, value = (0, 0, 0, 1)):
+        self.grid.bgcolor = value
+
     @property
     def visuals(self):
         """List of all 3D visuals on this canvas."""
@@ -305,30 +292,10 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name].set_data(pos, width=width, height=length, depth=height,
             face_color=color, edge_color=color, rotation=theta)
 
-    def draw_id_vel(self, vis_name, box, show_id = 1, show_vel = 0):
-        if show_id:
-            text, pos, color = self.prepare_box_id_vel(box, show_vel)
-            self.draw_text(vis_name, text, pos, color)
-
     def draw_text(self, vis_name, text, text_pos, text_color):
         self.vis_module[vis_name].text = text
         self.vis_module[vis_name].pos = text_pos
         self.vis_module[vis_name].color = text_color
-
-    def prepare_box_id_vel(self, boxes, draw_box_vel = 0):
-        show_text = []
-        show_text_pos = []
-        show_text_color = []
-        for b in boxes:
-            if draw_box_vel:
-                curr_text =  " [" + str(int(b.id)) + "] " + "v:" + "%.2f"%b.vel + " km/h"
-            else:
-                curr_text =  " [" + str(int(b.id)) + "]"
-            show_text.append(curr_text)
-            show_text_pos.append((b.x, b.y, b.z + 1.5))
-            rgba = self.color_map[self.label_map[b.kind]].rgba
-            show_text_color.append(rgba)
-        return show_text, show_text_pos, show_text_color
 
     def prepare_box_data(self, boxes, enlarge_ratio=1.0):
         pos = []
@@ -340,18 +307,6 @@ class Canvas(scene.SceneCanvas):
         height = boxes[:, 5].reshape(-1, 1)  * enlarge_ratio
         theta = boxes[:, 6]
         return pos, width, depth, height, theta
-
-    def prepare_box_color(self, boxes, lightness_ratio=1.0, opacity=1.0):
-        fc = []
-        for b in boxes:
-            rgba = self.color_map[self.label_map[str(int(b.kind))]].rgba
-            if lightness_ratio != 1.0:
-                rgba[:3] = scale_lightness(rgba[:3], lightness_ratio)
-            fc.append(rgba)
-        fc = np.array(fc)
-        ec = np.copy(fc)
-        fc[..., 3] = opacity
-        return fc, ec
 
     def create_voxel_vertex(self, pos, width, length, height):
         box_vertex = np.array([[-0.5, -0.5, -0.5],
