@@ -133,12 +133,13 @@ class Canvas(scene.SceneCanvas):
 
     def add_reference_grid_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = visuals.Markers(parent=self.view_panel[parent_view].scene)
-        self.vis_module[vis_name].set_gl_state('translucent', depth_test=False)
+        # self.vis_module[vis_name].set_gl_state('translucent', depth_test=False)
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_pointcloud_vis(self, vis_name, parent_view):
-        self.vis_module[vis_name] = visuals.Markers(parent=self.view_panel[parent_view].scene)
-        self.vis_module[vis_name].set_gl_state('translucent', depth_test=False)
+        self.vis_module[vis_name] = visuals.Markers(parent=self.view_panel[parent_view].scene,
+                            light_color='black', light_position=(0, 0, 0), light_ambient=0.3,)
+        self.vis_module[vis_name].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_bbox_vis(self, vis_name, parent_view):
@@ -196,10 +197,17 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name].attach(texture_filter)
 
     def on_mouse_move(self, event):
+        self.vis_module["point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
         mesh = self.vis_module['car_model']
         transform = self.view_panel['view3d'].camera.transform
         dir = np.concatenate((self.initial_light_dir, [0]))
         mesh.shading_filter.light_dir = transform.map(dir)[:3]
+
+    def on_mouse_wheel(self, event):
+        self.vis_module["point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
+
+    def on_mouse_press(self, event):
+        self.vis_module["point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
 
     def set_vis_bgcolor(self, value = (0, 0, 0, 1)):
         self.grid.bgcolor = value
@@ -212,6 +220,7 @@ class Canvas(scene.SceneCanvas):
     def draw_point_cloud(self, vis_name, point_clouds, point_color="#f3f3f3", size = 1):
         # face_color = edge_color = Color(point_color)
         self.vis_module[vis_name].set_data(np.array(point_clouds),
+                                            # edge_width=5,
                                             edge_color=point_color,
                                             face_color=point_color,
                                             size=size,
