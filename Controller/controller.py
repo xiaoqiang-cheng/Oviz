@@ -196,7 +196,7 @@ class Controller():
     def update_system_vis(self, index):
         print(index)
         self.curr_frame_index = index
-        self.model.get_curr_frame_data(index, self.points_setting.points_dim)
+        self.model.get_curr_frame_data(index)
         self.update_buffer_vis()
         self.view.send_update_vis_flag()
         if self.global_setting.record_screen:
@@ -244,7 +244,7 @@ class Controller():
             arrow = msg[..., self.bbox3d_setting.arrow_dims]
 
         if max(self.bbox3d_setting.text_dims) >= max_dim:
-            send_log_msg(ERROR, "text_dims维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.text_dims, max_dim)))
+            send_log_msg(ERROR, "text_dims维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.text_dims), max_dim))
             return
 
         if max(self.bbox3d_setting.text_dims) == -1:
@@ -267,9 +267,14 @@ class Controller():
         self.view.set_bbox3d(bboxes, real_color, arrow, text_info, self.bbox3d_setting.text_format)
 
     def pointcloud_callback(self, msg, topic, meta_form):
+        if len(msg.shape) == 1:
+            try:
+                msg = msg.reshape(-1, self.points_setting.points_dim)
+            except:
+                return
         max_dim = msg.shape[-1]
         if max(self.points_setting.xyz_dims) >= max_dim:
-            send_log_msg(ERROR, "xyz维度无效:%s,最大维度为%d"%(str(self.points_setting.xyz_dims, max_dim)))
+            send_log_msg(ERROR, "xyz维度无效:%s,最大维度为%d"%(str(self.points_setting.xyz_dims), max_dim))
             return
         points = msg[...,self.points_setting.xyz_dims]
 

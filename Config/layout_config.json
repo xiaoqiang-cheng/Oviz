@@ -155,7 +155,7 @@
                 "bbox3d_txt_arrow_dim":{
                     "type": "LineTextWithLabelWidget",
                     "params":{
-                        "widget_titie" : "arrow (x|xy|xyz)",
+                        "widget_titie" : "arrow",
                         "default_value": {
                             "value": "-1"
                         }

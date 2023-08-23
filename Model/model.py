@@ -24,7 +24,7 @@ class Model():
             self.data_frame_list = list(value.keys())
             self.data_frame_list.sort()
 
-    def get_curr_frame_data(self, index, dim = 7):
+    def get_curr_frame_data(self, index):
         key = self.data_frame_list[index]
         self.curr_frame_data = {}
         for meta_form in self.database.keys():
@@ -32,7 +32,7 @@ class Model():
             if key in self.database[meta_form].keys():
                 data_path = self.database[meta_form][key]
                 if topic_type == POINTCLOUD:
-                    self.curr_frame_data[meta_form] = self.smart_read_pointcloud(data_path, dim)
+                    self.curr_frame_data[meta_form] = self.smart_read_pointcloud(data_path)
                 elif topic_type == IMAGE:
                     self.curr_frame_data[meta_form] = self.smart_read_image(data_path)
                 elif topic_type == BBOX3D:
@@ -41,11 +41,11 @@ class Model():
     def smart_read_bbox3d(self, bbox_path):
         return np.loadtxt(bbox_path, dtype=np.float32)
 
-    def smart_read_pointcloud(self, pc_path, dim = 7):
+    def smart_read_pointcloud(self, pc_path):
         if pc_path.endswith(".pcd"):
             pc = read_pcd(pc_path)
         elif pc_path.endswith(".bin"):
-            pc = read_bin(pc_path, dim)
+            pc = read_bin(pc_path)
         return pc
 
     def smart_read_image(self, image_path):
