@@ -68,6 +68,14 @@ def parse_json(filename):
     return json.loads(content)
 
 
+def check_setting_dims(val, dims):
+    if not isinstance(dims, list):
+        dims = [dims]
+    if len(val) in dims:
+        return True
+    return False
+
+
 def write_json(json_data,json_name):
     # Writing JSON data
     with open(json_name, 'w', encoding="utf-8") as f:

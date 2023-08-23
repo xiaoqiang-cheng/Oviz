@@ -171,18 +171,23 @@ class Controller():
                     self.points_setting.wlh_dims, \
                         self.points_setting.color_dims = \
                 self.view.get_pointsetting()
+
+            if not check_setting_dims(self.points_setting.xyz_dims, [2, 3]): return
+            self.update_buffer_vis()
         except:
             print(self.points_setting.__dict__)
-        self.update_buffer_vis()
+
 
     def update_bbox3dsetting_dims(self):
         try:
             self.bbox3d_setting.bbox_dims, self.bbox3d_setting.color_dims, self.bbox3d_setting.arrow_dims, \
                     self.bbox3d_setting.text_dims, self.bbox3d_setting.text_format \
                         = self.view.get_bbox3dsetting()
+            if not check_setting_dims(self.points_setting.bbox_dims, 7): return
+            self.update_buffer_vis()
         except:
             print(self.bbox3d_setting.__dict__)
-        self.update_buffer_vis()
+
 
 
     def update_buffer_vis(self):
