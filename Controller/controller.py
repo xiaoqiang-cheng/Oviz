@@ -229,7 +229,7 @@ class Controller():
 
         msg = msg.reshape(-1, max_dim)
         if max(self.bbox3d_setting.bbox_dims) >= max_dim:
-            send_log_msg(ERROR, "bbox_dims维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.bbox_dims, max_dim)))
+            send_log_msg(ERROR, "bbox_dims维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.bbox_dims), max_dim))
             return
 
         bboxes = msg[..., self.bbox3d_setting.bbox_dims]
@@ -263,6 +263,7 @@ class Controller():
 
         if not state:
             send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
+
         self.view.set_bbox3d_visible(True)
         self.view.set_bbox3d(bboxes, real_color, arrow, text_info, self.bbox3d_setting.text_format)
 
@@ -304,4 +305,3 @@ class Controller():
         else:
             self.view.set_point_cloud(points, color = real_color,
                         size=self.view.point_size)
-        # print(points.shape)
