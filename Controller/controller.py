@@ -3,21 +3,16 @@ import numpy as np
 from Utils.point_cloud_utils import *
 from View.view import View
 from Model.model import Model
-from PySide2.QtWidgets import QApplication, QColorDialog
-import os.path as osp
 from Utils.common_utils import *
 from log_sys import *
-from PySide2.QtCore import QTimer, Qt
-import PySide2
 import sys
 import qdarkstyle
 from qdarkstyle.dark.palette import DarkPalette
 from Controller.core import *
 
-dirname = os.path.dirname(PySide2.__file__)
-plugin_path = os.path.join(dirname, 'plugins', 'platforms')
-os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
-
+# dirname = os.path.dirname(GuiCoreLib.__file__)
+# plugin_path = os.path.join(dirname, 'plugins', 'platforms')
+# os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 
 
 class Controller():
@@ -41,7 +36,8 @@ class Controller():
         self.bbox3d_setting = Bbox3DSetting()
 
         self.view.set_spilter_style()
-        self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
+
+        self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api=GUICOREVERSION, palette = DarkPalette))
         self.revert_user_config()
         send_log_msg(NORMAL, "Qviz 系統开始运行！")
 

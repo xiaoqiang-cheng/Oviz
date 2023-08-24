@@ -1,5 +1,19 @@
 import os
-from PySide2.QtWidgets import QFileDialog
+try:
+    from PySide6.QtUiTools import QUiLoader
+    from PySide6.QtWidgets import *
+    from PySide6.QtCore import *
+    from PySide6.QtGui import *
+    __GUICOREVERSION__ = "pyside6"
+    print("use pyside6 as gui core")
+except:
+    from PySide2.QtUiTools import QUiLoader
+    from PySide2.QtWidgets import *
+    from PySide2.QtCore import *
+    from PySide2.QtGui import *
+    __GUICOREVERSION__ = "pyside2"
+    print("use pyside2 as gui core")
+
 import json
 import re
 from vispy.color import Color
@@ -8,7 +22,7 @@ import numpy as np
 import pickle
 import time
 
-
+GUICOREVERSION = __GUICOREVERSION__
 USER_CONFIG_DIR = ".user"
 DUMP_HISTORY_DIR = ".history"
 

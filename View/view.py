@@ -1,8 +1,3 @@
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QApplication, QSplitter, QTreeWidgetItem, QCheckBox,QListWidgetItem
-from PySide2.QtCore import QTimer, Qt, QModelIndex
-from PySide2.QtGui import QColor, QPixmap
-import time
 from Utils.common_utils import *
 from View.viz_core import Canvas
 from log_sys import send_log_msg
@@ -47,7 +42,7 @@ class View(QObject):
 
 
         self.ui.centralwidget.setContentsMargins(0, 0, 0, 0)
-        self.ui.centralwidget.layout().setMargin(0)
+        self.ui.centralwidget.layout().setContentsMargins(0,0,0,0)
         self.ui.pointcloud_vis_widget.setContentsMargins(0, 0, 0, 0)
 
         self.ui.pointcloud_vis_widget_layout.addWidget(self.canvas.native)
@@ -392,7 +387,7 @@ class View(QObject):
 
     def set_color_map_list(self):
         dlg = QColorDialog()
-        dlg.setWindowFlags(self.ui.windowFlags() | PySide2.QtCore.Qt.WindowStaysOnTopHint)
+        dlg.setWindowFlags(self.ui.windowFlags() | GuiCoreLib.QtCore.Qt.WindowStaysOnTopHint)
         item = self.control_box_layout_dict['global_setting']['color_id_map_list'].currentItem()
         if dlg.exec_():
             cur_color = dlg.currentColor()

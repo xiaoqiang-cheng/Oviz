@@ -19,8 +19,6 @@ from .box_marker import BoxMarkers
 from scipy.spatial.transform import Rotation
 from Utils.common_utils import *
 
-from PySide2.QtCore import Signal
-
 from vispy.io import imread, load_data_file, read_mesh
 from vispy.scene.visuals import Mesh
 from vispy.visuals.filters import TextureFilter

@@ -1,14 +1,11 @@
 # import cv2
 import sys
 import os
-from PySide2 import QtCore, QtGui, QtWidgets
-from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QMainWindow, QTextEdit, QDockWidget, QVBoxLayout, QWidget, QHBoxLayout, QLineEdit, QFrame, QLabel, QPushButton
 from Utils.common_utils import *
 import time
 
-class FolderSelectWidget(QtWidgets.QWidget):
-    SelectDone = QtCore.Signal(str, str)
+class FolderSelectWidget(QWidget):
+    SelectDone = Signal(str, str)
     def __init__(self, parent=None, widget_titie="选择", default_value = {}):
         super().__init__(parent)
         self.widget_title = widget_titie
@@ -53,8 +50,8 @@ class FolderSelectWidget(QtWidgets.QWidget):
         return self.folder_path
 
 
-class LineTextWithLabelWidget(QtWidgets.QWidget):
-    textChanged = QtCore.Signal(str)
+class LineTextWithLabelWidget(QWidget):
+    textChanged = Signal(str)
     def __init__(self, parent=None, widget_titie="", default_value = {}):
         super().__init__(parent)
         layout = QHBoxLayout(self)
@@ -83,8 +80,8 @@ class LineTextWithLabelWidget(QtWidgets.QWidget):
 
 
 
-class FileSelectWidget(QtWidgets.QWidget):
-    SelectDone = QtCore.Signal(str, str)
+class FileSelectWidget(QWidget):
+    SelectDone = Signal(str, str)
     def __init__(self, parent=None, widget_titie="选择", default_path = ""):
         super().__init__(parent)
         self.widget_title = widget_titie

@@ -1,12 +1,12 @@
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QApplication, QSplitter, QTreeWidgetItem, QCheckBox
-from PySide2.QtCore import QTimer, Qt, QModelIndex
+from GuiCoreLib.QtUiTools import QUiLoader
+from GuiCoreLib.QtWidgets import QApplication, QSplitter, QTreeWidgetItem, QCheckBox
+from GuiCoreLib.QtCore import QTimer, Qt, QModelIndex
 import time
 from Utils.common_utils import *
 from View.uviz import Canvas
 from log_sys import send_log_msg
 from .mov_obj import LabelObj
-from PySide2.QtCharts import QtCharts
+from GuiCoreLib.QtCharts import QtCharts
 
 
 class View():
