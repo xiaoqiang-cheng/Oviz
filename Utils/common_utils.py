@@ -14,6 +14,10 @@ except:
     __GUICOREVERSION__ = "pyside2"
     print("use pyside2 as gui core")
 
+# dirname = os.path.dirname(GuiCoreLib.__file__)
+# plugin_path = os.path.join(dirname, 'plugins', 'platforms')
+# os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
+
 import json
 import re
 from vispy.color import Color

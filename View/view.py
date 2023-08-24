@@ -150,7 +150,7 @@ class View(QObject):
 
         for key in self.canvas_cfg.keys():
             if "camera" in self.canvas_cfg[key].keys():
-                self.canvas_cfg[key]['camera'] = self.canvas.get_canvas_camera(key)
+                self.canvas_cfg[key]['camera'].update(self.canvas.get_canvas_camera(key))
 
 
         for key in self.layout_config['image_dock_path'].keys():
@@ -387,7 +387,7 @@ class View(QObject):
 
     def set_color_map_list(self):
         dlg = QColorDialog()
-        dlg.setWindowFlags(self.ui.windowFlags() | GuiCoreLib.QtCore.Qt.WindowStaysOnTopHint)
+        dlg.setWindowFlags(self.ui.windowFlags() | Qt.WindowStaysOnTopHint)
         item = self.control_box_layout_dict['global_setting']['color_id_map_list'].currentItem()
         if dlg.exec_():
             cur_color = dlg.currentColor()

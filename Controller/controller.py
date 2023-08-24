@@ -10,10 +10,6 @@ import qdarkstyle
 from qdarkstyle.dark.palette import DarkPalette
 from Controller.core import *
 
-# dirname = os.path.dirname(GuiCoreLib.__file__)
-# plugin_path = os.path.join(dirname, 'plugins', 'platforms')
-# os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
-
 
 class Controller():
     def __init__(self) -> None:

@@ -91,7 +91,6 @@ class Canvas(scene.SceneCanvas):
 
             self.view_panel[view_name].camera  = scene.TurntableCamera(
                     **camera,
-                    translate_speed = 10
                 )
 
     def get_canvas_camera(self, view_name):
