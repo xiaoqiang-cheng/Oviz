@@ -175,7 +175,7 @@ class Controller():
             self.bbox3d_setting.bbox_dims, self.bbox3d_setting.color_dims, self.bbox3d_setting.arrow_dims, \
                     self.bbox3d_setting.text_dims, self.bbox3d_setting.text_format \
                         = self.view.get_bbox3dsetting()
-            if not check_setting_dims(self.points_setting.bbox_dims, 7): return
+            if not check_setting_dims(self.bbox3d_setting.bbox_dims, 7): return
             self.update_buffer_vis()
         except:
             print(self.bbox3d_setting.__dict__)
