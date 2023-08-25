@@ -1,12 +1,12 @@
 import os
 try:
-    from PySide6.QtUiTools import QUiLoader
-    from PySide6.QtWidgets import *
-    from PySide6.QtCore import *
-    from PySide6.QtGui import *
-    import PySide6 as GuiCoreLib
-    __GUICOREVERSION__ = "pyside6"
-    print("use pyside6 as gui core")
+    from PySide2.QtUiTools import QUiLoader
+    from PySide2.QtWidgets import *
+    from PySide2.QtCore import *
+    from PySide2.QtGui import *
+    import PySide2 as GuiCoreLib
+    __GUICOREVERSION__ = "pyside2"
+    print("use pyside2 as gui core")
 except:
     from PySide2.QtUiTools import QUiLoader
     from PySide2.QtWidgets import *
