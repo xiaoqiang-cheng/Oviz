@@ -15,6 +15,8 @@ elif [ $PARAM = "update" ]; then
     echo "Update Done"
 elif [ $PARAM = "help" ]||[ $PARAM = "-h" ]; then
     echo "Please call xiaoqiang.cheng!"
+elif [ $PARAM = "activate" ]; then
+    source /usr/local/qviz_env/bin/activate
 else
     unset PYTHONPATH
     . $ENVSPACE/bin/activate

@@ -7,3 +7,4 @@ sudo rm $WORKSPACE
 sudo ln -s $PWD $WORKSPACE
 # sudo ln -s $PWD/qviz_env $ENVSPACE
 sudo cp ./Pack/qviz /usr/bin/
+echo "install done!"
