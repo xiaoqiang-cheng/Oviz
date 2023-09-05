@@ -1,8 +1,25 @@
 #!/bin/bash
 
-unset PYTHONPATH
+PARAM=$1
+WORKSPACE=~/.qviz/
+ENVSPACE=/usr/local/qviz_env/
 
-. /usr/local/qviz_env/bin/activate
-
-cd ~/.qviz/
-    python main.py
+if [ ! -n "$PARAM" ]; then
+    unset PYTHONPATH
+    . /usr/local/qviz_env/bin/activate
+    cd $WORKSPACE
+        python main.py
+elif [ $PARAM = "update" ]; then
+    echo "Update Qviz..."
+    git -C $WORKSPACE pull
+    echo "Update Done"
+elif [ $PARAM = "help" ]||[ $PARAM = "-h" ]; then
+    echo "Please call xiaoqiang.cheng!"
+elif [ $PARAM = "activate" ]; then
+    source /usr/local/qviz_env/bin/activate
+else
+    unset PYTHONPATH
+    . $ENVSPACE/bin/activate
+    cd $WORKSPACE
+        python main.py $PARAM
+fi

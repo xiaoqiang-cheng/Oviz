@@ -6,7 +6,8 @@
             "elevation": 34.5,
             "azimuth" : -61.5,
             "roll" : 0.0,
-            "distance":60
+            "distance":60,
+            "translate_speed": 10
         },
         "vis": {
             "point_cloud": {
@@ -27,8 +28,8 @@
             "reference_line":{
                 "type" : "add_referenceline_vis"
             },
-            "obj_vel": {
-                "type": "add_obj_vel_vis"
+            "obj_arrow": {
+                "type": "add_arrow_vis"
             },
             "text": {
                 "type": "add_text_vis"

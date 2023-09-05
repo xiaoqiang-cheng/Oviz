@@ -3,21 +3,13 @@ import numpy as np
 from Utils.point_cloud_utils import *
 from View.view import View
 from Model.model import Model
-from PySide2.QtWidgets import QApplication, QColorDialog
-import os.path as osp
 from Utils.common_utils import *
 from log_sys import *
-from PySide2.QtCore import QTimer, Qt
-import PySide2
 import sys
 import qdarkstyle
 from qdarkstyle.dark.palette import DarkPalette
 from Controller.core import *
-
-dirname = os.path.dirname(PySide2.__file__)
-plugin_path = os.path.join(dirname, 'plugins', 'platforms')
-os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
-
+from importlib import reload
 
 
 class Controller():
@@ -35,12 +27,15 @@ class Controller():
         self.signal_connect()
 
         self.curr_frame_index = 0
+        self.curr_frame_key = ""
 
         self.global_setting = GlobalSetting()
         self.points_setting = PointCloudSetting()
         self.bbox3d_setting = Bbox3DSetting()
+        self.magicpipe_setting = MagicPipeSetting()
 
         self.view.set_spilter_style()
+
         self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
         self.revert_user_config()
         send_log_msg(NORMAL, "Qviz 系統开始运行！")
@@ -62,12 +57,22 @@ class Controller():
         self.view.control_box_layout_dict['bbox3d_setting']['button_select_bbox3d'].SelectDone.connect(self.select_bbox3d)
         self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_xyzwhlt_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
         self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_color_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+        self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_format_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+        self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_text_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+        self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_arrow_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
 
         self.view.control_box_layout_dict['car_model_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
+
+        self.view.control_box_layout_dict['magic_pipeline_setting']['checkbox_enable_magic'].stateChanged.connect(self.check_magic_pipeline)
+        self.view.control_box_layout_dict['magic_pipeline_setting']['button_open_magic_pipe_editor'].clicked.connect(self.open_magic_pipeline)
+
 
         self.view.control_box_layout_dict['global_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
         self.view.control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
+
+        self.view.load_history_menu_triggered.connect(self.reload_database)
+        self.view.operation_menu_triggered.connect(self.operation_menu_triggered)
 
 
         self.view.pointSizeChanged.connect(self.change_point_size)
@@ -78,14 +83,36 @@ class Controller():
         self.update_bbox3dsetting_dims()
         self.view.revet_layout_config()
         try:
-            self.update_system_vis(0)
+            self.update_system_vis(self.view.layout_config["last_slide_num"])
         except:
             pass
         send_log_msg(NORMAL, "加载配置结束，如果未能显示上一次数据，请检查文件路径或本地资源是否正常")
 
+    def dump_database(self, target_path):
+        serialize_data(self.view.layout_config, target_path)
+
+    def operation_menu_triggered(self, q):
+        if q.text() == "保存":
+            name, ok = self.view.create_input_dialog("提示", "请输入数据名称")
+            if ok:
+                self.view.save_last_frame_num(self.curr_frame_index)
+                self.dump_database(os.path.join(DUMP_HISTORY_DIR, name))
+
+    def reload_database(self, q):
+        target_pkl_path = os.path.join(DUMP_HISTORY_DIR, q.text())
+        history_config = deserialize_data(target_pkl_path)
+        rec_exsit_merge(self.view.layout_config, history_config)
+        self.revert_user_config()
+
     def show_car_mode(self, state):
         flag = state > 0
         self.view.set_car_visible(flag)
+
+    def check_magic_pipeline(self, state):
+        self.magicpipe_setting.enable = state > 0
+
+    def open_magic_pipeline(self):
+        os.system("code MagicPipe/pipeline.py")
 
     def show_global_grid(self, state):
         flag = state > 0
@@ -149,17 +176,34 @@ class Controller():
                     self.points_setting.wlh_dims, \
                         self.points_setting.color_dims = \
                 self.view.get_pointsetting()
+
+            if not check_setting_dims(self.points_setting.xyz_dims, [2, 3]): return
+            self.update_buffer_vis()
         except:
             print(self.points_setting.__dict__)
-        self.update_buffer_vis()
+
 
     def update_bbox3dsetting_dims(self):
         try:
-            self.bbox3d_setting.bbox_dims, self.bbox3d_setting.color_dims = self.view.get_bbox3dsetting()
+            self.bbox3d_setting.bbox_dims, self.bbox3d_setting.color_dims, self.bbox3d_setting.arrow_dims, \
+                    self.bbox3d_setting.text_dims, self.bbox3d_setting.text_format \
+                        = self.view.get_bbox3dsetting()
+            if not check_setting_dims(self.bbox3d_setting.bbox_dims, 7): return
+            self.update_buffer_vis()
         except:
             print(self.bbox3d_setting.__dict__)
-        self.update_buffer_vis()
 
+
+    def exec_magic_pipeline(self, data_dict):
+        modules = __import__("MagicPipe.pipeline", fromlist=[""])
+        reload(modules)
+        functions = [getattr(modules, func) for func in dir(modules) if callable(getattr(modules, func))]
+        for func in functions:
+            try:
+                data_dict = func(self, self.curr_frame_key, data_dict)
+            except Exception as e:
+                print("[Magic pipeline ERROR] ", func, e)
+        return data_dict
 
     def update_buffer_vis(self):
         data_dict = self.model.curr_frame_data
@@ -172,7 +216,9 @@ class Controller():
     def update_system_vis(self, index):
         print(index)
         self.curr_frame_index = index
-        self.model.get_curr_frame_data(index, self.points_setting.points_dim)
+        self.curr_frame_key = self.model.get_curr_frame_data(index)
+        if self.magicpipe_setting.enable:
+            self.model.curr_frame_data = self.exec_magic_pipeline(self.model.curr_frame_data)
         self.update_buffer_vis()
         self.view.send_update_vis_flag()
         if self.global_setting.record_screen:
@@ -181,6 +227,7 @@ class Controller():
     def run(self):
         self.view.show()
         self.app.exec_()
+        self.view.save_last_frame_num(self.curr_frame_index)
         self.view.save_layout_config()
 
     def monitor_timer(self):
@@ -189,12 +236,10 @@ class Controller():
             self.view.dock_log_info.display_append_msg_list(get_msg)
 
     def sigint_handler(self, signum = None, frame = None):
+        self.Timer.stop
+        self.view.save_last_frame_num(self.curr_frame_index)
         self.view.save_layout_config()
         sys.exit(self.app.exec_())
-
-    def bbox3d_callback(self, msg, topic, meta_form):
-        self.set_bbox3d()
-
 
     def image_callback(self, msg, topic, meta_form):
         self.view.set_image(msg, meta_form)
@@ -207,10 +252,29 @@ class Controller():
 
         msg = msg.reshape(-1, max_dim)
         if max(self.bbox3d_setting.bbox_dims) >= max_dim:
-            send_log_msg(ERROR, "bbox_dims维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.bbox_dims, max_dim)))
+            send_log_msg(ERROR, "bbox_dims维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.bbox_dims), max_dim))
             return
 
         bboxes = msg[..., self.bbox3d_setting.bbox_dims]
+
+        if max(self.bbox3d_setting.arrow_dims) >= max_dim:
+            send_log_msg(ERROR, "arrow_dims维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.arrow_dims, max_dim)))
+            return
+
+        if max(self.bbox3d_setting.arrow_dims) == -1:
+            arrow = []
+        else:
+            arrow = msg[..., self.bbox3d_setting.arrow_dims]
+
+        if max(self.bbox3d_setting.text_dims) >= max_dim:
+            send_log_msg(ERROR, "text_dims维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.text_dims), max_dim))
+            return
+
+        if max(self.bbox3d_setting.text_dims) == -1:
+            text_info = []
+        else:
+            text_info = msg[..., self.bbox3d_setting.text_dims]
+
 
         if len(self.bbox3d_setting.color_dims) <= 0 or min(self.bbox3d_setting.color_dims) < 0 or max(self.bbox3d_setting.color_dims) >= max_dim:
             send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.color_dims), max_dim))
@@ -222,13 +286,19 @@ class Controller():
 
         if not state:
             send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
+
         self.view.set_bbox3d_visible(True)
-        self.view.set_bbox3d(bboxes, real_color)
+        self.view.set_bbox3d(bboxes, real_color, arrow, text_info, self.bbox3d_setting.text_format)
 
     def pointcloud_callback(self, msg, topic, meta_form):
+        if len(msg.shape) == 1:
+            try:
+                msg = msg.reshape(-1, self.points_setting.points_dim)
+            except:
+                return
         max_dim = msg.shape[-1]
         if max(self.points_setting.xyz_dims) >= max_dim:
-            send_log_msg(ERROR, "xyz维度无效:%s,最大维度为%d"%(str(self.points_setting.xyz_dims, max_dim)))
+            send_log_msg(ERROR, "xyz维度无效:%s,最大维度为%d"%(str(self.points_setting.xyz_dims), max_dim))
             return
         points = msg[...,self.points_setting.xyz_dims]
 
@@ -258,4 +328,3 @@ class Controller():
         else:
             self.view.set_point_cloud(points, color = real_color,
                         size=self.view.point_size)
-        # print(points.shape)

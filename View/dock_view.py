@@ -1,29 +1,23 @@
 # import cv2
 import sys
 import os
-import PySide2
-from PySide2.QtCore import Signal
-
-from PySide2 import QtCore, QtGui, QtWidgets
-from PySide2.QtCore import *
-from PySide2.QtWidgets import *
 from Utils.common_utils import *
 import time
 import copy
-class ImageViewer(QtWidgets.QWidget):
+class ImageViewer(QWidget):
     doubleClicked = Signal()
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setStyleSheet("border:0px;")
         self.cvimg = None
-        self.image = QtGui.QImage()
+        self.image = QImage()
 
 
 
     def cvimg_to_qtimg(self, cvimg):
         height, width, _ = cvimg.shape
-        self.image = QtGui.QImage(cvimg.data, width, height, width * 3, QtGui.QImage.Format_BGR888)
-        # self.image = QtGui.QPixmap(cvimg)
+        self.image = QImage(cvimg.data, width, height, width * 3, QImage.Format_BGR888)
+        # self.image = QPixmap(cvimg)
 
     def set_image(self, cvimg):
         self.cvimg = copy.deepcopy(cvimg)
@@ -35,10 +29,10 @@ class ImageViewer(QtWidgets.QWidget):
         self.update()
 
     def paintEvent(self, event):
-        self.painter = QtGui.QPainter(self)
-        self.painter.setRenderHint(QtGui.QPainter.SmoothPixmapTransform)
-        target_rect = QtCore.QRectF(0.0, 0.0, self.width(), self.height())
-        source_rect = QtCore.QRectF(0.0, 0.0, self.image.width(), self.image.height())
+        self.painter = QPainter(self)
+        self.painter.setRenderHint(QPainter.SmoothPixmapTransform)
+        target_rect = QRectF(0.0, 0.0, self.width(), self.height())
+        source_rect = QRectF(0.0, 0.0, self.image.width(), self.image.height())
         self.painter.drawImage(target_rect, self.image, source_rect)
         self.painter.end()
 
@@ -165,13 +159,14 @@ class RangeSlideDockWidget(QDockWidget):
         super().__init__(titie, parent)
         # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
         self.setObjectName(titie)
-        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.FramelessWindowHint)
 
         widget = QWidget()
         layout = QVBoxLayout()
         layout2 = QHBoxLayout()
 
         self.range_slider = QSlider()
+        # self.range_slider.setTracking(False)
         self.range_slider.setOrientation(Qt.Horizontal)
 
         self.auto_timer = QTimer()
@@ -202,8 +197,6 @@ class RangeSlideDockWidget(QDockWidget):
         layout2.addWidget(self.curr_filename)
         layout2.addWidget(self.fps)
         layout2.addWidget(self.fps_label)
-
-
 
         widget.setLayout(layout2)
         self.setWidget(widget)
@@ -286,6 +279,7 @@ class RangeSlideDockWidget(QDockWidget):
         self.frame_range = len(self.listname)
         self.range_slider.setRange(0, self.frame_range - 1)
         self.set_frame_cnt(self.frame_range - 1)
+        self.set_frmae_text(0)
 
     # def resizeEvent(self, event):
     #     super().resizeEvent(event)
@@ -293,46 +287,46 @@ class RangeSlideDockWidget(QDockWidget):
     #     self.update()
 
 
-class CollapsibleBox(QtWidgets.QWidget):
+class CollapsibleBox(QWidget):
     def __init__(self, title="", parent=None):
         super(CollapsibleBox, self).__init__(parent)
 
-        self.toggle_button = QtWidgets.QToolButton(
+        self.toggle_button = QToolButton(
             text=title, checkable=True, checked=False
         )
-        self.toggle_button.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        self.toggle_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.toggle_button.setStyleSheet("QToolButton { border: none; }")
         self.toggle_button.setToolButtonStyle(
-            QtCore.Qt.ToolButtonTextBesideIcon
+            Qt.ToolButtonTextBesideIcon
         )
-        self.toggle_button.setArrowType(QtCore.Qt.RightArrow)
+        self.toggle_button.setArrowType(Qt.RightArrow)
         self.toggle_button.pressed.connect(self.on_pressed)
 
-        self.toggle_animation = QtCore.QParallelAnimationGroup(self)
+        self.toggle_animation = QParallelAnimationGroup(self)
 
-        self.content_area = QtWidgets.QWidget(
+        self.content_area = QWidget(
             maximumHeight=0,
             minimumHeight=0
         )
         self.content_area.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+            QSizePolicy.Expanding, QSizePolicy.Fixed
         )
-        # self.content_area.setFrameShape(QtWidgets.QFrame.NoFrame)
+        # self.content_area.setFrameShape(QFrame.NoFrame)
 
-        lay = QtWidgets.QVBoxLayout(self)
+        lay = QVBoxLayout(self)
         lay.setSpacing(0)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.addWidget(self.toggle_button)
         lay.addWidget(self.content_area)
 
         self.toggle_animation.addAnimation(
-            QtCore.QPropertyAnimation(self, b"minimumHeight")
+            QPropertyAnimation(self, b"minimumHeight")
         )
         self.toggle_animation.addAnimation(
-            QtCore.QPropertyAnimation(self, b"maximumHeight")
+            QPropertyAnimation(self, b"maximumHeight")
         )
         self.toggle_animation.addAnimation(
-            QtCore.QPropertyAnimation(self.content_area, b"maximumHeight")
+            QPropertyAnimation(self.content_area, b"maximumHeight")
         )
 
     def unfold(self):
@@ -340,16 +334,16 @@ class CollapsibleBox(QtWidgets.QWidget):
         self.toggle_button.setChecked(not self.toggle_button.isChecked())
         # self.toggle_animation.start()
 
-    @QtCore.Slot()
+    @Slot()
     def on_pressed(self):
         checked = self.toggle_button.isChecked()
         self.toggle_button.setArrowType(
-            QtCore.Qt.DownArrow if not checked else QtCore.Qt.RightArrow
+            Qt.DownArrow if not checked else Qt.RightArrow
         )
         self.toggle_animation.setDirection(
-            QtCore.QAbstractAnimation.Forward
+            QAbstractAnimation.Forward
             if not checked
-            else QtCore.QAbstractAnimation.Backward
+            else QAbstractAnimation.Backward
         )
         self.toggle_animation.start()
 
@@ -376,20 +370,20 @@ class CollapsibleBox(QtWidgets.QWidget):
 
 
 
-class ControlBoxDockWidget(QtWidgets.QDockWidget):
+class ControlBoxDockWidget(QDockWidget):
     def __init__(self, parent=None, title="控制台", layout_dict=dict()):
         super().__init__(title, parent)
         self.setObjectName(title)
-        self.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea | QtCore.Qt.RightDockWidgetArea)
+        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
 
-        scroll_area = QtWidgets.QScrollArea()
+        scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)  # 设置为可调整大小
-        scroll_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)  # 仅当需要时显示垂直滚动条
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)  # 仅当需要时显示垂直滚动条
 
-        widget = QtWidgets.QWidget()
+        widget = QWidget()
         scroll_area.setWidget(widget)
 
-        vlay = QtWidgets.QVBoxLayout(widget)  # 在widget上使用垂直布局
+        vlay = QVBoxLayout(widget)  # 在widget上使用垂直布局
         self.boxes = {}
         for key, val in layout_dict.items():
             box = CollapsibleBox(key)

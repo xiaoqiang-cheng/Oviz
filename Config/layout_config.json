@@ -2,6 +2,7 @@
     "image_flag": 0,
     "log_flag": 0,
     "slide_flag": 0,
+    "last_slide_num" : 0,
     "status_bar_flag" : 1,
     "control_box_flag" : 1,
     "image_dock_config": {
@@ -45,12 +46,6 @@
                         "text": "在线模式"
                     }
                 },
-                "checkbox_dump_alldata":{
-                    "type" : "QCheckBox",
-                    "params":{
-                        "text": "保存数据"
-                    }
-                },
                 "checkbox_record_screen":{
                     "type" : "QCheckBox",
                     "params":{
@@ -72,6 +67,26 @@
                 }
             }
         },
+
+        "magic_pipeline_setting":
+        {
+            "type": "QVBoxLayout",
+            "widget" : {
+                "checkbox_enable_magic":{
+                    "type" : "QCheckBox",
+                    "params":{
+                        "text": "使用魔法pipeline"
+                    }
+                },
+                "button_open_magic_pipe_editor":{
+                    "type" : "QPushButton",
+                    "params":{
+                        "text": "打开编辑器"
+                    }
+                }
+            }
+        },
+
         "point_setting":{
             "type": "QVBoxLayout",
             "widget":{
@@ -80,7 +95,7 @@
                     "params":{
                         "widget_titie" : "dim",
                         "default_value": {
-                            "value": "7"
+                            "value": "4"
                         }
                     }
                 },
@@ -153,6 +168,36 @@
                         "widget_titie" : "color (cls/id)",
                         "default_value": {
                             "value": "0"
+                        }
+                    }
+                },
+
+                "bbox3d_txt_arrow_dim":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "arrow",
+                        "default_value": {
+                            "value": "-1"
+                        }
+                    }
+                },
+
+                "bbox3d_txt_text_dim":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "text_dim",
+                        "default_value": {
+                            "value": "-1"
+                        }
+                    }
+                },
+
+                "bbox3d_txt_format_dim":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "show_format",
+                        "default_value": {
+                            "value": "[ID: %d]"
                         }
                     }
                 },

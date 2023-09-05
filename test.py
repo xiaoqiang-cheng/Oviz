@@ -1,41 +1,30 @@
 import sys
 import numpy as np
-
 from vispy import app, scene
 
-canvas = scene.SceneCanvas(size=(800, 600), keys='interactive')
+# Create a canvas
+canvas = scene.SceneCanvas(keys='interactive', bgcolor='white', size=(800, 800), title="Circular Curve Example")
+view = canvas.central_widget.add_view()
 
-N = 1000
-pos = np.empty((N, 3), np.float32)
-pos[:, 0] = np.linspace(50., 750., N)
-#
-color = np.ones((N, 4), dtype=np.float32)
-color[:, 0] = np.linspace(0, 1, N)
-color[:, 1] = color[::-1, 0]
+# Create a circular path
+num_segments = 100
+theta = np.linspace(0, 2 * np.pi, num_segments)
+radius = 0.5
+x = radius * np.cos(theta)
+y = radius * np.sin(theta)
 
-lines = []
+# Create a scatter plot to represent the circular curve
+scatter = scene.visuals.Markers()
+scatter.set_data(np.column_stack((x, y)), face_color='blue', size=5)
 
-print('Generating points...')
-for i in range(20):
-    pos = pos.copy()
-    pos[:, 1] = np.random.normal(scale=5, loc=(i+1)*30, size=N)
-    line = scene.visuals.Line(pos=pos, color=color, parent=canvas.scene)
-    lines.append(line)
-    line.transform = scene.transforms.STTransform()
+# Add the scatter plot to the view
+view.add(scatter)
 
-import ipdb
-ipdb.set_trace()
-print('Done')
+# Set the aspect ratio and adjust the viewport to show the full circle
+view.camera.set_aspect('equal')
+view.camera.set_range()
 
-
-# def update(event):
-#     for line in lines:
-#         scale = [np.sin(np.pi * event.elapsed)+2,
-#                  np.cos(np.pi * event.elapsed)+2]
-#         line.transform.scale = scale
-
-# timer = app.Timer('auto', connect=update, start=True)
-
+# Run the app
 if __name__ == '__main__':
     canvas.show()
     if sys.flags.interactive == 0:

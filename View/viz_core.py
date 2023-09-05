@@ -19,13 +19,10 @@ from .box_marker import BoxMarkers
 from scipy.spatial.transform import Rotation
 from Utils.common_utils import *
 
-from PySide2.QtCore import Signal
-
 from vispy.io import imread, load_data_file, read_mesh
 from vispy.scene.visuals import Mesh
 from vispy.visuals.filters import TextureFilter
-
-
+from collections import Iterable
 
 class Canvas(scene.SceneCanvas):
     """Class that creates and handles a visualizer for a pointcloud"""
@@ -34,31 +31,15 @@ class Canvas(scene.SceneCanvas):
 
     capturerKey = Signal(str)
 
-    def __init__(self, **kwargs):
+    def __init__(self, background=(1,1,1,1)):
         scene.SceneCanvas.__init__(self, keys='interactive')
         self.unfreeze()
-        self.grid = self.central_widget.add_grid(spacing=5, bgcolor=(1, 1, 1, 1), border_color='k')
+        self.grid = self.central_widget.add_grid(spacing=5, bgcolor=background, border_color='k')
         # Bind the escape key to a custom function
         # vispy.app.use_app().bind_key("Escape", self.on_escape)
         self.view_panel = {}
         self.vis_module = {}
         self.curr_col_image_view = 0
-
-        self.label_map = {
-                    "0": "car",
-                    "1": "car",
-                    "2": "truck",
-                    "3": "bus",
-                    "4": "bicycle",
-                    "5": "tricycle",
-                    "6": "pedestrian",
-                    "7": "barrier",
-                    "8": "construction_vehicle",
-                    "9": "motorcycle",
-                    "10": "traffic_cone",
-                    "11": "trailer"
-                }
-
 
     #     self.canvas.events.key_press.connect(on_escape)
 
@@ -87,7 +68,7 @@ class Canvas(scene.SceneCanvas):
 
 
     def add_3dview(self, view_name = "3d", camera = None):
-        self.view_panel[view_name] = self.grid.add_view(row=0, col=0, margin=2, border_color=(1, 1, 1))
+        self.view_panel[view_name] = self.grid.add_view(row=0, col=0)
         # self.view_panel[view_name].camera = 'turntable' # arcball
         # self.view_panel[view_name].camera.fov = 30
         # print(self.view_panel[view_name].camera.__dict__)
@@ -110,7 +91,6 @@ class Canvas(scene.SceneCanvas):
 
             self.view_panel[view_name].camera  = scene.TurntableCamera(
                     **camera,
-                    translate_speed = 10
                 )
 
     def get_canvas_camera(self, view_name):
@@ -150,12 +130,13 @@ class Canvas(scene.SceneCanvas):
 
     def add_reference_grid_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = visuals.Markers(parent=self.view_panel[parent_view].scene)
-        self.vis_module[vis_name].set_gl_state('translucent', depth_test=False)
+        # self.vis_module[vis_name].set_gl_state('translucent', depth_test=False)
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_pointcloud_vis(self, vis_name, parent_view):
-        self.vis_module[vis_name] = visuals.Markers(parent=self.view_panel[parent_view].scene)
-        self.vis_module[vis_name].set_gl_state('translucent', depth_test=False)
+        self.vis_module[vis_name] = visuals.Markers(parent=self.view_panel[parent_view].scene,
+                            light_color='black', light_position=(0, 0, 0), light_ambient=0.3,)
+        self.vis_module[vis_name].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_bbox_vis(self, vis_name, parent_view):
@@ -176,7 +157,7 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name] = visuals.Line(antialias=True)
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
-    def add_obj_vel_vis(self, vis_name, parent_view):
+    def add_arrow_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = visuals.Arrow(arrow_type='stealth', antialias=True, width=2)
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
@@ -185,7 +166,7 @@ class Canvas(scene.SceneCanvas):
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_text_vis(self, vis_name, parent_view):
-        self.vis_module[vis_name] = visuals.Text(font_size=1000, color=(0,1,1))
+        self.vis_module[vis_name] = visuals.Text(font_size=600, color=(0,1,1))
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_veh_model(self, vis_name, parent_view,
@@ -201,7 +182,7 @@ class Canvas(scene.SceneCanvas):
 
         mesh.transform.rotate(90, (1, 0, 0))
         mesh.transform.rotate(-90, (0, 0, 1))
-        mesh.transform.scale((1.1, 1.1, 1.1))
+        mesh.transform.scale((1.5, 1.5, 1.5))
         mesh.transform.translate((0.5, 0., 1.0))
         texture_filter = TextureFilter(texture, texcoords)
         self.initial_camera_dir = (0, -1, 0)  # for a default initialised camera
@@ -213,10 +194,20 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name].attach(texture_filter)
 
     def on_mouse_move(self, event):
+        self.vis_module["point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
         mesh = self.vis_module['car_model']
         transform = self.view_panel['view3d'].camera.transform
         dir = np.concatenate((self.initial_light_dir, [0]))
         mesh.shading_filter.light_dir = transform.map(dir)[:3]
+
+    def on_mouse_wheel(self, event):
+        self.vis_module["point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
+
+    def on_mouse_press(self, event):
+        self.vis_module["point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
+
+    def set_vis_bgcolor(self, value = (0, 0, 0, 1)):
+        self.grid.bgcolor = value
 
     @property
     def visuals(self):
@@ -226,6 +217,7 @@ class Canvas(scene.SceneCanvas):
     def draw_point_cloud(self, vis_name, point_clouds, point_color="#f3f3f3", size = 1):
         # face_color = edge_color = Color(point_color)
         self.vis_module[vis_name].set_data(np.array(point_clouds),
+                                            # edge_width=5,
                                             edge_color=point_color,
                                             face_color=point_color,
                                             size=size,
@@ -285,12 +277,12 @@ class Canvas(scene.SceneCanvas):
     def set_visible(self, vis_name, status):
         self.vis_module[vis_name].visible = status
 
-    def draw_velocity(self, vis_name, pos, arrow, width = 4):
-        # pos, arrow = self.create_box_vel_arrow(boxes)
+    def draw_arrow(self, vis_name, pos, arrow, color, width):
         self.vis_module[vis_name].set_data(pos, connect='segments', arrows=arrow, width=width)
 
-    # def draw_bbox3d(self, vis_name, boxes, color, box_line_width=2):
-    #     self.draw_box3d_line(vis_name, boxes, color, box_line_width=2)
+    def draw_bbox3d_arrow(self, vis_name, bboxes, vel_list, color, width = 3):
+        pos, arrow = self.create_box_arrow(bboxes, vel_list)
+        self.draw_arrow(vis_name, pos, arrow, color, width)
 
     def draw_box3d_line(self, vis_name, boxes, color, box_line_width=2):
         pos, width, length, height, theta = self.prepare_box_data(boxes)
@@ -306,42 +298,10 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name].set_data(pos, width=width, height=length, depth=height,
             face_color=color, edge_color=color, rotation=theta)
 
-    def draw_id_vel(self, vis_name, box, show_id = 1, show_vel = 0):
-        if show_id:
-            text, pos, color = self.prepare_box_id_vel(box, show_vel)
-            self.draw_text(vis_name, text, pos, color)
-
     def draw_text(self, vis_name, text, text_pos, text_color):
         self.vis_module[vis_name].text = text
         self.vis_module[vis_name].pos = text_pos
         self.vis_module[vis_name].color = text_color
-
-    def prepare_box_id_vel(self, boxes, draw_box_vel = 0):
-        show_text = []
-        show_text_pos = []
-        show_text_color = []
-        for b in boxes:
-            if draw_box_vel:
-                curr_text =  " [" + str(int(b.id)) + "] " + "v:" + "%.2f"%b.vel + " km/h"
-            else:
-                curr_text =  " [" + str(int(b.id)) + "]"
-            show_text.append(curr_text)
-            show_text_pos.append((b.x, b.y, b.z + 1.5))
-            rgba = self.color_map[self.label_map[b.kind]].rgba
-            show_text_color.append(rgba)
-        return show_text, show_text_pos, show_text_color
-
-    # def prepare_box_color(self, boxes, lightness_ratio=1.0, opacity=1.0):
-    #     fc = []
-    #     for b in boxes:
-    #         rgba = self.color_map[self.label_map[b.kind]].rgba
-    #         if lightness_ratio != 1.0:
-    #             rgba[:3] = scale_lightness(rgba[:3], lightness_ratio)
-    #         fc.append(rgba)
-    #     fc = np.array(fc)
-    #     ec = np.copy(fc)
-    #     fc[..., 3] = opacity
-    #     return fc, ec
 
     def prepare_box_data(self, boxes, enlarge_ratio=1.0):
         pos = []
@@ -353,18 +313,6 @@ class Canvas(scene.SceneCanvas):
         height = boxes[:, 5].reshape(-1, 1)  * enlarge_ratio
         theta = boxes[:, 6]
         return pos, width, depth, height, theta
-
-    def prepare_box_color(self, boxes, lightness_ratio=1.0, opacity=1.0):
-        fc = []
-        for b in boxes:
-            rgba = self.color_map[self.label_map[str(int(b.kind))]].rgba
-            if lightness_ratio != 1.0:
-                rgba[:3] = scale_lightness(rgba[:3], lightness_ratio)
-            fc.append(rgba)
-        fc = np.array(fc)
-        ec = np.copy(fc)
-        fc[..., 3] = opacity
-        return fc, ec
 
     def create_voxel_vertex(self, pos, width, length, height):
         box_vertex = np.array([[-0.5, -0.5, -0.5],
@@ -386,36 +334,6 @@ class Canvas(scene.SceneCanvas):
         arr_mask = np.repeat(np.arange(pos.shape[0]), 12).reshape(-1) * 8
         pt_idx += arr_mask.reshape(-1, 1)
         return vertices, pt_idx
-
-    # def create_box_vertex(self, pos, width, length, height,rotation):
-
-    #     rotation_mat = []
-    #     for theta in rotation:
-    #         rotation_mat.append(Rotation.from_euler('xyz', [0., 0., theta]).as_matrix())
-
-    #     import ipdb
-    #     ipdb.set_trace()
-
-    #     box_vertex = np.array([[-0.5, -0.5, -0.5],
-    #                         [-0.5, -0.5, 0.5],
-    #                         [0.5, -0.5, -0.5],
-    #                         [0.5, -0.5, 0.5],
-    #                         [0.5, 0.5, -0.5],
-    #                         [0.5, 0.5, 0.5],
-    #                         [-0.5, 0.5, -0.5],
-    #                         [-0.5, 0.5, 0.5]])
-    #     nb_v = box_vertex.shape[0]
-    #     scale = np.hstack((width, length, height))
-    #     vertices = box_vertex.reshape(1, nb_v, 3) * scale.reshape(-1, 1, 3) + pos.reshape(-1, 1, 3)
-
-    #     vertices = vertices.reshape(-1, 3)
-    #     module_list = [(0, 2), (1, 3), (2, 4), (3, 5), (4, 6), (5, 7), (6, 0), (7, 1), (0, 1), (2, 3), (4, 5), (6, 7)]
-    #     pt_idx = np.array((pos.shape[0] * module_list), dtype=np.int64)
-
-    #     arr_mask = np.repeat(np.arange(pos.shape[0]), 12).reshape(-1) * 8
-    #     pt_idx += arr_mask.reshape(-1, 1)
-    #     return vertices, pt_idx
-
 
     def create_box_vertex(self, pos, width, length, height,rotation):
 
@@ -452,17 +370,21 @@ class Canvas(scene.SceneCanvas):
                 p_idx.append((2 * j + idx_v_start, 2 *j + 1 + idx_v_start))
         return vertices, np.array(p_idx)
 
-    def create_box_vel_arrow(self, boxes):
+    def create_box_arrow(self, boxes, vel_list):
         pos = []
         arrow = []
-        for i, b in enumerate(boxes):
-            theta = np.pi * 0.5 - b.dir
-            vel = b.vel * 0.5
-            x = b.x + vel * math.cos(theta)
-            y = b.y + vel * math.sin(theta)
-            pos.append([b.x, b.y, b.z])
-            pos.append([x, y, b.z])
-            arrow.append([b.x, b.y, b.z, x, y, b.z])
+        for i, vel in enumerate(vel_list):
+            b = boxes[i]
+            if len(vel) == 1:
+                theta = np.pi * 0.5 - b[-1]
+                x = b[0] + vel[0] * math.cos(theta)
+                y = b[1] + vel[0] * math.sin(theta)
+            else:
+                x, y = vel[0], vel[1]
+
+            pos.append(b[0:3])
+            pos.append([x, y, b[2]])
+            arrow.append([b[0],b[1], b[2], x, y, b[2]])
 
         pos = np.array(pos)
         arrow = np.array(arrow)

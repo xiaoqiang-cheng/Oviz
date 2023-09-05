@@ -66,8 +66,8 @@ def read_pcd(path):
     points = pypcd.PointCloud.from_path(path)
     return np.array(points.pc_data.tolist(), dtype=np.float32)
 
-def read_bin(path, dim = 4, dt = np.float32):
-    points = np.fromfile(path, dtype=dt).reshape(-1, dim)
+def read_bin(path, dt = np.float32):
+    points = np.fromfile(path, dtype=dt).reshape(-1)
     return points
 
 def read_ml_lidar_state(path):

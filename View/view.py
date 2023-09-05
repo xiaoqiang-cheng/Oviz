@@ -1,14 +1,12 @@
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QApplication, QSplitter, QTreeWidgetItem, QCheckBox,QListWidgetItem
-from PySide2.QtCore import QTimer, Qt, QModelIndex
-from PySide2.QtGui import QColor, QPixmap
-import time
 from Utils.common_utils import *
 from View.viz_core import Canvas
 from log_sys import send_log_msg
 from View.custom_widget import *
 from View.dock_view import *
 
+'''
+TODO: 扩展|magic link|filter|在线录
+'''
 dock_layout_map = {
     "top"    : Qt.TopDockWidgetArea,
     "buttom" : Qt.BottomDockWidgetArea,
@@ -27,10 +25,9 @@ class View(QObject):
         self.color_map = self.get_user_config("color_map.json")
         self.layout_config = self.get_user_config("layout_config.json")
 
-        self.canvas = Canvas()
+        self.canvas = Canvas(self.color_map["-2"])
         self.struct_canvas_init(self.canvas_cfg)
         self.ui.setDockNestingEnabled(True)
-
 
         self.spliter_dict = {}
         self.dock_log_info = LogDockWidget()
@@ -45,7 +42,7 @@ class View(QObject):
 
 
         self.ui.centralwidget.setContentsMargins(0, 0, 0, 0)
-        self.ui.centralwidget.layout().setMargin(0)
+        self.ui.centralwidget.layout().setContentsMargins(0,0,0,0)
         self.ui.pointcloud_vis_widget.setContentsMargins(0, 0, 0, 0)
 
         self.ui.pointcloud_vis_widget_layout.addWidget(self.canvas.native)
@@ -76,11 +73,32 @@ class View(QObject):
         self.ui.action_show_status_bar.triggered.connect(self.show_status_bar)
         self.ui.action_show_control_box.triggered.connect(self.show_control_box)
 
-        self.dock_control_box.unfold()
+        self.operation_menu = self.ui.menubar.addMenu("操作")
+        self.operation_menu.addAction("保存").setShortcut("Ctrl+S")
+        self.operation_menu_triggered = self.operation_menu.triggered[QAction]
 
+        self.load_history_menu = self.ui.menubar.addMenu("历史记录")
+
+        if os.path.exists(DUMP_HISTORY_DIR):
+            for pkl_name in os.listdir(DUMP_HISTORY_DIR):
+                self.load_history_menu.addAction(pkl_name)
+        else:
+            self.load_history_menu.addAction("[empty]")
+        self.load_history_menu_triggered = self.load_history_menu.triggered[QAction]
+
+        self.dock_control_box.unfold()
 
     def create_color_map_widget(self):
         color_id_map_list = QListWidget()
+        style_sheet = '''
+                QListView::item:selected {
+                    color: #FFFFFF;
+                    padding: 10px;
+                    border-left: 3px solid black;
+                }
+        '''
+        color_id_map_list.setStyleSheet(style_sheet)
+
         color_id_map_list.clear()
         for c, val in self.color_map.items():
             lw = QListWidgetItem(c)
@@ -96,7 +114,7 @@ class View(QObject):
             ret[key]["layout"] = eval(value['type'])()
             for wk, wv in value["widget"].items():
                 ret[key][wk] = eval(wv['type'])(**wv['params'])
-                ret[key]["layout"] .addWidget(ret[key][wk])
+                ret[key]["layout"].addWidget(ret[key][wk])
 
         return ret
 
@@ -113,12 +131,15 @@ class View(QObject):
     def get_user_config(self, config_name):
         default_config_file = os.path.join("Config", config_name)
         default_cfg = parse_json(default_config_file)
-        user_config_file = os.path.join(".user", config_name)
+        user_config_file = os.path.join(USER_CONFIG_DIR, config_name)
         if os.path.exists(user_config_file):
             user_cfg = parse_json(user_config_file)
         else:
             user_cfg = {}
-        return rec_merge(default_cfg, user_cfg)
+        return rec_exsit_merge(default_cfg, user_cfg)
+
+    def save_last_frame_num(self, num):
+        self.layout_config["last_slide_num"] = num
 
     def save_layout_config(self):
         self.layout_config["image_flag"] = not self.image_flag
@@ -129,18 +150,18 @@ class View(QObject):
 
         for key in self.canvas_cfg.keys():
             if "camera" in self.canvas_cfg[key].keys():
-                self.canvas_cfg[key]['camera'] = self.canvas.get_canvas_camera(key)
+                self.canvas_cfg[key]['camera'].update(self.canvas.get_canvas_camera(key))
 
 
         for key in self.layout_config['image_dock_path'].keys():
             self.layout_config['image_dock_path'][key] = self.image_dock[key].folder_path
 
-        if not os.path.exists(".user"):
-            os.mkdir(".user")
+        if not os.path.exists(USER_CONFIG_DIR):
+            os.mkdir(USER_CONFIG_DIR)
 
-        write_json(self.layout_config, ".user/layout_config.json")
-        write_json(self.color_map, ".user/color_map.json")
-        write_json(self.canvas_cfg, ".user/init_canvas_cfg3d.json")
+        write_json(self.layout_config, "%s/layout_config.json"%USER_CONFIG_DIR)
+        write_json(self.color_map, "%s/color_map.json"%USER_CONFIG_DIR)
+        write_json(self.canvas_cfg, "%s/init_canvas_cfg3d.json"%USER_CONFIG_DIR)
         self.save_layout()
 
     def grab_form(self, image_name):
@@ -150,7 +171,6 @@ class View(QObject):
         self.ui.grab().save(output_path, "PNG", quality=100)
 
     def revet_layout_config(self):
-
         for module, value in self.control_box_layout_dict.items():
             for wk, wv in value.items():
                 try:
@@ -173,21 +193,26 @@ class View(QObject):
         for key, val in self.layout_config['image_dock_path'].items():
             self.image_dock[key].set_topic_path(val)
 
+        self.dock_range_slide.set_frmae_text(self.layout_config["last_slide_num"])
         self.load_layout()
 
     def save_layout(self):
-        p = '.user/layout.ini'
+        p = '%s/layout.ini'%USER_CONFIG_DIR
         with open(p, 'wb') as f:
             s = self.ui.saveState()
             f.write(bytes(s))
             f.flush()
 
     def load_layout(self):
-        p = '.user/layout.ini'
+        p = '%slayout.ini'%USER_CONFIG_DIR
         if os.path.exists(p):
             with open(p, 'rb') as f:
                 s = f.read()
                 self.ui.restoreState(s)
+
+    def create_input_dialog(self, title, info):
+        inputs_name, ok = QInputDialog.getText(self.ui, title, info, QLineEdit.Normal)
+        return inputs_name, ok
 
     def show_control_box(self):
         if self.control_box_flag:
@@ -297,7 +322,11 @@ class View(QObject):
     def get_bbox3dsetting(self):
         size_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_xyzwhlt_dim'].text().split(',')))
         color_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_color_dim'].text().split(',')))
-        return size_dims, color_dims
+        arrow_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_arrow_dim'].text().split(',')))
+        text_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_text_dim'].text().split(',')))
+        format_dims = self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_format_dim'].text()
+
+        return size_dims, color_dims, arrow_dims, text_dims, format_dims
 
     def rgb_to_hex_numpy(self, rgb_list):
         rgb_array = np.array(rgb_list)
@@ -327,6 +356,7 @@ class View(QObject):
                     color_dim = len(rgb_color_map[key])
                 ret_color = np.zeros((len(id_list), color_dim))
                 for key, value in rgb_color_map.items():
+                    # TODO bug if key is not int str
                     mask = id_list == int(key)
                     ret_color[mask] = value
                 return ret_color, True
@@ -357,14 +387,18 @@ class View(QObject):
 
     def set_color_map_list(self):
         dlg = QColorDialog()
-        dlg.setWindowFlags(self.ui.windowFlags() | PySide2.QtCore.Qt.WindowStaysOnTopHint)
+        dlg.setWindowFlags(self.ui.windowFlags() | Qt.WindowStaysOnTopHint)
         item = self.control_box_layout_dict['global_setting']['color_id_map_list'].currentItem()
         if dlg.exec_():
             cur_color = dlg.currentColor()
             if item.background().color() != cur_color:
                 item.setBackground(cur_color)
                 self.update_color_map(item.text(), cur_color.name())
+                if (item.text() == "-2"):
+                    self.set_canvas_bgcolor()
+                self.control_box_layout_dict["global_setting"]["color_id_map_list"].clearSelection()
                 return True
+        self.control_box_layout_dict["global_setting"]["color_id_map_list"].clearSelection()
         return False
 
     def set_data_range(self, listname):
@@ -409,8 +443,35 @@ class View(QObject):
     def set_image(self, img, meta_form):
         self.image_dock[meta_form].set_image(img)
 
-    def set_bbox3d(self, bboxes3d, color):
+    def set_bbox3d(self, bboxes3d, color, arrow, text_info, show_format):
         self.canvas.draw_box3d_line("bbox3d_line", bboxes3d, color)
+        # show arrow
+        if len(arrow) !=  0:
+            self.canvas.set_visible("obj_arrow", True)
+            self.set_bbox3d_arrow(bboxes3d, arrow, color)
+        else:
+            self.canvas.set_visible("obj_arrow", False)
+
+        # show text
+        if len(text_info) != 0:
+            self.canvas.set_visible("text", True)
+            text_pos = bboxes3d[:, 0:3]
+            text_pos[:, -1] += 2.0
+            text = []
+            for txt in text_info:
+                text.append(show_format%tuple(txt))
+            self.set_bbox3d_text(text_pos, text, (0.5, 0.5, 0.5, 1))
+        else:
+            self.canvas.set_visible("text", False)
+
+    def set_bbox3d_text(self, pos, txt, color):
+        self.canvas.draw_text("text", txt, pos, color)
+
+    def set_bbox3d_arrow(self, bboxes, vel_list, color):
+        self.canvas.draw_bbox3d_arrow("obj_arrow", bboxes, vel_list, color)
 
     def set_reference_line(self):
         self.canvas.draw_reference_line("reference_line")
+
+    def set_canvas_bgcolor(self):
+        self.canvas.set_vis_bgcolor(value=self.color_map["-2"])

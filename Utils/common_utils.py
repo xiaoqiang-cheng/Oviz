@@ -1,10 +1,37 @@
-from os import stat_result
-from PySide2.QtWidgets import QFileDialog
+import os
+try:
+    from PySide2.QtUiTools import QUiLoader
+    from PySide2.QtWidgets import *
+    from PySide2.QtCore import *
+    from PySide2.QtGui import *
+    import PySide2 as GuiCoreLib
+    __GUICOREVERSION__ = "pyside2"
+    print("use pyside2 as gui core")
+except:
+    from PySide2.QtUiTools import QUiLoader
+    from PySide2.QtWidgets import *
+    from PySide2.QtCore import *
+    from PySide2.QtGui import *
+    import PySide2 as GuiCoreLib
+    __GUICOREVERSION__ = "pyside2"
+    print("use pyside2 as gui core")
+
+dirname = os.path.dirname(GuiCoreLib.__file__)
+plugin_path = os.path.join(dirname, 'plugins', 'platforms')
+os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
+
 import json
 import re
 from vispy.color import Color
 import colorsys
 import numpy as np
+import pickle
+import time
+
+GUICOREVERSION = __GUICOREVERSION__
+USER_CONFIG_DIR = ".user"
+DUMP_HISTORY_DIR = ".history"
+
 
 POINTCLOUD = "pointcloud"
 IMAGE = "image"
@@ -61,11 +88,32 @@ def parse_json(filename):
     return json.loads(content)
 
 
+def check_setting_dims(val, dims):
+    if not isinstance(dims, list):
+        dims = [dims]
+    if len(val) in dims:
+        return True
+    return False
+
+
 def write_json(json_data,json_name):
     # Writing JSON data
     with open(json_name, 'w', encoding="utf-8") as f:
         json.dump(json_data, f, indent=4, ensure_ascii = False)
 
+
+def serialize_data(data:dict, file_path):
+    with open(file_path, 'wb') as file:
+        pickle.dump(data, file)
+
+def deserialize_data(file_path):
+    with open(file_path, 'rb') as file:
+        data = pickle.load(file)
+    return data
+
+
+def get_wall_time_str():
+    return time.strftime("%Y-%m-%d_%H_%M_%S",time.localtime())
 
 def get_mac_address():
     import uuid
@@ -153,3 +201,20 @@ def rec_merge(d1, d2):
         else:
             d1[key] = value
     return d1
+
+
+def rec_exsit_merge(d1, d2):
+    for key, value in d2.items():
+        if key not in d1.keys(): continue
+        if isinstance(value, dict):
+            d1[key] = rec_exsit_merge(d1.get(key, {}), value)
+        else:
+            d1[key] = value
+    return d1
+
+def if_not_exist_create(dir_path):
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+if_not_exist_create(USER_CONFIG_DIR)
+if_not_exist_create(DUMP_HISTORY_DIR)
