@@ -18,3 +18,8 @@ class Bbox3DSetting:
 
 class GlobalSetting:
     record_screen = False
+
+
+class MagicPipeSetting:
+    enable = False
+

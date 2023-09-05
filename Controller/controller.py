@@ -9,6 +9,7 @@ import sys
 import qdarkstyle
 from qdarkstyle.dark.palette import DarkPalette
 from Controller.core import *
+from importlib import reload
 
 
 class Controller():
@@ -26,10 +27,12 @@ class Controller():
         self.signal_connect()
 
         self.curr_frame_index = 0
+        self.curr_frame_key = ""
 
         self.global_setting = GlobalSetting()
         self.points_setting = PointCloudSetting()
         self.bbox3d_setting = Bbox3DSetting()
+        self.magicpipe_setting = MagicPipeSetting()
 
         self.view.set_spilter_style()
 
@@ -59,6 +62,10 @@ class Controller():
         self.view.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_arrow_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
 
         self.view.control_box_layout_dict['car_model_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
+
+        self.view.control_box_layout_dict['magic_pipeline_setting']['checkbox_enable_magic'].stateChanged.connect(self.check_magic_pipeline)
+        self.view.control_box_layout_dict['magic_pipeline_setting']['button_open_magic_pipe_editor'].clicked.connect(self.open_magic_pipeline)
+
 
         self.view.control_box_layout_dict['global_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
@@ -100,6 +107,12 @@ class Controller():
     def show_car_mode(self, state):
         flag = state > 0
         self.view.set_car_visible(flag)
+
+    def check_magic_pipeline(self, state):
+        self.magicpipe_setting.enable = state > 0
+
+    def open_magic_pipeline(self):
+        os.system("code MagicPipe/pipeline.py")
 
     def show_global_grid(self, state):
         flag = state > 0
@@ -181,6 +194,16 @@ class Controller():
             print(self.bbox3d_setting.__dict__)
 
 
+    def exec_magic_pipeline(self, data_dict):
+        modules = __import__("MagicPipe.pipeline", fromlist=[""])
+        reload(modules)
+        functions = [getattr(modules, func) for func in dir(modules) if callable(getattr(modules, func))]
+        for func in functions:
+            try:
+                data_dict = func(self, self.curr_frame_key, data_dict)
+            except Exception as e:
+                print("[Magic pipeline ERROR] ", func, e)
+        return data_dict
 
     def update_buffer_vis(self):
         data_dict = self.model.curr_frame_data
@@ -193,7 +216,9 @@ class Controller():
     def update_system_vis(self, index):
         print(index)
         self.curr_frame_index = index
-        self.model.get_curr_frame_data(index)
+        self.curr_frame_key = self.model.get_curr_frame_data(index)
+        if self.magicpipe_setting.enable:
+            self.model.curr_frame_data = self.exec_magic_pipeline(self.model.curr_frame_data)
         self.update_buffer_vis()
         self.view.send_update_vis_flag()
         if self.global_setting.record_screen:
@@ -211,6 +236,7 @@ class Controller():
             self.view.dock_log_info.display_append_msg_list(get_msg)
 
     def sigint_handler(self, signum = None, frame = None):
+        self.Timer.stop
         self.view.save_last_frame_num(self.curr_frame_index)
         self.view.save_layout_config()
         sys.exit(self.app.exec_())

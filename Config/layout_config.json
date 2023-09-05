@@ -67,6 +67,26 @@
                 }
             }
         },
+
+        "magic_pipeline_setting":
+        {
+            "type": "QVBoxLayout",
+            "widget" : {
+                "checkbox_enable_magic":{
+                    "type" : "QCheckBox",
+                    "params":{
+                        "text": "使用魔法pipeline"
+                    }
+                },
+                "button_open_magic_pipe_editor":{
+                    "type" : "QPushButton",
+                    "params":{
+                        "text": "打开编辑器"
+                    }
+                }
+            }
+        },
+
         "point_setting":{
             "type": "QVBoxLayout",
             "widget":{

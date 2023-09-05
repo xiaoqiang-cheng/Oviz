@@ -37,6 +37,7 @@ class Model():
                     self.curr_frame_data[meta_form] = self.smart_read_image(data_path)
                 elif topic_type == BBOX3D:
                     self.curr_frame_data[meta_form] = self.smart_read_bbox3d(data_path)
+        return key
 
     def smart_read_bbox3d(self, bbox_path):
         return np.loadtxt(bbox_path, dtype=np.float32)
