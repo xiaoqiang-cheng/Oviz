@@ -112,7 +112,7 @@ class Controller():
         self.magicpipe_setting.enable = state > 0
 
     def open_magic_pipeline(self):
-        os.system("code MagicPipe/pipeline.py")
+        os.system("code %s"%MAGIC_PIPELINE_DIR)
 
     def show_global_grid(self, state):
         flag = state > 0
@@ -195,7 +195,7 @@ class Controller():
 
 
     def exec_magic_pipeline(self, data_dict):
-        modules = __import__("MagicPipe.pipeline", fromlist=[""])
+        modules = __import__("pipeline", fromlist=[""])
         reload(modules)
         functions = [getattr(modules, func) for func in dir(modules) if callable(getattr(modules, func))]
         for func in functions:
