@@ -24,16 +24,15 @@ class Controller():
         self.Timer.timeout.connect(self.monitor_timer)
         self.Timer.start(50)
 
-        self.signal_connect()
-
-        self.curr_frame_index = 0
-        self.curr_frame_key = ""
-
         self.global_setting = GlobalSetting()
         self.points_setting = PointCloudSetting()
         self.bbox3d_setting = Bbox3DSetting()
         self.magicpipe_setting = MagicPipeSetting()
 
+        self.signal_connect()
+
+        self.curr_frame_index = 0
+        self.curr_frame_key = ""
         self.view.set_spilter_style()
 
         self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
@@ -65,6 +64,7 @@ class Controller():
 
         self.view.control_box_layout_dict['magic_pipeline_setting']['checkbox_enable_magic'].stateChanged.connect(self.check_magic_pipeline)
         self.view.control_box_layout_dict['magic_pipeline_setting']['button_open_magic_pipe_editor'].clicked.connect(self.open_magic_pipeline)
+        self.magicpipe_setting.magic_params = self.view.control_box_layout_dict['magic_pipeline_setting']['text_magic_pipe_paramters'].get_json_data
 
 
         self.view.control_box_layout_dict['global_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
@@ -76,6 +76,8 @@ class Controller():
 
 
         self.view.pointSizeChanged.connect(self.change_point_size)
+
+
 
 
     def revert_user_config(self):
@@ -198,9 +200,10 @@ class Controller():
         modules = __import__("pipeline", fromlist=[""])
         reload(modules)
         functions = [getattr(modules, func) for func in dir(modules) if callable(getattr(modules, func))]
+        # kargs =
         for func in functions:
             try:
-                data_dict = func(self, self.curr_frame_key, data_dict)
+                data_dict = func(self, self.curr_frame_key, data_dict, **self.magicpipe_setting.magic_params())
             except Exception as e:
                 print("[Magic pipeline ERROR] ", func, e)
         return data_dict

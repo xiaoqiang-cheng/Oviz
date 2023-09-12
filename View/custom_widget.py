@@ -4,6 +4,33 @@ import os
 from Utils.common_utils import *
 import time
 
+
+class JSONWidgetEditor(QTextEdit):
+    def __init__(self, parent = None, widget_titie="json", default_value = [{}]):
+        super().__init__(parent)
+        self.widget_title = widget_titie
+        self.initUI()
+        self.setMaximumHeight(200)
+        self.default_value = default_value
+        self.set_json_data(default_value[0])
+
+    def initUI(self):
+        self.setStyleSheet("font-family: Courier Bold; font: 15px;")  # 使用等宽字体以更好地显示 JSON
+
+    def get_json_data(self):
+        json_str = self.toPlainText()
+        try:
+            self.default_value[0] = eval(json_str)
+            return self.default_value[0]
+        except:
+            return {"info": "input json error"}
+
+    def set_json_data(self, json_data):
+        # 将 JSON 数据转换为格式化的文本并设置为文本编辑控件的内容
+        formatted_json = json.dumps(json_data, indent=4)
+        self.setPlainText(formatted_json)
+
+
 class FolderSelectWidget(QWidget):
     SelectDone = Signal(str, str)
     def __init__(self, parent=None, widget_titie="选择", default_value = {}):

@@ -208,7 +208,7 @@ def rec_merge(d1, d2):
 
 def rec_exsit_merge(d1, d2):
     for key, value in d2.items():
-        if key not in d1.keys(): continue
+        if (key not in d1.keys()): continue
         if isinstance(value, dict):
             d1[key] = rec_exsit_merge(d1.get(key, {}), value)
         else:
@@ -225,7 +225,7 @@ if_not_exist_create(MAGIC_PIPELINE_DIR)
 
 magic_pipe_demo_script = \
 '''
-def test(self, key, data_dict):
+def test(self, key, data_dict, **kargs):
     print("test")
     return data_dict
 '''

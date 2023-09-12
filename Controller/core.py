@@ -22,4 +22,5 @@ class GlobalSetting:
 
 class MagicPipeSetting:
     enable = False
+    magic_params = None
 

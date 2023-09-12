@@ -78,6 +78,13 @@
                         "text": "使用魔法pipeline"
                     }
                 },
+                "text_magic_pipe_paramters":{
+                    "type" : "JSONWidgetEditor",
+                    "params":{
+                        "widget_titie" : "json",
+                        "default_value": [{}]
+                    }
+                },
                 "button_open_magic_pipe_editor":{
                     "type" : "QPushButton",
                     "params":{
