@@ -22,7 +22,7 @@ def magic_debug(self, key, data_dict, **kargs):
     return data_dict
 
 def point_cloud_reshape(self, key, data_dict, **kargs):
-    if 'Point Cloud' in data_dict.keys():
+    if 'Point Cloud' in data_dict.keys() and len(data_dict['Point Cloud'].shape) == 1:
         data_dict['Point Cloud'] = np.frombuffer(data_dict['Point Cloud'].data,
                 dtype = np.dtype(self.points_setting.points_type)).reshape(-1, self.points_setting.points_dim)
     return data_dict
