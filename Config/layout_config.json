@@ -109,6 +109,16 @@
                     }
                 },
 
+                "linetxt_point_type":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "type",
+                        "default_value": {
+                            "value": "float32"
+                        }
+                    }
+                },
+
                 "linetxt_xyz_dim" : {
                     "type": "LineTextWithLabelWidget",
                     "params":{

@@ -48,6 +48,7 @@ class Controller():
 
         self.view.control_box_layout_dict['point_setting']['button_select_pointcloud'].SelectDone.connect(self.select_pointcloud)
         self.view.control_box_layout_dict['point_setting']['linetxt_point_dim'].textChanged.connect(self.update_pointsetting_dims)
+        self.view.control_box_layout_dict['point_setting']['linetxt_point_type'].textChanged.connect(self.update_pointsetting_dims)
         self.view.control_box_layout_dict['point_setting']['linetxt_xyz_dim'].textChanged.connect(self.update_pointsetting_dims)
         self.view.control_box_layout_dict['point_setting']['linetxt_wlh_dim'].textChanged.connect(self.update_pointsetting_dims)
         self.view.control_box_layout_dict['point_setting']['linetxt_color_dim'].textChanged.connect(self.update_pointsetting_dims)
@@ -73,11 +74,7 @@ class Controller():
 
         self.view.load_history_menu_triggered.connect(self.reload_database)
         self.view.operation_menu_triggered.connect(self.operation_menu_triggered)
-
-
         self.view.pointSizeChanged.connect(self.change_point_size)
-
-
 
 
     def revert_user_config(self):
@@ -174,6 +171,7 @@ class Controller():
     def update_pointsetting_dims(self):
         try:
             self.points_setting.points_dim, \
+                self.points_setting.points_type, \
                 self.points_setting.xyz_dims, \
                     self.points_setting.wlh_dims, \
                         self.points_setting.color_dims = \
@@ -296,7 +294,7 @@ class Controller():
     def pointcloud_callback(self, msg, topic, meta_form):
         if len(msg.shape) == 1:
             try:
-                msg = msg.reshape(-1, self.points_setting.points_dim)
+                msg = np.frombuffer(msg.data, dtype = np.dtype(self.points_setting.points_type)).reshape(-1, self.points_setting.points_dim)
             except:
                 return
         max_dim = msg.shape[-1]

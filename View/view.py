@@ -314,10 +314,11 @@ class View(QObject):
 
     def get_pointsetting(self):
         pt_dim = int(self.control_box_layout_dict['point_setting']['linetxt_point_dim'].text())
+        pt_type = self.control_box_layout_dict['point_setting']['linetxt_point_type'].text()
         xyz_dims = list(map(int, self.control_box_layout_dict['point_setting']['linetxt_xyz_dim'].text().split(',')))
         wlh_dims = list(map(int, self.control_box_layout_dict['point_setting']['linetxt_wlh_dim'].text().split(',')))
         color_dims = list(map(int, self.control_box_layout_dict['point_setting']['linetxt_color_dim'].text().split(',')))
-        return pt_dim, xyz_dims, wlh_dims, color_dims
+        return pt_dim, pt_type, xyz_dims, wlh_dims, color_dims
 
     def get_bbox3dsetting(self):
         size_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_xyzwhlt_dim'].text().split(',')))

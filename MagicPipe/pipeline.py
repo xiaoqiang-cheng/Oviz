@@ -21,6 +21,12 @@ def magic_debug(self, key, data_dict, **kargs):
         print(kargs)
     return data_dict
 
+def point_cloud_reshape(self, key, data_dict, **kargs):
+    if 'Point Cloud' in data_dict.keys():
+        data_dict['Point Cloud'] = np.frombuffer(data_dict['Point Cloud'].data,
+                dtype = np.dtype(self.points_setting.points_type)).reshape(-1, self.points_setting.points_dim)
+    return data_dict
+
 def append_seg_dim_for_pcd(self, key, data_dict, **kargs):
     '''
         apend seg to pcd, need supply params:
@@ -36,8 +42,6 @@ def append_seg_dim_for_pcd(self, key, data_dict, **kargs):
             seg_bin = np.fromfile(seg_path, dtype=np.int32).reshape(-1, kargs['seg_dim']).astype(np.float32)
         else:
             seg_bin = np.array([-1] * length).reshape(length, kargs['seg_dim']).astype(np.float32)
-        if len(data_dict['Point Cloud'].shape) == 1:
-            data_dict['Point Cloud'] = data_dict['Point Cloud'].reshape(-1, self.points_setting.points_dim)
         data_dict['Point Cloud'] = np.concatenate((data_dict['Point Cloud'], seg_bin), axis=1)
     return data_dict
 
@@ -57,8 +61,6 @@ def append_ins_dim_for_pcd(self, key, data_dict, **kargs):
             ins_bin = np.fromfile(ins_path, dtype=np.int32).reshape(-1, kargs['ins_dim']).astype(np.float32)
         else:
             ins_bin = np.array([-1] * length).reshape(length, kargs['ins_dim']).astype(np.float32)
-
-        if len(data_dict['Point Cloud'].shape) == 1:
-            data_dict['Point Cloud'] = data_dict['Point Cloud'].reshape(-1, self.points_setting.points_dim)
         data_dict['Point Cloud'] = np.concatenate((data_dict['Point Cloud'], ins_bin), axis=1)
     return data_dict
+

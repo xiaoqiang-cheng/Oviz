@@ -2,6 +2,7 @@
 
 class PointCloudSetting:
     points_dim = -1
+    points_type = "float32"
     xyz_dims = -1
     wlh_dims = -1
     color_dims = -1
