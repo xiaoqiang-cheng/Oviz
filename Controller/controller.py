@@ -109,6 +109,7 @@ class Controller():
 
     def check_magic_pipeline(self, state):
         self.magicpipe_setting.enable = state > 0
+        self.update_buffer_vis()
 
     def open_magic_pipeline(self):
         os.system("code %s"%MAGIC_PIPELINE_SCRIPT)
@@ -208,6 +209,8 @@ class Controller():
 
     def update_buffer_vis(self):
         data_dict = self.model.curr_frame_data
+        if self.magicpipe_setting.enable:
+            data_dict = self.exec_magic_pipeline(data_dict)
         for meta_form, data in data_dict.items():
             topic_type = self.model.topic_path_meta[meta_form]
             fun_name = topic_type + "_callback"
@@ -218,8 +221,6 @@ class Controller():
         print(index)
         self.curr_frame_index = index
         self.curr_frame_key = self.model.get_curr_frame_data(index)
-        if self.magicpipe_setting.enable:
-            self.model.curr_frame_data = self.exec_magic_pipeline(self.model.curr_frame_data)
         self.update_buffer_vis()
         self.view.send_update_vis_flag()
         if self.global_setting.record_screen:
