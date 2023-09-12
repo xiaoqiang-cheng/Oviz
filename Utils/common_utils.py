@@ -30,7 +30,7 @@ import sys
 GUICOREVERSION = __GUICOREVERSION__
 USER_CONFIG_DIR = ".user"
 DUMP_HISTORY_DIR = ".history"
-MAGIC_PIPELINE_DIR = ".pipeline"
+MAGIC_PIPELINE_DIR = "MagicPipe"
 MAGIC_PIPELINE_SCRIPT = os.path.join(MAGIC_PIPELINE_DIR, "pipeline.py")
 
 sys.path.append(os.path.join(os.getcwd(), MAGIC_PIPELINE_DIR))

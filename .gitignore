@@ -3,6 +3,5 @@ qviz_env/
 .user/
 Output/
 .history/
-MagicPipe
 .pipeline
 test.py

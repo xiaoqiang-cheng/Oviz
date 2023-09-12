@@ -114,7 +114,7 @@ class Controller():
         self.magicpipe_setting.enable = state > 0
 
     def open_magic_pipeline(self):
-        os.system("code %s"%MAGIC_PIPELINE_DIR)
+        os.system("code %s"%MAGIC_PIPELINE_SCRIPT)
 
     def show_global_grid(self, state):
         flag = state > 0
