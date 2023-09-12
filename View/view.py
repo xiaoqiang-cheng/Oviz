@@ -348,7 +348,7 @@ class View(QObject):
     def color_id_to_color_list(self, id_list):
         try:
             if id_list.shape[-1] == 1:
-                id_list = id_list.reshape(-1).astype(np.uint8)
+                id_list = id_list.reshape(-1).astype(np.int32)
                 color_dim = 3
                 rgb_color_map = {}
                 for key, value in self.color_map.items():
