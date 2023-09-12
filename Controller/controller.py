@@ -201,7 +201,7 @@ class Controller():
         reload(modules)
         functions = [getattr(modules, func) for func in dir(modules) if callable(getattr(modules, func))]
         # kargs =
-        for func in functions:
+        for func in functions[::-1]:
             try:
                 data_dict = func(self, self.curr_frame_key, data_dict, **self.magicpipe_setting.magic_params())
             except Exception as e:

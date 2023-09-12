@@ -82,7 +82,9 @@
                     "type" : "JSONWidgetEditor",
                     "params":{
                         "widget_titie" : "json",
-                        "default_value": [{}]
+                        "default_value": [{
+                            "magic_debug" : 1
+                        }]
                     }
                 },
                 "button_open_magic_pipe_editor":{
