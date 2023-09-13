@@ -114,7 +114,7 @@ class Controller():
         self.update_buffer_vis()
 
     def open_magic_pipeline(self):
-        os.system("code %s"%MAGIC_PIPELINE_SCRIPT)
+        os.system("code %s"%MAGIC_USER_PIPELINE_SCRIPT)
 
     def show_global_grid(self, state):
         flag = state > 0
@@ -208,16 +208,35 @@ class Controller():
             print(self.bbox3d_setting.__dict__)
 
 
-    def exec_magic_pipeline(self, data_dict):
-        modules = __import__("pipeline", fromlist=[""])
+    def exec_user_magic_pipeline(self, data_dict):
+        # execute user pipeline
+        modules = __import__("user_pipeline", fromlist=[""])
         reload(modules)
         functions = [getattr(modules, func) for func in dir(modules) if callable(getattr(modules, func))]
-        # kargs =
         for func in functions[::-1]:
             try:
                 data_dict = func(self, self.curr_frame_key, data_dict, **self.magicpipe_setting.magic_params())
             except Exception as e:
                 print("[Magic pipeline ERROR] ", func, e)
+        return data_dict
+
+    def exec_offical_magic_pipeline(self, data_dict):
+        # execute offical pipeline
+        modules = __import__("pipeline", fromlist=[""])
+        reload(modules)
+        functions = [getattr(modules, func) for func in dir(modules) if callable(getattr(modules, func))]
+        for func in functions[::-1]:
+            try:
+                data_dict = func(self, self.curr_frame_key, data_dict, **self.magicpipe_setting.magic_params())
+            except Exception as e:
+                print("[Magic pipeline ERROR] ", func, e)
+        return data_dict
+
+    def exec_magic_pipeline(self, data_dict):
+        # first exec offical
+        data_dict = self.exec_offical_magic_pipeline(data_dict)
+        # and then exec user
+        data_dict = self.exec_user_magic_pipeline(data_dict)
         return data_dict
 
     def update_buffer_vis(self):

@@ -32,8 +32,13 @@ USER_CONFIG_DIR = ".user"
 DUMP_HISTORY_DIR = ".history"
 MAGIC_PIPELINE_DIR = "MagicPipe"
 MAGIC_PIPELINE_SCRIPT = os.path.join(MAGIC_PIPELINE_DIR, "pipeline.py")
+MAGIC_USER_PIPELINE_DIR = ".pipeline"
+MAGIC_USER_PIPELINE_SCRIPT = os.path.join(MAGIC_USER_PIPELINE_DIR, "user_pipeline.py")
+
 
 sys.path.append(os.path.join(os.getcwd(), MAGIC_PIPELINE_DIR))
+sys.path.append(os.path.join(os.getcwd(), MAGIC_USER_PIPELINE_DIR))
+
 
 
 POINTCLOUD = "pointcloud"
@@ -221,14 +226,14 @@ def if_not_exist_create(dir_path):
 
 if_not_exist_create(USER_CONFIG_DIR)
 if_not_exist_create(DUMP_HISTORY_DIR)
-if_not_exist_create(MAGIC_PIPELINE_DIR)
+if_not_exist_create(MAGIC_USER_PIPELINE_DIR)
 
 magic_pipe_demo_script = \
 '''
 def test(self, key, data_dict, **kargs):
-    print("test")
+    print("user_pipeline working")
     return data_dict
 '''
 
-if not os.path.exists(MAGIC_PIPELINE_SCRIPT):
-    os.system("echo '%s' > %s"%(magic_pipe_demo_script, MAGIC_PIPELINE_SCRIPT))
+if not os.path.exists(MAGIC_USER_PIPELINE_SCRIPT):
+    os.system("echo '%s' > %s"%(magic_pipe_demo_script, MAGIC_USER_PIPELINE_SCRIPT))
