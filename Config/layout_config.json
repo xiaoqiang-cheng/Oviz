@@ -45,11 +45,24 @@
                     "params":{
                         "text": "在线模式"
                     }
-                },
+                }
+            }
+        },
+
+        "record_screen_setting":
+        {
+            "type": "QVBoxLayout",
+            "widget" : {
                 "checkbox_record_screen":{
                     "type" : "QCheckBox",
                     "params":{
-                        "text": "保存录屏"
+                        "text": "切帧事件录屏"
+                    }
+                },
+                "checkbox_mouse_record_screen":{
+                    "type" : "QCheckBox",
+                    "params":{
+                        "text": "鼠标事件录屏"
                     }
                 }
             }

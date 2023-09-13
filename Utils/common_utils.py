@@ -116,7 +116,7 @@ def deserialize_data(file_path):
 
 
 def get_wall_time_str():
-    return time.strftime("%Y-%m-%d_%H_%M_%S",time.localtime())
+    return time.strftime("%Y-%m-%d_%H_%M_%S", time.localtime())
 
 def get_mac_address():
     import uuid

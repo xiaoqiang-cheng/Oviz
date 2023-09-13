@@ -20,6 +20,9 @@ class Bbox3DSetting:
 class GlobalSetting:
     record_screen = False
 
+class RecordScreenSetting:
+    record_screen = False
+    mouse_record_screen = False
 
 class MagicPipeSetting:
     enable = False

@@ -87,6 +87,8 @@ class View(QObject):
         self.load_history_menu_triggered = self.load_history_menu.triggered[QAction]
 
         self.dock_control_box.unfold()
+        self.mouse_record_screen = False
+        self.last_event_type = None
 
     def create_color_map_widget(self):
         color_id_map_list = QListWidget()
@@ -164,9 +166,11 @@ class View(QObject):
         write_json(self.canvas_cfg, "%s/init_canvas_cfg3d.json"%USER_CONFIG_DIR)
         self.save_layout()
 
-    def grab_form(self, image_name):
+    def grab_form(self, frame_name, ext):
         if not os.path.exists("Output"):
             os.mkdir("Output")
+
+        image_name = frame_name + "_" + str(time.time()) + ext
         output_path = os.path.join("Output", image_name)
         self.ui.grab().save(output_path, "PNG", quality=100)
 
@@ -270,6 +274,13 @@ class View(QObject):
             elif event.key() == Qt.Key_P:
                 self.canvas.print_3dview_camera_params()
             return True
+
+        if self.mouse_record_screen:
+            if (event.type() == QEvent.Wheel) or \
+                (event.type() == QEvent.HoverMove and self.last_event_type == QEvent.UpdateRequest):
+                self.grab_form(self.dock_range_slide.curr_filename.text(), ".png")
+                return False
+            self.last_event_type = event.type()
         return False
 
 

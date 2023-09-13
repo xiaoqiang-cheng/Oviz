@@ -25,6 +25,7 @@ class Controller():
         self.Timer.start(50)
 
         self.global_setting = GlobalSetting()
+        self.record_screen_setting = RecordScreenSetting()
         self.points_setting = PointCloudSetting()
         self.bbox3d_setting = Bbox3DSetting()
         self.magicpipe_setting = MagicPipeSetting()
@@ -67,10 +68,11 @@ class Controller():
         self.view.control_box_layout_dict['magic_pipeline_setting']['button_open_magic_pipe_editor'].clicked.connect(self.open_magic_pipeline)
         self.magicpipe_setting.magic_params = self.view.control_box_layout_dict['magic_pipeline_setting']['text_magic_pipe_paramters'].get_json_data
 
-
-        self.view.control_box_layout_dict['global_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
         self.view.control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
+
+        self.view.control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
+        self.view.control_box_layout_dict['record_screen_setting']['checkbox_mouse_record_screen'].stateChanged.connect(self.change_mouse_record_mode)
 
         self.view.load_history_menu_triggered.connect(self.reload_database)
         self.view.operation_menu_triggered.connect(self.operation_menu_triggered)
@@ -118,13 +120,24 @@ class Controller():
         flag = state > 0
         self.view.set_reference_line_visible(flag)
 
+    def change_mouse_record_mode(self, state):
+        if state > 0:
+            self.record_screen_setting.mouse_record_screen = True
+            self.view.mouse_record_screen = True
+            send_log_msg(NORMAL, "开始录屏")
+        else:
+            self.record_screen_setting.mouse_record_screen = False
+            self.view.mouse_record_screen = False
+            send_log_msg(NORMAL, "关闭录屏")
 
     def change_record_mode(self, state):
         if state > 0:
-            self.global_setting.record_screen = True
+            # self.global_setting.record_screen = True
+            self.record_screen_setting.record_screen = True
             send_log_msg(NORMAL, "开始录屏")
         else:
-            self.global_setting.record_screen = False
+            # self.global_setting.record_screen = False
+            self.record_screen_setting.record_screen = False
             send_log_msg(NORMAL, "关闭录屏")
 
     def change_voxel_mode(self, state):
@@ -223,8 +236,8 @@ class Controller():
         self.curr_frame_key = self.model.get_curr_frame_data(index)
         self.update_buffer_vis()
         self.view.send_update_vis_flag()
-        if self.global_setting.record_screen:
-            self.view.grab_form(self.model.data_frame_list[index] + ".png")
+        if self.record_screen_setting.record_screen:
+            self.view.grab_form(self.model.data_frame_list[index], ".png")
 
     def run(self):
         self.view.show()
