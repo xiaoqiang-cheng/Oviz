@@ -169,7 +169,6 @@ class View(QObject):
     def grab_form(self, frame_name, ext):
         if not os.path.exists("Output"):
             os.mkdir("Output")
-
         image_name = frame_name + "_" + str(time.time()) + ext
         output_path = os.path.join("Output", image_name)
         self.ui.grab().save(output_path, "PNG", quality=100)
@@ -276,11 +275,10 @@ class View(QObject):
             return True
 
         if self.mouse_record_screen:
-            if (event.type() == QEvent.Wheel) or \
-                (event.type() == QEvent.HoverMove and self.last_event_type == QEvent.UpdateRequest):
+            if (event.type() == QEvent.UpdateRequest) and \
+                (self.last_event_type in [QEvent.HoverMove, QEvent.Wheel]):
                 self.grab_form(self.dock_range_slide.curr_filename.text(), ".png")
-                return False
-            self.last_event_type = event.type()
+        self.last_event_type = event.type()
         return False
 
 
