@@ -64,6 +64,21 @@
                     "params":{
                         "text": "鼠标事件录屏"
                     }
+                },
+                "button_select_record_save" : {
+                    "type": "FolderSelectWidget",
+                    "params":{
+                        "widget_titie" : "Save Dir",
+                        "default_value": {
+                            "value": "~/Videos"
+                        }
+                    }
+                },
+                "button_export_record_video":{
+                    "type" : "QPushButton",
+                    "params":{
+                        "text": "导出视频"
+                    }
                 }
             }
         },

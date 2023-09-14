@@ -3,6 +3,7 @@ from View.viz_core import Canvas
 from log_sys import send_log_msg
 from View.custom_widget import *
 from View.dock_view import *
+import cv2
 
 '''
 TODO: 扩展|magic link|filter|在线录
@@ -90,6 +91,11 @@ class View(QObject):
         self.mouse_record_screen = False
         self.last_event_type = None
 
+        self.record_screen_image_list = []
+        self.record_image_start_time = None
+        self.record_screen_save_dir = None
+
+
     def create_color_map_widget(self):
         color_id_map_list = QListWidget()
         style_sheet = '''
@@ -167,11 +173,41 @@ class View(QObject):
         self.save_layout()
 
     def grab_form(self, frame_name, ext):
-        if not os.path.exists("Output"):
-            os.mkdir("Output")
+        self.record_screen_save_dir = \
+            os.path.join(self.control_box_layout_dict['record_screen_setting']['button_select_record_save'].folder_path, self.record_image_start_time)
+        if not os.path.exists(self.record_screen_save_dir ):
+            os.makedirs(self.record_screen_save_dir)
         image_name = frame_name + "_" + str(time.time()) + ext
-        output_path = os.path.join("Output", image_name)
+        output_path = os.path.join(self.record_screen_save_dir, image_name)
         self.ui.grab().save(output_path, "PNG", quality=100)
+        self.record_screen_image_list.append(output_path)
+
+    def export_grab_video(self):
+        import matplotlib.pyplot as plt
+
+        video_name = os.path.join(self.control_box_layout_dict['record_screen_setting']['button_select_record_save'].folder_path,
+                self.record_image_start_time + ".mp4")
+
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+
+        if len(self.record_screen_image_list) == 0: return
+
+        frame_size = (1280, 720)
+        out = cv2.VideoWriter(video_name, fourcc, 10, frame_size)
+
+        for image_path in self.record_screen_image_list:
+            img = cv2.imread(image_path)
+            if img is not None:
+                plt.cla()
+                img = cv2.resize(img, frame_size)
+                out.write(img)
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                plt.imshow(img)
+                plt.pause(0.01)
+        plt.close()
+        out.release()
+
+        os.system("xdg-open %s"%self.control_box_layout_dict['record_screen_setting']['button_select_record_save'].folder_path)
 
     def revet_layout_config(self):
         for module, value in self.control_box_layout_dict.items():
@@ -281,10 +317,8 @@ class View(QObject):
         self.last_event_type = event.type()
         return False
 
-
     def update_color_map(self, name, color):
         self.color_map[name] = color
-
 
     def add_image_dock_widget(self, wimage:dict):
         for n, v in wimage.items():

@@ -73,6 +73,8 @@ class Controller():
 
         self.view.control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.control_box_layout_dict['record_screen_setting']['checkbox_mouse_record_screen'].stateChanged.connect(self.change_mouse_record_mode)
+        self.view.control_box_layout_dict['record_screen_setting']['button_export_record_video'].clicked.connect(self.export_grab_video)
+
 
         self.view.load_history_menu_triggered.connect(self.reload_database)
         self.view.operation_menu_triggered.connect(self.operation_menu_triggered)
@@ -124,6 +126,8 @@ class Controller():
         if state > 0:
             self.record_screen_setting.mouse_record_screen = True
             self.view.mouse_record_screen = True
+            if len(self.view.record_screen_image_list) == 0:
+                self.view.record_image_start_time = get_wall_time_str()
             send_log_msg(NORMAL, "开始录屏")
         else:
             self.record_screen_setting.mouse_record_screen = False
@@ -132,13 +136,16 @@ class Controller():
 
     def change_record_mode(self, state):
         if state > 0:
-            # self.global_setting.record_screen = True
             self.record_screen_setting.record_screen = True
+            if len(self.view.record_screen_image_list) == 0:
+                self.view.record_image_start_time = get_wall_time_str()
             send_log_msg(NORMAL, "开始录屏")
         else:
-            # self.global_setting.record_screen = False
             self.record_screen_setting.record_screen = False
             send_log_msg(NORMAL, "关闭录屏")
+
+    def export_grab_video(self):
+        self.view.export_grab_video()
 
     def change_voxel_mode(self, state):
         if state > 0:
