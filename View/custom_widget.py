@@ -22,8 +22,9 @@ class JSONWidgetEditor(QTextEdit):
         try:
             self.default_value[0] = eval(json_str)
             return self.default_value[0]
-        except:
-            return {"info": "input json error"}
+        except Exception as e:
+            print("Json input ERROR: [%s]"%e)
+            return {"info": "input json parse error [%s]"%e}
 
     def set_json_data(self, json_data):
         # 将 JSON 数据转换为格式化的文本并设置为文本编辑控件的内容

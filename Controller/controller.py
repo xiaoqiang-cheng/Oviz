@@ -215,35 +215,36 @@ class Controller():
             print(self.bbox3d_setting.__dict__)
 
 
-    def exec_user_magic_pipeline(self, data_dict):
+    def exec_user_magic_pipeline(self, data_dict, kargs):
         # execute user pipeline
         modules = __import__("user_pipeline", fromlist=[""])
         reload(modules)
         functions = [getattr(modules, func) for func in dir(modules) if callable(getattr(modules, func))]
         for func in functions[::-1]:
             try:
-                data_dict = func(self, self.curr_frame_key, data_dict, **self.magicpipe_setting.magic_params())
+                data_dict = func(self, self.curr_frame_key, data_dict, **kargs)
             except Exception as e:
                 print("[Magic pipeline ERROR] ", func, e)
         return data_dict
 
-    def exec_offical_magic_pipeline(self, data_dict):
+    def exec_offical_magic_pipeline(self, data_dict, kargs):
         # execute offical pipeline
         modules = __import__("pipeline", fromlist=[""])
         reload(modules)
         functions = [getattr(modules, func) for func in dir(modules) if callable(getattr(modules, func))]
         for func in functions[::-1]:
             try:
-                data_dict = func(self, self.curr_frame_key, data_dict, **self.magicpipe_setting.magic_params())
+                data_dict = func(self, self.curr_frame_key, data_dict, **kargs)
             except Exception as e:
                 print("[Magic pipeline ERROR] ", func, e)
         return data_dict
 
     def exec_magic_pipeline(self, data_dict):
+        kargs = self.magicpipe_setting.magic_params()
         # first exec offical
-        data_dict = self.exec_offical_magic_pipeline(data_dict)
+        data_dict = self.exec_offical_magic_pipeline(data_dict, kargs)
         # and then exec user
-        data_dict = self.exec_user_magic_pipeline(data_dict)
+        data_dict = self.exec_user_magic_pipeline(data_dict, kargs)
         return data_dict
 
     def update_buffer_vis(self):
