@@ -194,7 +194,7 @@ class View(QObject):
 
         frame_size = (1280, 720)
         out = cv2.VideoWriter(video_name, fourcc, 10, frame_size)
-
+        plt.figure("Preview")
         for image_path in self.record_screen_image_list:
             img = cv2.imread(image_path)
             if img is not None:
@@ -202,11 +202,13 @@ class View(QObject):
                 img = cv2.resize(img, frame_size)
                 out.write(img)
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                plt.axis('off')
                 plt.imshow(img)
-                plt.pause(0.01)
+                plt.pause(0.001)
         plt.close()
         out.release()
-
+        self.record_screen_image_list = []
+        self.record_image_start_time = get_wall_time_str()
         os.system("xdg-open %s"%self.control_box_layout_dict['record_screen_setting']['button_select_record_save'].folder_path)
 
     def revet_layout_config(self):
