@@ -243,7 +243,7 @@ class View(QObject):
             f.flush()
 
     def load_layout(self):
-        p = '%slayout.ini'%USER_CONFIG_DIR
+        p = '%s/layout.ini'%USER_CONFIG_DIR
         if os.path.exists(p):
             with open(p, 'rb') as f:
                 s = f.read()
