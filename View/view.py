@@ -65,6 +65,7 @@ class View(QObject):
         self.ui.statusbar.addWidget(self.version_label)
 
         self.ui.installEventFilter(self)  # 将事件过滤器安装到UI对象上
+
         self.set_car_visible(False)
 
         self.ui.action_show_slide.triggered.connect(self.show_range_slide)
@@ -310,6 +311,14 @@ class View(QObject):
                 self.pointSizeChanged.emit(self.point_size)
             elif event.key() == Qt.Key_P:
                 self.canvas.print_3dview_camera_params()
+            elif event.key() == Qt.Key_R:
+                dock_widget_num = len(self.image_dock.values())
+                print("Target Size:", [self.ui.width() / dock_widget_num] * dock_widget_num)
+                self.ui.resizeDocks(list(self.image_dock.values()), [self.ui.width() / dock_widget_num] * dock_widget_num, Qt.Horizontal)
+                print("main widnows width:", self.ui.width())
+                for key, value in self.image_dock.items():
+                    print(key, value.width())
+
             return True
 
         if self.mouse_record_screen:
