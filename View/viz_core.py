@@ -149,6 +149,14 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name].transform = transforms.MatrixTransform()
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
+        # transform = self.view_panel[parent_view].camera.transform
+        # dir = np.array([-10, -10, -10, 0])
+        # print(self.vis_module[vis_name]._mesh.shading_filter.__dict__)
+        # self.vis_module[vis_name]._mesh.shading_filter.light_dir = transform.map(dir)[:3]
+        # self.vis_module[vis_name]._mesh.shading_filter.shininess = 250
+        # self.vis_module[vis_name]._mesh.shading_filter.specular_coefficient = 0.3
+        # print(self.vis_module[vis_name]._mesh.shading_filter.__dict__)
+
     def add_referenceline_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = visuals.Line(antialias=True)
         self.view_panel[parent_view].add(self.vis_module[vis_name])
@@ -177,7 +185,7 @@ class Canvas(scene.SceneCanvas):
         vertices, faces, normals, texcoords = read_mesh(mesh_path)
         texture = np.flipud(imread(texture_path))
 
-        mesh = Mesh(vertices, faces, shading="smooth", color=(1, 1, 1, 0.9))
+        mesh = Mesh(vertices, faces, shading="smooth", color=(1, 1, 1, 1))
         mesh.transform = transforms.MatrixTransform()
 
         mesh.transform.rotate(90, (1, 0, 0))
@@ -185,13 +193,13 @@ class Canvas(scene.SceneCanvas):
         mesh.transform.scale((1.5, 1.5, 1.5))
         mesh.transform.translate((0.5, 0., 1.0))
         texture_filter = TextureFilter(texture, texcoords)
-        self.initial_camera_dir = (0, -1, 0)  # for a default initialised camera
-        self.initial_light_dir = self.view_panel[parent_view].camera.transform.imap(self.initial_camera_dir)[:3]
-        mesh.shading_filter.light_dir = self.initial_camera_dir
 
         self.vis_module[vis_name] = mesh
         self.view_panel[parent_view].add(self.vis_module[vis_name])
         self.vis_module[vis_name].attach(texture_filter)
+
+         # for a default initialised camera
+        self.initial_light_dir = self.view_panel[parent_view].camera.transform.imap((0, 0, 1) )[:3]
 
     def on_mouse_move(self, event):
         self.vis_module["point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
@@ -269,7 +277,7 @@ class Canvas(scene.SceneCanvas):
     def draw_voxel_line(self, vis_name, pos, w, l, h, box_line_width=0.8):
         vertex_point, p_idx = self.create_voxel_vertex(pos, w, l, h)
         self.vis_module[vis_name].set_data(pos=vertex_point, connect=p_idx,
-                    color=(0,0,0,0.3), width=box_line_width)
+                    color=(0,0,0,0.1), width=box_line_width)
 
     def draw_image(self, vis_name, img):
         self.vis_module[vis_name].set_data(img)
