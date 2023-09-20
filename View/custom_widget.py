@@ -54,7 +54,7 @@ class FolderSelectWidget(QWidget):
         self.set_topic_path(self.default_value['value'])
 
     def select_topic_path(self):
-        self.folder_path = self.linetxt.text()
+        self.folder_path = os.path.expanduser(self.linetxt.text())
         if not os.path.exists(self.folder_path):
             return
         self.default_value['value'] = self.folder_path
