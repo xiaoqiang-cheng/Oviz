@@ -29,7 +29,6 @@ class Controller():
         self.points_setting = PointCloudSetting()
         self.bbox3d_setting = Bbox3DSetting()
         self.magicpipe_setting = MagicPipeSetting()
-
         self.signal_connect()
 
         self.curr_frame_index = 0
@@ -82,12 +81,13 @@ class Controller():
 
 
     def revert_user_config(self):
-        self.update_pointsetting_dims()
-        self.update_bbox3dsetting_dims()
-        self.view.revet_layout_config()
         try:
+            self.update_pointsetting_dims()
+            self.update_bbox3dsetting_dims()
+            self.view.revet_layout_config()
             self.update_system_vis(self.view.layout_config["last_slide_num"])
         except:
+            print("ERROR REVERT")
             pass
         send_log_msg(NORMAL, "加载配置结束，如果未能显示上一次数据，请检查文件路径或本地资源是否正常")
 

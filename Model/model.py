@@ -25,6 +25,7 @@ class Model():
             self.data_frame_list.sort()
 
     def get_curr_frame_data(self, index):
+        if index > self.offline_frame_cnt: return 0
         key = self.data_frame_list[index]
         self.curr_frame_data = {}
         for meta_form in self.database.keys():
@@ -53,56 +54,34 @@ class Model():
         img = cv2.imread(image_path)
         return img
 
-    def deal_image_folder(self, image_path, meta_form):
-        self.database[meta_form] = {}
-        self.topic_path_meta[meta_form] = IMAGE
-
-        datanames = os.listdir(image_path)
-        for f in datanames:
-            key, ext = os.path.splitext(f)
-            if ext in [".jpg", ".png", ".tiff"]:
-                self.database[meta_form][key] = os.path.join(image_path, f)
-
-        cnt = len(self.database[meta_form].keys())
-        self.data_frame_list = list(self.database[meta_form].keys())
-        self.data_frame_list.sort()
-        self.offline_frame_cnt = cnt
-        send_log_msg(NORMAL, "共发现了%s格式的文件 %d 帧"%(ext, cnt))
+    def deal_image_folder(self, folder_path, meta_form):
+        cnt = self.deal_folder(folder_path, meta_form, IMAGE, [".jpg", ".png", ".tiff"])
         return cnt
 
-    def deal_pointcloud_folder(self, pc_path, meta_form):
-        self.database[meta_form] = {}
-        self.topic_path_meta[meta_form] = POINTCLOUD
+    def deal_pointcloud_folder(self, folder_path, meta_form):
+        cnt = self.deal_folder(folder_path, meta_form, POINTCLOUD, [".pcd", ".bin"])
+        return cnt
 
-        datanames = os.listdir(pc_path)
-        for f in datanames:
-            key, ext = os.path.splitext(f)
-            if ext in [".pcd", ".bin"]:
-                self.database[meta_form][key] = os.path.join(pc_path, f)
-
-        pc_cnt = len(self.database[meta_form].keys())
-        self.data_frame_list = list(self.database[meta_form].keys())
-        self.data_frame_list.sort()
-        self.offline_frame_cnt = pc_cnt
-        send_log_msg(NORMAL, "共发现了%s格式的文件 %d 帧"%(ext, pc_cnt))
-        return pc_cnt
-
-    def deal_bbox3d_folder(self, pc_path, meta_form):
-        self.database[meta_form] = {}
-        self.topic_path_meta[meta_form] = BBOX3D
-
-        datanames = os.listdir(pc_path)
-        for f in datanames:
-            key, ext = os.path.splitext(f)
-            if ext in [".txt"]:
-                self.database[meta_form][key] = os.path.join(pc_path, f)
-
-        cnt = len(self.database[meta_form].keys())
-        self.data_frame_list = list(self.database[meta_form].keys())
-        self.data_frame_list.sort()
-        self.offline_frame_cnt = cnt
-        send_log_msg(NORMAL, "共发现了%s格式的文件 %d 帧"%(ext, cnt))
+    def deal_bbox3d_folder(self, folder_path, meta_form):
+        cnt = self.deal_folder(folder_path, meta_form, BBOX3D, [".txt"])
         return cnt
 
 
+    def deal_folder(self, folder_path, meta_form, TOPIC_META, allowed_extensions):
+        self.database[meta_form] = {}
+        self.topic_path_meta[meta_form] = TOPIC_META
 
+        datanames = os.listdir(folder_path)
+
+        for f in datanames:
+            key, ext = os.path.splitext(f)
+            if ext in allowed_extensions:
+                self.database[meta_form][key] = os.path.join(folder_path, f)
+
+        cnt = len(self.database[meta_form].keys())
+        if cnt > 0:
+            self.data_frame_list = sorted(self.database[meta_form].keys())
+            self.offline_frame_cnt = cnt
+            send_log_msg(NORMAL, f"共发现了{'、'.join(allowed_extensions)}格式的文件 {cnt} 帧")
+
+        return cnt
