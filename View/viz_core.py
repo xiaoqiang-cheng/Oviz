@@ -292,7 +292,7 @@ class Canvas(scene.SceneCanvas):
         pos, arrow = self.create_box_arrow(bboxes, vel_list)
         self.draw_arrow(vis_name, pos, arrow, color, width)
 
-    def draw_box3d_line(self, vis_name, boxes, color, box_line_width=2):
+    def draw_box3d_line(self, vis_name, boxes, color, box_line_width=4):
         pos, width, length, height, theta = self.prepare_box_data(boxes)
         vertex_point, p_idx = self.create_box_vertex(pos,
                 width, length, height, theta)

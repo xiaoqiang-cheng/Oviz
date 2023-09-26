@@ -26,6 +26,7 @@ import numpy as np
 import pickle
 import time
 import sys
+np.seterr(divide='ignore',invalid='ignore')
 
 GUICOREVERSION = __GUICOREVERSION__
 USER_CONFIG_DIR = ".user"
