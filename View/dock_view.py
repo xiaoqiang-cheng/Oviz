@@ -369,6 +369,45 @@ class CollapsibleBox(QWidget):
         content_animation.setEndValue(content_height)
 
 
+class ControlTabBoxDockWidget(QDockWidget):
+    def __init__(self, parent=None, title="控制台", layout_dict=dict()):
+        super().__init__(title, parent)
+        self.setObjectName(title)
+        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)  # 设置为可调整大小
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)  # 仅当需要时显示垂直滚动条
+
+        # widget = QWidget()
+        self.tabwidget = QTabWidget()
+        scroll_area.setWidget(self.tabwidget)
+        self.boxes = {}
+
+        for ckey, cvalue in layout_dict.items():
+            subwidget = QWidget()
+            vlay = QVBoxLayout(subwidget)  # 在widget上使用垂直布局
+            subbox = {}
+            for key, val in cvalue.items():
+                box = CollapsibleBox(key)
+                subbox[key] = box
+                vlay.addWidget(box)
+                box.setContentLayout(val['layout'])
+            self.boxes[ckey] = subbox
+            vlay.addStretch()
+            self.tabwidget.addTab(subwidget, ckey)
+        self.setWidget(scroll_area)  # 将QScrollArea作为QDockWidget的widget
+
+    def unfold(self):
+        for key, val in self.boxes.items():
+            for subkey, subval in val.items():
+                subval.unfold()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # 强制进行重新绘制
+        self.update()
+
 
 class ControlBoxDockWidget(QDockWidget):
     def __init__(self, parent=None, title="控制台", layout_dict=dict()):

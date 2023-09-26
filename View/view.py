@@ -33,10 +33,16 @@ class View(QObject):
         self.spliter_dict = {}
         self.dock_log_info = LogDockWidget()
         self.dock_range_slide = RangeSlideDockWidget()
+
+
         # need add some layout
         self.control_box_layout_dict = {}
         self.control_box_layout_dict = self.set_control_box()
-        self.dock_control_box = ControlBoxDockWidget(layout_dict=self.control_box_layout_dict)
+        self.dock_control_box = ControlTabBoxDockWidget(title="控制台", layout_dict=self.control_box_layout_dict)
+
+        self.global_control_box_layout_dict = {}
+        self.global_control_box_layout_dict = self.set_global_control_box()
+        self.dock_global_box = ControlBoxDockWidget(title="全局设置", layout_dict=self.global_control_box_layout_dict)
 
         self.image_dock = {}
         self.point_size = 1
@@ -54,6 +60,7 @@ class View(QObject):
         self.add_image_dock_widget(self.layout_config["image_dock_config"])
         self.ui.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
         self.ui.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)
+        self.ui.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_box)
         self.ui.addDockWidget(Qt.RightDockWidgetArea, self.dock_control_box)
 
 
@@ -89,6 +96,7 @@ class View(QObject):
         self.load_history_menu_triggered = self.load_history_menu.triggered[QAction]
 
         self.dock_control_box.unfold()
+        self.dock_global_box.unfold()
         self.mouse_record_screen = False
         self.last_event_type = None
 
@@ -115,10 +123,26 @@ class View(QObject):
             color_id_map_list.addItem(lw)
         return color_id_map_list
 
+    # def create_element_box(self, box_dict:dict):
+    #     table_panel = QTabWidget()
+    #     for key, value in box_dict.items():
+    #         curr_widght = ControlBoxDockWidget(layout_dict=value)
+    #         table_panel.addTab(curr_widght, key)
+
+    #     return
+
     def set_control_box(self):
         ret = dict()
 
-        for key, value in self.layout_config['control_box'].items():
+        for key, value in self.layout_config['element_control_box'].items():
+            ret[key] = self.set_element_box(value)
+
+        return ret
+
+    def set_element_box(self, element_dict):
+        ret = dict()
+
+        for key, value in element_dict.items():
             ret[key] = {}
             ret[key]["layout"] = eval(value['type'])()
             for wk, wv in value["widget"].items():
@@ -127,6 +151,18 @@ class View(QObject):
 
         return ret
 
+
+    def set_global_control_box(self):
+        ret = dict()
+
+        for key, value in self.layout_config['global_control_box'].items():
+            ret[key] = {}
+            ret[key]["layout"] = eval(value['type'])()
+            for wk, wv in value["widget"].items():
+                ret[key][wk] = eval(wv['type'])(**wv['params'])
+                ret[key]["layout"].addWidget(ret[key][wk])
+
+        return ret
 
     def set_spilter_style(self):
         qss = '''
@@ -366,20 +402,30 @@ class View(QObject):
     def send_update_vis_flag(self):
         self.dock_range_slide.update_handled = True
 
+    def get_curr_control_box_name(self):
+        curr_index = self.dock_control_box.tabwidget.currentIndex()
+        return self.dock_control_box.tabwidget.tabText(curr_index)
+
     def get_pointsetting(self):
-        pt_dim = int(self.control_box_layout_dict['point_setting']['linetxt_point_dim'].text())
-        pt_type = self.control_box_layout_dict['point_setting']['linetxt_point_type'].text()
-        xyz_dims = list(map(int, self.control_box_layout_dict['point_setting']['linetxt_xyz_dim'].text().split(',')))
-        wlh_dims = list(map(int, self.control_box_layout_dict['point_setting']['linetxt_wlh_dim'].text().split(',')))
-        color_dims = list(map(int, self.control_box_layout_dict['point_setting']['linetxt_color_dim'].text().split(',')))
+        curr_widget_key = self.get_curr_control_box_name()
+        curr_element_dict = self.control_box_layout_dict[curr_widget_key]
+
+        pt_dim = int(curr_element_dict['point_setting']['linetxt_point_dim'].text())
+        pt_type = curr_element_dict['point_setting']['linetxt_point_type'].text()
+        xyz_dims = list(map(int, curr_element_dict['point_setting']['linetxt_xyz_dim'].text().split(',')))
+        wlh_dims = list(map(int, curr_element_dict['point_setting']['linetxt_wlh_dim'].text().split(',')))
+        color_dims = list(map(int, curr_element_dict['point_setting']['linetxt_color_dim'].text().split(',')))
         return pt_dim, pt_type, xyz_dims, wlh_dims, color_dims
 
     def get_bbox3dsetting(self):
-        size_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_xyzwhlt_dim'].text().split(',')))
-        color_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_color_dim'].text().split(',')))
-        arrow_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_arrow_dim'].text().split(',')))
-        text_dims = list(map(int, self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_text_dim'].text().split(',')))
-        format_dims = self.control_box_layout_dict['bbox3d_setting']['bbox3d_txt_format_dim'].text()
+        curr_widget_key = self.get_curr_control_box_name()
+        curr_element_dict = self.control_box_layout_dict[curr_widget_key]
+
+        size_dims = list(map(int, curr_element_dict['bbox3d_setting']['bbox3d_txt_xyzwhlt_dim'].text().split(',')))
+        color_dims = list(map(int, curr_element_dict['bbox3d_setting']['bbox3d_txt_color_dim'].text().split(',')))
+        arrow_dims = list(map(int, curr_element_dict['bbox3d_setting']['bbox3d_txt_arrow_dim'].text().split(',')))
+        text_dims = list(map(int, curr_element_dict['bbox3d_setting']['bbox3d_txt_text_dim'].text().split(',')))
+        format_dims = curr_element_dict['bbox3d_setting']['bbox3d_txt_format_dim'].text()
 
         return size_dims, color_dims, arrow_dims, text_dims, format_dims
 
@@ -443,7 +489,7 @@ class View(QObject):
     def set_color_map_list(self):
         dlg = QColorDialog()
         dlg.setWindowFlags(self.ui.windowFlags() | Qt.WindowStaysOnTopHint)
-        item = self.control_box_layout_dict['global_setting']['color_id_map_list'].currentItem()
+        item = self.global_control_box_layout_dict['global_setting']['color_id_map_list'].currentItem()
         if dlg.exec_():
             cur_color = dlg.currentColor()
             if item.background().color() != cur_color:
@@ -451,9 +497,9 @@ class View(QObject):
                 self.update_color_map(item.text(), cur_color.name())
                 if (item.text() == "-2"):
                     self.set_canvas_bgcolor()
-                self.control_box_layout_dict["global_setting"]["color_id_map_list"].clearSelection()
+                self.global_control_box_layout_dict["global_setting"]["color_id_map_list"].clearSelection()
                 return True
-        self.control_box_layout_dict["global_setting"]["color_id_map_list"].clearSelection()
+        self.global_control_box_layout_dict["global_setting"]["color_id_map_list"].clearSelection()
         return False
 
     def set_data_range(self, listname):
