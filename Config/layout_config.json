@@ -24,7 +24,8 @@
         "sr": ""
         //"rr": ""
     },
-    "control_box":
+
+    "global_control_box":
     {
         "global_setting":
         {
@@ -122,169 +123,175 @@
                     }
                 }
             }
-        },
+        }
+    },
 
-        "point_setting":{
-            "type": "QVBoxLayout",
-            "widget":{
-                "linetxt_point_dim":{
-                    "type": "LineTextWithLabelWidget",
-                    "params":{
-                        "widget_titie" : "dim",
-                        "default_value": {
-                            "value": "4"
+    "element_control_box":
+    {
+        "template":
+        {
+            "point_setting":{
+                "type": "QVBoxLayout",
+                "widget":{
+                    "linetxt_point_dim":{
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "dim",
+                            "default_value": {
+                                "value": "4"
+                            }
                         }
-                    }
-                },
+                    },
 
-                "linetxt_point_type":{
-                    "type": "LineTextWithLabelWidget",
-                    "params":{
-                        "widget_titie" : "type",
-                        "default_value": {
-                            "value": "float32"
+                    "linetxt_point_type":{
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "type",
+                            "default_value": {
+                                "value": "float32"
+                            }
                         }
-                    }
-                },
+                    },
 
-                "linetxt_xyz_dim" : {
-                    "type": "LineTextWithLabelWidget",
-                    "params":{
-                        "widget_titie" : "x,y,z",
-                        "default_value": {
-                            "value": "0,1,2"
+                    "linetxt_xyz_dim" : {
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "x,y,z",
+                            "default_value": {
+                                "value": "0,1,2"
+                            }
                         }
-                    }
-                },
+                    },
 
-                "linetxt_wlh_dim" : {
-                    "type": "LineTextWithLabelWidget",
-                    "params":{
-                        "widget_titie" : "w,l,h",
-                        "default_value": {
-                            "value": "-1"
+                    "linetxt_wlh_dim" : {
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "w,l,h",
+                            "default_value": {
+                                "value": "-1"
+                            }
                         }
-                    }
-                },
+                    },
 
-                "linetxt_color_dim" : {
-                    "type": "LineTextWithLabelWidget",
-                    "params":{
-                        "widget_titie" : "color",
-                        "default_value": {
-                            "value": "5"
+                    "linetxt_color_dim" : {
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "color",
+                            "default_value": {
+                                "value": "5"
+                            }
                         }
-                    }
-                },
+                    },
 
-                "button_select_pointcloud" : {
-                    "type": "FolderSelectWidget",
-                    "params":{
-                        "widget_titie" : "Point Cloud",
-                        "default_value": {
-                            "value": ""
+                    "button_select_pointcloud" : {
+                        "type": "FolderSelectWidget",
+                        "params":{
+                            "widget_titie" : "Point Cloud",
+                            "default_value": {
+                                "value": ""
+                            }
                         }
-                    }
-                },
+                    },
 
-                "show_voxel_mode" : {
-                    "type": "QCheckBox",
-                    "params":{
-                        "text": "voxel模式"
-                    }
-                }
-            }
-        },
-
-        "bbox3d_setting":{
-            "type": "QVBoxLayout",
-            "widget":{
-                "bbox3d_txt_xyzwhlt_dim":{
-                    "type": "LineTextWithLabelWidget",
-                    "params":{
-                        "widget_titie" : "x,y,z,w,l,h,θ",
-                        "default_value": {
-                            "value": "1,2,3,4,5,6,7"
-                        }
-                    }
-                },
-
-                "bbox3d_txt_color_dim":{
-                    "type": "LineTextWithLabelWidget",
-                    "params":{
-                        "widget_titie" : "color (cls/id)",
-                        "default_value": {
-                            "value": "0"
-                        }
-                    }
-                },
-
-                "bbox3d_txt_arrow_dim":{
-                    "type": "LineTextWithLabelWidget",
-                    "params":{
-                        "widget_titie" : "arrow",
-                        "default_value": {
-                            "value": "-1"
-                        }
-                    }
-                },
-
-                "bbox3d_txt_text_dim":{
-                    "type": "LineTextWithLabelWidget",
-                    "params":{
-                        "widget_titie" : "text_dim",
-                        "default_value": {
-                            "value": "-1"
-                        }
-                    }
-                },
-
-                "bbox3d_txt_format_dim":{
-                    "type": "LineTextWithLabelWidget",
-                    "params":{
-                        "widget_titie" : "show_format",
-                        "default_value": {
-                            "value": "[ID: %d]"
-                        }
-                    }
-                },
-
-                "button_select_bbox3d" : {
-                    "type": "FolderSelectWidget",
-                    "params":{
-                        "widget_titie" : "3D Bbox",
-                        "default_value": {
-                            "value": ""
+                    "show_voxel_mode" : {
+                        "type": "QCheckBox",
+                        "params":{
+                            "text": "voxel模式"
                         }
                     }
                 }
-            }
-        },
+            },
 
-        "lane3d_setting": {
-            "type": "QVBoxLayout",
-            "widget":{
-                "button_select_bbox3d" : {
-                    "type": "FolderSelectWidget",
-                    "params":{
-                        "widget_titie" : "3D Lane",
-                        "default_value": {
-                            "value": ""
+            "bbox3d_setting":{
+                "type": "QVBoxLayout",
+                "widget":{
+                    "bbox3d_txt_xyzwhlt_dim":{
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "x,y,z,w,l,h,θ",
+                            "default_value": {
+                                "value": "1,2,3,4,5,6,7"
+                            }
+                        }
+                    },
+
+                    "bbox3d_txt_color_dim":{
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "color (cls/id)",
+                            "default_value": {
+                                "value": "0"
+                            }
+                        }
+                    },
+
+                    "bbox3d_txt_arrow_dim":{
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "arrow",
+                            "default_value": {
+                                "value": "-1"
+                            }
+                        }
+                    },
+
+                    "bbox3d_txt_text_dim":{
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "text_dim",
+                            "default_value": {
+                                "value": "-1"
+                            }
+                        }
+                    },
+
+                    "bbox3d_txt_format_dim":{
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "show_format",
+                            "default_value": {
+                                "value": "[ID: %d]"
+                            }
+                        }
+                    },
+
+                    "button_select_bbox3d" : {
+                        "type": "FolderSelectWidget",
+                        "params":{
+                            "widget_titie" : "3D Bbox",
+                            "default_value": {
+                                "value": ""
+                            }
                         }
                     }
                 }
-            }
-        },
+            },
 
-        "bbox2d_setting" : {
-            "type": "QVBoxLayout",
-            "widget":{
-                "button_select_bbox2d" : {
-                    "type": "FolderSelectWidget",
-                    "params":{
-                        "widget_titie" : "2D Bbox",
-                        "default_value": {
-                            "value": ""
+            "lane3d_setting": {
+                "type": "QVBoxLayout",
+                "widget":{
+                    "button_select_bbox3d" : {
+                        "type": "FolderSelectWidget",
+                        "params":{
+                            "widget_titie" : "3D Lane",
+                            "default_value": {
+                                "value": ""
+                            }
+                        }
+                    }
+                }
+            },
+
+            "bbox2d_setting" : {
+                "type": "QVBoxLayout",
+                "widget":{
+                    "button_select_bbox2d" : {
+                        "type": "FolderSelectWidget",
+                        "params":{
+                            "widget_titie" : "2D Bbox",
+                            "default_value": {
+                                "value": ""
+                            }
                         }
                     }
                 }
