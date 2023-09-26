@@ -137,9 +137,20 @@ def choose_file(ui_,info,ename,file_path = "./"):
                                         ename)
     return selected_file_path
 
-def choose_folder(ui_,info,file_path = "./"):
-    directory = QFileDialog.getExistingDirectory(ui_, info, file_path)
-    return directory
+def choose_folder(parent, title, initial_dir='/'):
+    folder_dialog = QFileDialog(parent)
+    folder_dialog.setWindowTitle(title)
+    folder_dialog.setOptions(QFileDialog.ReadOnly)
+    folder_dialog.setFileMode(QFileDialog.Directory)
+    folder_dialog.setViewMode(QFileDialog.List)
+    folder_dialog.setOption(QFileDialog.ShowDirsOnly, True)
+    folder_dialog.setDirectory(initial_dir)
+
+    if folder_dialog.exec_():
+        selected_folder = folder_dialog.selectedFiles()
+        if selected_folder:
+            return selected_folder[0]
+    return None
 
 # 将列表递归创建成字典
 def creat_dic_from_list(veh,key_value):

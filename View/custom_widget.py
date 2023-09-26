@@ -37,7 +37,7 @@ class FolderSelectWidget(QWidget):
     def __init__(self, parent=None, widget_titie="选择", default_value = {}):
         super().__init__(parent)
         self.widget_title = widget_titie
-        self.folder_path = default_value['value']
+        self.folder_path = os.path.expanduser(default_value['value'])
         layout = QHBoxLayout()
         self.button = QPushButton(widget_titie)
         self.linetxt = QLineEdit(default_value['value'])
