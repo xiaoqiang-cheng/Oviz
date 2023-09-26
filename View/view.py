@@ -211,7 +211,7 @@ class View(QObject):
 
     def grab_form(self, frame_name, ext):
         self.record_screen_save_dir = \
-            os.path.join(self.control_box_layout_dict['record_screen_setting']['button_select_record_save'].folder_path, self.record_image_start_time)
+            os.path.join(self.global_control_box_layout_dict['record_screen_setting']['button_select_record_save'].folder_path, self.record_image_start_time)
         if not os.path.exists(self.record_screen_save_dir ):
             os.makedirs(self.record_screen_save_dir)
         image_name = frame_name + "_" + str(time.time()) + ext
@@ -222,7 +222,7 @@ class View(QObject):
     def export_grab_video(self):
         import matplotlib.pyplot as plt
 
-        video_name = os.path.join(self.control_box_layout_dict['record_screen_setting']['button_select_record_save'].folder_path,
+        video_name = os.path.join(self.global_control_box_layout_dict['record_screen_setting']['button_select_record_save'].folder_path,
                 self.record_image_start_time + ".mp4")
 
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -246,15 +246,16 @@ class View(QObject):
         out.release()
         self.record_screen_image_list = []
         self.record_image_start_time = get_wall_time_str()
-        os.system("xdg-open %s"%self.control_box_layout_dict['record_screen_setting']['button_select_record_save'].folder_path)
+        os.system("xdg-open %s"%self.global_control_box_layout_dict['record_screen_setting']['button_select_record_save'].folder_path)
 
     def revet_layout_config(self):
         for module, value in self.control_box_layout_dict.items():
-            for wk, wv in value.items():
-                try:
-                    wv.revert()
-                except:
-                    pass
+            for tk, tw in value.items():
+                for wk, wv in tw.items():
+                    try:
+                        wv.revert()
+                    except:
+                        pass
 
         self.image_flag = self.layout_config["image_flag"]
         self.log_flag = self.layout_config["log_flag"]

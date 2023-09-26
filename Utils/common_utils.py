@@ -143,7 +143,7 @@ def choose_folder(parent, title, initial_dir='/'):
     folder_dialog.setOptions(QFileDialog.ReadOnly)
     folder_dialog.setFileMode(QFileDialog.Directory)
     folder_dialog.setViewMode(QFileDialog.List)
-    folder_dialog.setOption(QFileDialog.ShowDirsOnly, True)
+    folder_dialog.setOption(QFileDialog.ShowDirsOnly, False)
     folder_dialog.setDirectory(initial_dir)
 
     if folder_dialog.exec_():

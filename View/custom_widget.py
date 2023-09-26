@@ -67,7 +67,7 @@ class FolderSelectWidget(QWidget):
         self.select_topic_path()
 
     def select_folder(self):
-        self.folder_path = choose_folder(self, self.widget_title, self.folder_path)
+        self.folder_path = choose_folder(self.parentWidget(), self.widget_title, self.folder_path)
         if not self.folder_path:
             return
         self.linetxt.setText(self.folder_path)
