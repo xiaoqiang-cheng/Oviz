@@ -1,10 +1,9 @@
-numpy==1.24.2
-opencv_python==4.7.0.72
-PySide6==5.15.2.1
+matplotlib==3.5.3
+numpy==1.21.6
+opencv_python_headless==4.8.0.76
+PySide2==5.15.2.1
+PySide2==5.15.2.1
 python_lzf==0.2.4
-PyYAML==6.0
 QDarkStyle==3.1
-qt_material==2.14
-scipy==1.10.1
-trimesh==3.20.1
-vispy==0.12.1
+scipy==1.7.3
+vispy==0.13.0

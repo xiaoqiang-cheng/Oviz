@@ -1,15 +1,9 @@
 import numpy as np
 import math
-import yaml
-try:
-    from yaml import CLoader as Loader
-except:
-    from yaml import Loader as Loader
 
 import vispy.scene
 import vispy.app
 
-import trimesh
 from vispy import scene
 from vispy.scene import visuals
 from vispy.color import Color
@@ -22,7 +16,6 @@ from Utils.common_utils import *
 from vispy.io import imread, load_data_file, read_mesh
 from vispy.scene.visuals import Mesh
 from vispy.visuals.filters import TextureFilter
-from collections import Iterable
 
 class Canvas(scene.SceneCanvas):
     """Class that creates and handles a visualizer for a pointcloud"""
