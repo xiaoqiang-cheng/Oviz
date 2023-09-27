@@ -54,21 +54,25 @@ class Controller():
         self.view.global_control_box_layout_dict['record_screen_setting']['checkbox_mouse_record_screen'].stateChanged.connect(self.change_mouse_record_mode)
         self.view.global_control_box_layout_dict['record_screen_setting']['button_export_record_video'].clicked.connect(self.export_grab_video)
 
+    def sub_element_control_box_connect(self, key_str):
+        value = self.view.control_box_layout_dict[key_str]
+        value['point_setting']['button_select_pointcloud'].SelectDone.connect(self.select_pointcloud)
+        value['point_setting']['linetxt_point_dim'].textChanged.connect(self.update_pointsetting_dims)
+        value['point_setting']['linetxt_point_type'].textChanged.connect(self.update_pointsetting_dims)
+        value['point_setting']['linetxt_xyz_dim'].textChanged.connect(self.update_pointsetting_dims)
+        value['point_setting']['linetxt_wlh_dim'].textChanged.connect(self.update_pointsetting_dims)
+        value['point_setting']['linetxt_color_dim'].textChanged.connect(self.update_pointsetting_dims)
+        value['point_setting']['show_voxel_mode'].stateChanged.connect(self.change_voxel_mode)
+        value['bbox3d_setting']['button_select_bbox3d'].SelectDone.connect(self.select_bbox3d)
+        value['bbox3d_setting']['bbox3d_txt_xyzwhlt_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+        value['bbox3d_setting']['bbox3d_txt_color_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+        value['bbox3d_setting']['bbox3d_txt_format_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+        value['bbox3d_setting']['bbox3d_txt_text_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+        value['bbox3d_setting']['bbox3d_txt_arrow_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+
     def element_control_box_connect(self):
-        for key, value in self.view.control_box_layout_dict.items():
-            value['point_setting']['button_select_pointcloud'].SelectDone.connect(self.select_pointcloud)
-            value['point_setting']['linetxt_point_dim'].textChanged.connect(self.update_pointsetting_dims)
-            value['point_setting']['linetxt_point_type'].textChanged.connect(self.update_pointsetting_dims)
-            value['point_setting']['linetxt_xyz_dim'].textChanged.connect(self.update_pointsetting_dims)
-            value['point_setting']['linetxt_wlh_dim'].textChanged.connect(self.update_pointsetting_dims)
-            value['point_setting']['linetxt_color_dim'].textChanged.connect(self.update_pointsetting_dims)
-            value['point_setting']['show_voxel_mode'].stateChanged.connect(self.change_voxel_mode)
-            value['bbox3d_setting']['button_select_bbox3d'].SelectDone.connect(self.select_bbox3d)
-            value['bbox3d_setting']['bbox3d_txt_xyzwhlt_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
-            value['bbox3d_setting']['bbox3d_txt_color_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
-            value['bbox3d_setting']['bbox3d_txt_format_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
-            value['bbox3d_setting']['bbox3d_txt_text_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
-            value['bbox3d_setting']['bbox3d_txt_arrow_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+        for key in self.view.control_box_layout_dict.keys():
+            self.sub_element_control_box_connect(key)
 
 
     def signal_connect(self):
@@ -81,6 +85,7 @@ class Controller():
         self.view.load_history_menu_triggered.connect(self.reload_database)
         self.view.operation_menu_triggered.connect(self.operation_menu_triggered)
         self.view.pointSizeChanged.connect(self.change_point_size)
+        self.view.addNewControlTab.connect(self.sub_element_control_box_connect)
 
 
     def revert_user_config(self):

@@ -41,7 +41,6 @@ sys.path.append(os.path.join(os.getcwd(), MAGIC_PIPELINE_DIR))
 sys.path.append(os.path.join(os.getcwd(), MAGIC_USER_PIPELINE_DIR))
 
 
-
 POINTCLOUD = "pointcloud"
 IMAGE = "image"
 BBOX3D = "bbox3d"
@@ -230,7 +229,7 @@ def rec_merge(d1, d2):
     return d1
 
 
-def rec_exsit_merge(d1, d2):
+def rec_exsit_merge(d1, d2, special_key = "element_control_box"):
     for key, value in d2.items():
         if (key not in d1.keys()): continue
         if isinstance(value, dict):

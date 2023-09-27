@@ -385,18 +385,24 @@ class ControlTabBoxDockWidget(QDockWidget):
         self.boxes = {}
 
         for ckey, cvalue in layout_dict.items():
-            subwidget = QWidget()
-            vlay = QVBoxLayout(subwidget)  # 在widget上使用垂直布局
-            subbox = {}
-            for key, val in cvalue.items():
-                box = CollapsibleBox(key)
-                subbox[key] = box
-                vlay.addWidget(box)
-                box.setContentLayout(val['layout'])
-            self.boxes[ckey] = subbox
-            vlay.addStretch()
-            self.tabwidget.addTab(subwidget, ckey)
+            self.add_tab_widget(ckey, cvalue)
         self.setWidget(scroll_area)  # 将QScrollArea作为QDockWidget的widget
+
+    def add_tab_widget(self, ckey, cvalue):
+        subwidget = QWidget()
+        vlay = QVBoxLayout(subwidget)  # 在widget上使用垂直布局
+        subbox = {}
+        for key, val in cvalue.items():
+            box = CollapsibleBox(key)
+            subbox[key] = box
+            vlay.addWidget(box)
+            box.setContentLayout(val['layout'])
+        self.boxes[ckey] = subbox
+        vlay.addStretch()
+        self.tabwidget.addTab(subwidget, ckey)
+
+    def remove_tab_widget(self, index):
+        self.tabwidget.removeTab(index)
 
     def unfold(self):
         for key, val in self.boxes.items():

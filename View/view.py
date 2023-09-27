@@ -19,6 +19,7 @@ rgb_color_map = {}
 
 class View(QObject):
     pointSizeChanged = Signal(int)
+    addNewControlTab = Signal(str)
     def __init__(self) -> None:
         super().__init__()
         self.ui = QUiLoader().load('Config/qviz.ui')
@@ -39,6 +40,11 @@ class View(QObject):
         self.control_box_layout_dict = {}
         self.control_box_layout_dict = self.set_control_box()
         self.dock_control_box = ControlTabBoxDockWidget(title="控制台", layout_dict=self.control_box_layout_dict)
+        self.dock_control_box.tabwidget.setTabsClosable(True)
+        self.add_control_tab_button = QPushButton(" + ")
+        self.add_control_tab_button.clicked.connect(self.add_control_box_tab)
+        self.dock_control_box.tabwidget.tabCloseRequested.connect(self.remove_control_box_tab)
+        self.dock_control_box.tabwidget.setCornerWidget(self.add_control_tab_button)
 
         self.global_control_box_layout_dict = {}
         self.global_control_box_layout_dict = self.set_global_control_box()
@@ -47,15 +53,12 @@ class View(QObject):
         self.image_dock = {}
         self.point_size = 1
 
-
         self.ui.centralwidget.setContentsMargins(0, 0, 0, 0)
         self.ui.centralwidget.layout().setContentsMargins(0,0,0,0)
         self.ui.pointcloud_vis_widget.setContentsMargins(0, 0, 0, 0)
 
         self.ui.pointcloud_vis_widget_layout.addWidget(self.canvas.native)
         self.ui.pointcloud_vis_widget_layout.setContentsMargins(0, 0, 0, 0)
-
-        # self.add_pointcloud_setting_widget()
 
         self.add_image_dock_widget(self.layout_config["image_dock_config"])
         self.ui.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
@@ -123,17 +126,8 @@ class View(QObject):
             color_id_map_list.addItem(lw)
         return color_id_map_list
 
-    # def create_element_box(self, box_dict:dict):
-    #     table_panel = QTabWidget()
-    #     for key, value in box_dict.items():
-    #         curr_widght = ControlBoxDockWidget(layout_dict=value)
-    #         table_panel.addTab(curr_widght, key)
-
-    #     return
-
     def set_control_box(self):
         ret = dict()
-
         for key, value in self.layout_config['element_control_box'].items():
             ret[key] = self.set_element_box(value)
 
@@ -151,6 +145,24 @@ class View(QObject):
 
         return ret
 
+    def add_control_box_tab(self):
+        target_index = len(self.control_box_layout_dict.keys())
+        target_key = "sub_%s"%(target_index)
+        self.layout_config['element_control_box'][target_key] = copy.deepcopy(self.layout_config['element_control_box']["template"])
+        subwidget = self.set_element_box(self.layout_config['element_control_box'][target_key])
+        self.control_box_layout_dict[target_key] = subwidget
+        self.dock_control_box.add_tab_widget(target_key, subwidget)
+        self.dock_control_box.tabwidget.setCurrentIndex(target_index)
+        self.addNewControlTab.emit(target_key)
+
+    def remove_control_box_tab(self, index):
+        if index == 0:
+            send_log_msg(ERROR, "template can not be remove")
+            return
+        key = self.dock_control_box.tabwidget.tabText(index)
+        self.layout_config['element_control_box'].pop(key)
+        self.control_box_layout_dict.pop(key)
+        self.dock_control_box.remove_tab_widget(index)
 
     def set_global_control_box(self):
         ret = dict()

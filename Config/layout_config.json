@@ -265,36 +265,6 @@
                         }
                     }
                 }
-            },
-
-            "lane3d_setting": {
-                "type": "QVBoxLayout",
-                "widget":{
-                    "button_select_bbox3d" : {
-                        "type": "FolderSelectWidget",
-                        "params":{
-                            "widget_titie" : "3D Lane",
-                            "default_value": {
-                                "value": ""
-                            }
-                        }
-                    }
-                }
-            },
-
-            "bbox2d_setting" : {
-                "type": "QVBoxLayout",
-                "widget":{
-                    "button_select_bbox2d" : {
-                        "type": "FolderSelectWidget",
-                        "params":{
-                            "widget_titie" : "2D Bbox",
-                            "default_value": {
-                                "value": ""
-                            }
-                        }
-                    }
-                }
             }
         }
     }
