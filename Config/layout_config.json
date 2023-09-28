@@ -32,6 +32,12 @@
                         "text": "显示grid"
                     }
                 },
+                "checkbox_split_mode":{
+                    "type" : "QCheckBox",
+                    "params":{
+                        "text": "拆分显示"
+                    }
+                },
                 "checkbox_online_mode":{
                     "type" : "QCheckBox",
                     "params":{

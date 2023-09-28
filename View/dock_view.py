@@ -288,9 +288,17 @@ class RangeSlideDockWidget(QDockWidget):
 
 
 class CollapsibleBox(QWidget):
+    addNewModule = Signal(str)
+    removeCurrentModule = Signal(str)
     def __init__(self, title="", parent=None):
         super(CollapsibleBox, self).__init__(parent)
+        self.menu = QMenu()
+        self.menu.addAction("增加此模组")
+        self.menu.addAction("删除此模组")
+        self.operation_menu_triggered = self.menu.triggered[QAction]
+        self.operation_menu_triggered.connect(self.operation_menu_triggered)
 
+        self.title = title
         self.toggle_button = QToolButton(
             text=title, checkable=True, checked=False
         )
@@ -301,6 +309,8 @@ class CollapsibleBox(QWidget):
         )
         self.toggle_button.setArrowType(Qt.RightArrow)
         self.toggle_button.pressed.connect(self.on_pressed)
+        self.toggle_button.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.toggle_button.customContextMenuRequested.connect(self.right_clicked)
 
         self.toggle_animation = QParallelAnimationGroup(self)
 
@@ -311,7 +321,6 @@ class CollapsibleBox(QWidget):
         self.content_area.setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Fixed
         )
-        # self.content_area.setFrameShape(QFrame.NoFrame)
 
         lay = QVBoxLayout(self)
         lay.setSpacing(0)
@@ -328,6 +337,15 @@ class CollapsibleBox(QWidget):
         self.toggle_animation.addAnimation(
             QPropertyAnimation(self.content_area, b"maximumHeight")
         )
+
+    def operation_menu_triggered(self, q):
+        if q.text() == "增加此模组":
+            self.addNewModule.emit(self.title)
+        elif q.text() == "删除此模组":
+            self.removeCurrentModule.emit(self.title)
+
+    def right_clicked(self,  pos):
+        self.menu.exec_(self.toggle_button.mapToGlobal(pos))
 
     def unfold(self):
         self.on_pressed()
@@ -383,7 +401,8 @@ class ControlTabBoxDockWidget(QDockWidget):
         self.tabwidget = QTabWidget()
         scroll_area.setWidget(self.tabwidget)
         self.boxes = {}
-
+        self.boxes_layout = {}
+        self.layout_dict = layout_dict
         for ckey, cvalue in layout_dict.items():
             self.add_tab_widget(ckey, cvalue)
         self.setWidget(scroll_area)  # 将QScrollArea作为QDockWidget的widget
@@ -394,12 +413,33 @@ class ControlTabBoxDockWidget(QDockWidget):
         subbox = {}
         for key, val in cvalue.items():
             box = CollapsibleBox(key)
+            box.addNewModule.connect(self.add_box)
+            box.removeCurrentModule.connect(self.remove_box)
             subbox[key] = box
             vlay.addWidget(box)
             box.setContentLayout(val['layout'])
-        self.boxes[ckey] = subbox
         vlay.addStretch()
+        self.boxes_layout[ckey] = vlay
+        self.boxes[ckey] = subbox
         self.tabwidget.addTab(subwidget, ckey)
+
+    def get_curr_control_box_name(self):
+        curr_index = self.tabwidget.currentIndex()
+        return self.tabwidget.tabText(curr_index)
+
+    def add_box(self, box_name):
+        tail_id = 0
+        try:
+            tail_id = int(box_name[-1])
+        except:
+            tail_id = 1
+        new_box_name = box_name + "_%d"%tail_id
+
+
+
+    def remove_box(self, box_name):
+        ckey = self.get_curr_control_box_name()
+        # self.boxes[ckey]
 
     def remove_tab_widget(self, index):
         self.tabwidget.removeTab(index)
