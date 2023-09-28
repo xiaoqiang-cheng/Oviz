@@ -5,15 +5,6 @@
     "last_slide_num" : 0,
     "status_bar_flag" : 1,
     "control_box_flag" : 1,
-    "image_dock_config": {
-        "rl": "top",
-        "sl": "top",
-        "fl": "top",
-        "fc": "top",
-        "fr": "top",
-        "sr": "top"
-        //"rr": "top"
-    },
     "image_dock_path":
     {
         "rl": "",

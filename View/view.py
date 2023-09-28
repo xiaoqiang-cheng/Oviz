@@ -63,7 +63,7 @@ class View(QObject):
         self.ui.pointcloud_vis_widget_layout.addWidget(self.canvas.native)
         self.ui.pointcloud_vis_widget_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.add_image_dock_widget(self.layout_config["image_dock_config"])
+        self.add_image_dock_widget(self.layout_config["image_dock_path"])
         self.ui.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
         self.ui.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)
         self.ui.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_box)
@@ -395,7 +395,7 @@ class View(QObject):
     def add_image_dock_widget(self, wimage:dict):
         for n, v in wimage.items():
             self.image_dock[n] = ImageDockWidget(dock_title=n)
-            self.ui.addDockWidget(dock_layout_map[v],  self.image_dock[n])
+            self.ui.addDockWidget(Qt.TopDockWidgetArea,  self.image_dock[n])
 
     def link_camera(self, canvas, group):
         key = list(self.canvas_cfg_set.keys())
