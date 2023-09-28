@@ -44,15 +44,11 @@ sys.path.append(os.path.join(os.getcwd(), MAGIC_USER_PIPELINE_DIR))
 POINTCLOUD = "pointcloud"
 IMAGE = "image"
 BBOX3D = "bbox3d"
-BBOX2D = "lane3d"
-BBOX2D = "bbox2d"
 
-INSTALL_MODE = 1
-DEPLOY_MODE = 2
-OTHER = 0
 
 ERROR = 0
 NORMAL = 1
+WARNING = 2
 
 info_color_list = [
     "#ff0000",

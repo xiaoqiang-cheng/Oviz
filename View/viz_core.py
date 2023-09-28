@@ -27,12 +27,13 @@ class Canvas(scene.SceneCanvas):
     def __init__(self, background=(1,1,1,1)):
         scene.SceneCanvas.__init__(self, keys='interactive')
         self.unfreeze()
-        self.grid = self.central_widget.add_grid(spacing=5, bgcolor=background, border_color='k')
+        self.grid = self.central_widget.add_grid(spacing=5, bgcolor=background, border_color='b')
         # Bind the escape key to a custom function
         # vispy.app.use_app().bind_key("Escape", self.on_escape)
         self.view_panel = {}
         self.vis_module = {}
         self.curr_col_image_view = 0
+        self.curr_col_3d_view = 0
 
     #     self.canvas.events.key_press.connect(on_escape)
 
@@ -59,9 +60,21 @@ class Canvas(scene.SceneCanvas):
         else:
             create_method(vis_name, parent_view)
 
+    def pop_view(self, view_name):
+        self.curr_col_3d_view -= 1
+        self.grid.remove_widget(self.view_panel[view_name])
+        self.view_panel[view_name].parent = None
+        for key in list(self.vis_module.keys())[:]:
+            if view_name in key:
+                self.vis_module[key].parent = None
+                self.vis_module.pop(key)
+        self.view_panel.pop(view_name)
 
     def add_3dview(self, view_name = "3d", camera = None):
-        self.view_panel[view_name] = self.grid.add_view(row=0, col=0)
+        self.view_panel[view_name] = self.grid.add_view(row=0,
+                                    col=self.curr_col_3d_view,
+                                    border_color='b')
+        self.curr_col_3d_view += 1
         # self.view_panel[view_name].camera = 'turntable' # arcball
         # self.view_panel[view_name].camera.fov = 30
         # print(self.view_panel[view_name].camera.__dict__)
@@ -73,15 +86,8 @@ class Canvas(scene.SceneCanvas):
         # distance: None | float = None,
         # translate_speed: float = 1.0,
         if camera is None:
-            self.view_panel[view_name].camera  = scene.TurntableCamera(
-                    elevation = 30,
-                    azimuth = 50,
-                    roll = 0,
-                    distance = None,
-                    translate_speed = 10
-                )
+            self.view_panel[view_name].camera  = scene.TurntableCamera()
         else:
-
             self.view_panel[view_name].camera  = scene.TurntableCamera(
                     **camera,
                 )
@@ -182,7 +188,7 @@ class Canvas(scene.SceneCanvas):
         mesh.transform = transforms.MatrixTransform()
 
         mesh.transform.rotate(90, (1, 0, 0))
-        mesh.transform.rotate(-90, (0, 0, 1))
+        # mesh.transform.rotate(-90, (0, 0, 1))
         mesh.transform.scale((1.5, 1.5, 1.5))
         mesh.transform.translate((0.5, 0., 1.0))
         texture_filter = TextureFilter(texture, texcoords)
@@ -190,30 +196,30 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name] = mesh
         self.view_panel[parent_view].add(self.vis_module[vis_name])
         self.vis_module[vis_name].attach(texture_filter)
-
-         # for a default initialised camera
+        # for a default initialised camera
         self.initial_light_dir = self.view_panel[parent_view].camera.transform.imap((0, 0, 1) )[:3]
+        self.set_visible(vis_name, False)
+
+    def set_pointcloud_glstate(self):
+        for key in self.view_panel.keys():
+            self.vis_module[key + "_" + "point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
 
     def on_mouse_move(self, event):
-        self.vis_module["point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
-        mesh = self.vis_module['car_model']
-        transform = self.view_panel['view3d'].camera.transform
-        dir = np.concatenate((self.initial_light_dir, [0]))
-        mesh.shading_filter.light_dir = transform.map(dir)[:3]
+        for key in self.view_panel.keys():
+            mesh = self.vis_module[key + "_" + 'car_model']
+            transform = self.view_panel[key].camera.transform
+            dir = np.concatenate((self.initial_light_dir, [0]))
+            mesh.shading_filter.light_dir = transform.map(dir)[:3]
 
     def on_mouse_wheel(self, event):
-        self.vis_module["point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
+        self.set_pointcloud_glstate()
 
     def on_mouse_press(self, event):
-        self.vis_module["point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
+        self.set_pointcloud_glstate()
 
     def set_vis_bgcolor(self, value = (0, 0, 0, 1)):
         self.grid.bgcolor = value
 
-    @property
-    def visuals(self):
-        """List of all 3D visuals on this canvas."""
-        return [v for v in self.view_panel['view3d'].children[0].children if isinstance(v, scene.visuals.VisualNode)]
 
     def draw_point_cloud(self, vis_name, point_clouds, point_color="#f3f3f3", size = 1):
         # face_color = edge_color = Color(point_color)
@@ -223,6 +229,8 @@ class Canvas(scene.SceneCanvas):
                                             face_color=point_color,
                                             size=size,
                                             symbol = 'o')
+        self.vis_module[vis_name].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
+
 
     def draw_point_voxel(self, vis_name, pos, w, l, h, face, edge):
         self.vis_module[vis_name].set_voxel_data(pos, width=w, height=l, depth=h, face_color=face)

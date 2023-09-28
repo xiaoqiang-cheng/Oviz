@@ -26,9 +26,15 @@ class Controller():
 
         self.global_setting = GlobalSetting()
         self.record_screen_setting = RecordScreenSetting()
+
+        self.magicpipe_setting = MagicPipeSetting()
+
+        self.points_setting_dict = dict()
+        self.bbox3d_setting_dict = dict()
+
         self.points_setting = PointCloudSetting()
         self.bbox3d_setting = Bbox3DSetting()
-        self.magicpipe_setting = MagicPipeSetting()
+
         self.signal_connect()
 
         self.curr_frame_index = 0
@@ -86,7 +92,11 @@ class Controller():
         self.view.operation_menu_triggered.connect(self.operation_menu_triggered)
         self.view.pointSizeChanged.connect(self.change_point_size)
         self.view.addNewControlTab.connect(self.sub_element_control_box_connect)
+        self.view.removeControlTab.connect(self.remove_sub_control_box)
 
+    def remove_sub_control_box(self, key):
+        self.model.remove_sub_database(key)
+        self.update_buffer_vis()
 
     def revert_user_config(self):
         try:
@@ -116,6 +126,7 @@ class Controller():
         self.revert_user_config()
 
     def show_car_mode(self, state):
+        print("i am here")
         flag = state > 0
         self.view.set_car_visible(flag)
 
@@ -173,24 +184,27 @@ class Controller():
         if self.view.set_color_map_list():
             self.update_buffer_vis()
 
-    def select_format(self, format, topic_path, meta_form):
+    def select_format(self, group, format, topic_path, meta_form):
         send_log_msg(NORMAL, "亲，你选择了 [%s] topic为: %s"%(format, topic_path))
         if self.system_online_mode:
             pass
         else:
-            eval("self.model.deal_%s_folder"%format)(topic_path, meta_form)
+            eval("self.model.deal_%s_folder"%format)(group, topic_path, meta_form)
             self.select_done_update_range_and_vis()
 
     def select_image(self, topic_path, meta_form):
-        self.select_format(IMAGE, topic_path, meta_form)
+        group = meta_form
+        self.select_format(group, IMAGE, topic_path, meta_form)
 
 
     def select_pointcloud(self, topic_path, meta_form):
-        self.select_format(POINTCLOUD, topic_path, meta_form)
+        curr_group = self.view.get_curr_control_box_name()
+        self.select_format(curr_group, POINTCLOUD, topic_path, meta_form)
 
 
     def select_bbox3d(self, topic_path, meta_form):
-        self.select_format(BBOX3D, topic_path, meta_form)
+        curr_group = self.view.get_curr_control_box_name()
+        self.select_format(curr_group, BBOX3D, topic_path, meta_form)
 
     def select_done_update_range_and_vis(self):
         self.view.set_data_range(self.model.data_frame_list)
@@ -199,13 +213,9 @@ class Controller():
 
     def update_pointsetting_dims(self):
         try:
-            self.points_setting.points_dim, \
-                self.points_setting.points_type, \
-                self.points_setting.xyz_dims, \
-                    self.points_setting.wlh_dims, \
-                        self.points_setting.color_dims = \
-                self.view.get_pointsetting()
-
+            curr_tab_key = self.view.get_curr_control_box_name()
+            self.points_setting_dict[curr_tab_key] = PointCloudSetting(*self.view.get_pointsetting())
+            self.points_setting = self.points_setting_dict[curr_tab_key]
             if not check_setting_dims(self.points_setting.xyz_dims, [2, 3]): return
             self.update_buffer_vis()
         except:
@@ -214,9 +224,9 @@ class Controller():
 
     def update_bbox3dsetting_dims(self):
         try:
-            self.bbox3d_setting.bbox_dims, self.bbox3d_setting.color_dims, self.bbox3d_setting.arrow_dims, \
-                    self.bbox3d_setting.text_dims, self.bbox3d_setting.text_format \
-                        = self.view.get_bbox3dsetting()
+            curr_tab_key = self.view.get_curr_control_box_name()
+            self.bbox3d_setting_dict[curr_tab_key] = Bbox3DSetting(*self.view.get_bbox3dsetting())
+            self.bbox3d_setting = self.bbox3d_setting_dict[curr_tab_key]
             if not check_setting_dims(self.bbox3d_setting.bbox_dims, 7): return
             self.update_buffer_vis()
         except:
@@ -259,11 +269,12 @@ class Controller():
         data_dict = self.model.curr_frame_data
         if self.magicpipe_setting.enable:
             data_dict = self.exec_magic_pipeline(data_dict)
-        for meta_form, data in data_dict.items():
-            topic_type = self.model.topic_path_meta[meta_form]
-            fun_name = topic_type + "_callback"
-            callback_fun = getattr(self, fun_name, None)
-            callback_fun(data, meta_form, meta_form)
+        for group, value in data_dict.items():
+            for meta_form, data in value.items():
+                topic_type = self.model.topic_path_meta[meta_form]
+                fun_name = topic_type + "_callback"
+                callback_fun = getattr(self, fun_name, None)
+                callback_fun(data, meta_form, meta_form, group)
 
     def update_system_vis(self, index):
         print(index)
@@ -291,10 +302,10 @@ class Controller():
         self.view.save_layout_config()
         sys.exit(self.app.exec_())
 
-    def image_callback(self, msg, topic, meta_form):
+    def image_callback(self, msg, topic, meta_form, group):
         self.view.set_image(msg, meta_form)
 
-    def bbox3d_callback(self, msg, topic, meta_form):
+    def bbox3d_callback(self, msg, topic, meta_form, group):
         max_dim = msg.shape[-1]
         self.view.set_bbox3d_visible(False)
         if max_dim == 0:
@@ -340,7 +351,7 @@ class Controller():
         self.view.set_bbox3d_visible(True)
         self.view.set_bbox3d(bboxes, real_color, arrow, text_info, self.bbox3d_setting.text_format)
 
-    def pointcloud_callback(self, msg, topic, meta_form):
+    def pointcloud_callback(self, msg, topic, meta_form, group):
         if len(msg.shape) == 1:
             try:
                 msg = np.frombuffer(msg.data, dtype = np.dtype(self.points_setting.points_type)).reshape(-1, self.points_setting.points_dim)
@@ -374,7 +385,7 @@ class Controller():
                 h = msg[..., self.points_setting.wlh_dims[2]]
             if isinstance(real_color, str):
                 real_color = np.array([self.view.color_str_to_rgb(real_color)] * len(points))
-            self.view.set_point_voxel(points, w, l, h, real_color)
+            self.view.set_point_voxel(points, w, l, h, real_color, group)
         else:
             self.view.set_point_cloud(points, color = real_color,
-                        size=self.view.point_size)
+                        size=self.view.point_size, group=group)

@@ -28,17 +28,25 @@ class Model():
         if index > self.offline_frame_cnt: return 0
         key = self.data_frame_list[index]
         self.curr_frame_data = {}
-        for meta_form in self.database.keys():
-            topic_type = self.topic_path_meta[meta_form]
-            if key in self.database[meta_form].keys():
-                data_path = self.database[meta_form][key]
-                if topic_type == POINTCLOUD:
-                    self.curr_frame_data[meta_form] = self.smart_read_pointcloud(data_path)
-                elif topic_type == IMAGE:
-                    self.curr_frame_data[meta_form] = self.smart_read_image(data_path)
-                elif topic_type == BBOX3D:
-                    self.curr_frame_data[meta_form] = self.smart_read_bbox3d(data_path)
+
+        for group, subdatabase  in self.database.items():
+            self.curr_frame_data[group] = {}
+            for meta_form in subdatabase.keys():
+                topic_type = self.topic_path_meta[meta_form]
+                if key in subdatabase[meta_form].keys():
+                    data_path = subdatabase[meta_form][key]
+                    if topic_type == POINTCLOUD:
+                        self.curr_frame_data[group][meta_form] = self.smart_read_pointcloud(data_path)
+                    elif topic_type == IMAGE:
+                        self.curr_frame_data[group][meta_form] = self.smart_read_image(data_path)
+                    elif topic_type == BBOX3D:
+                        self.curr_frame_data[group][meta_form] = self.smart_read_bbox3d(data_path)
         return key
+
+    def remove_sub_database(self, key_str):
+        pass
+        # self.database.pop(key_str)
+        # self.curr_frame_data.pop(key_str)
 
     def smart_read_bbox3d(self, bbox_path):
         return np.loadtxt(bbox_path, dtype=np.float32)
@@ -54,21 +62,22 @@ class Model():
         img = cv2.imread(image_path)
         return img
 
-    def deal_image_folder(self, folder_path, meta_form):
-        cnt = self.deal_folder(folder_path, meta_form, IMAGE, [".jpg", ".png", ".tiff"])
+    def deal_image_folder(self, group, folder_path, meta_form):
+        cnt = self.deal_folder(group, folder_path, meta_form, IMAGE, [".jpg", ".png", ".tiff"])
         return cnt
 
-    def deal_pointcloud_folder(self, folder_path, meta_form):
-        cnt = self.deal_folder(folder_path, meta_form, POINTCLOUD, [".pcd", ".bin"])
+    def deal_pointcloud_folder(self, group, folder_path, meta_form):
+        cnt = self.deal_folder(group, folder_path, meta_form, POINTCLOUD, [".pcd", ".bin"])
         return cnt
 
-    def deal_bbox3d_folder(self, folder_path, meta_form):
-        cnt = self.deal_folder(folder_path, meta_form, BBOX3D, [".txt"])
+    def deal_bbox3d_folder(self, group, folder_path, meta_form):
+        cnt = self.deal_folder(group, folder_path, meta_form, BBOX3D, [".txt"])
         return cnt
 
+    def deal_folder(self, group, folder_path, meta_form, TOPIC_META, allowed_extensions):
+        database = {}
+        database[meta_form] = {}
 
-    def deal_folder(self, folder_path, meta_form, TOPIC_META, allowed_extensions):
-        self.database[meta_form] = {}
         self.topic_path_meta[meta_form] = TOPIC_META
 
         datanames = os.listdir(folder_path)
@@ -76,12 +85,15 @@ class Model():
         for f in datanames:
             key, ext = os.path.splitext(f)
             if ext in allowed_extensions:
-                self.database[meta_form][key] = os.path.join(folder_path, f)
+                database[meta_form][key] = os.path.join(folder_path, f)
 
-        cnt = len(self.database[meta_form].keys())
+        cnt = len(database[meta_form].keys())
         if cnt > 0:
-            self.data_frame_list = sorted(self.database[meta_form].keys())
+            self.data_frame_list = sorted(database[meta_form].keys())
             self.offline_frame_cnt = cnt
             send_log_msg(NORMAL, f"共发现了{'、'.join(allowed_extensions)}格式的文件 {cnt} 帧")
-
+            if group in self.database.keys():
+                self.database[group].update(database)
+            else:
+                self.database[group] = database
         return cnt

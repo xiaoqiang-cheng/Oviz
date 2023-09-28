@@ -31,6 +31,10 @@ class JSONWidgetEditor(QTextEdit):
         formatted_json = json.dumps(json_data, indent=4)
         self.setPlainText(formatted_json)
 
+    def revert(self):
+        self.set_json_data(self.default_value[0])
+
+
 
 class FolderSelectWidget(QWidget):
     SelectDone = Signal(str, str)

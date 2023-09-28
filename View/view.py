@@ -20,6 +20,8 @@ rgb_color_map = {}
 class View(QObject):
     pointSizeChanged = Signal(int)
     addNewControlTab = Signal(str)
+    removeControlTab = Signal(str)
+
     def __init__(self) -> None:
         super().__init__()
         self.ui = QUiLoader().load('Config/qviz.ui')
@@ -27,14 +29,15 @@ class View(QObject):
         self.color_map = self.get_user_config("color_map.json")
         self.layout_config = self.get_user_config("layout_config.json")
 
+        self.canvas_cfg_set = {}
         self.canvas = Canvas(self.color_map["-2"])
-        self.struct_canvas_init(self.canvas_cfg)
+
+
         self.ui.setDockNestingEnabled(True)
 
         self.spliter_dict = {}
         self.dock_log_info = LogDockWidget()
         self.dock_range_slide = RangeSlideDockWidget()
-
 
         # need add some layout
         self.control_box_layout_dict = {}
@@ -74,9 +77,6 @@ class View(QObject):
         self.ui.statusbar.addWidget(self.email_info, 2)
         self.ui.statusbar.addWidget(self.version_label)
 
-        self.ui.installEventFilter(self)  # 将事件过滤器安装到UI对象上
-
-        self.set_car_visible(False)
 
         self.ui.action_show_slide.triggered.connect(self.show_range_slide)
         self.ui.action_show_log.triggered.connect(self.show_dock_log)
@@ -106,6 +106,8 @@ class View(QObject):
         self.record_screen_image_list = []
         self.record_image_start_time = None
         self.record_screen_save_dir = None
+        self.ui.installEventFilter(self)  # 将事件过滤器安装到UI对象上
+
 
 
     def create_color_map_widget(self):
@@ -129,13 +131,13 @@ class View(QObject):
     def set_control_box(self):
         ret = dict()
         for key, value in self.layout_config['element_control_box'].items():
-            ret[key] = self.set_element_box(value)
-
+            ret[key] = self.set_element_box(value, key)
         return ret
 
-    def set_element_box(self, element_dict):
+    def set_element_box(self, element_dict, group="template"):
         ret = dict()
-
+        self.canvas_cfg_set[group] = self.canvas_cfg['view3d']
+        self.struct_single_canvas(self.canvas, self.canvas_cfg['view3d'], group)
         for key, value in element_dict.items():
             ret[key] = {}
             ret[key]["layout"] = eval(value['type'])()
@@ -149,7 +151,7 @@ class View(QObject):
         target_index = len(self.control_box_layout_dict.keys())
         target_key = "sub_%s"%(target_index)
         self.layout_config['element_control_box'][target_key] = copy.deepcopy(self.layout_config['element_control_box']["template"])
-        subwidget = self.set_element_box(self.layout_config['element_control_box'][target_key])
+        subwidget = self.set_element_box(self.layout_config['element_control_box'][target_key], target_key)
         self.control_box_layout_dict[target_key] = subwidget
         self.dock_control_box.add_tab_widget(target_key, subwidget)
         self.dock_control_box.tabwidget.setCurrentIndex(target_index)
@@ -163,6 +165,9 @@ class View(QObject):
         self.layout_config['element_control_box'].pop(key)
         self.control_box_layout_dict.pop(key)
         self.dock_control_box.remove_tab_widget(index)
+        self.canvas_cfg_set.pop(key)
+        self.canvas.pop_view(key)
+        self.removeControlTab.emit(key)
 
     def set_global_control_box(self):
         ret = dict()
@@ -207,7 +212,7 @@ class View(QObject):
 
         for key in self.canvas_cfg.keys():
             if "camera" in self.canvas_cfg[key].keys():
-                self.canvas_cfg[key]['camera'].update(self.canvas.get_canvas_camera(key))
+                self.canvas_cfg[key]['camera'].update(self.canvas.get_canvas_camera("template"))
 
 
         for key in self.layout_config['image_dock_path'].keys():
@@ -268,6 +273,13 @@ class View(QObject):
                         wv.revert()
                     except:
                         pass
+
+        for tk, tw in self.global_control_box_layout_dict.items():
+            for wk, wv in tw.items():
+                try:
+                    wv.revert()
+                except:
+                    pass
 
         self.image_flag = self.layout_config["image_flag"]
         self.log_flag = self.layout_config["log_flag"]
@@ -385,15 +397,24 @@ class View(QObject):
             self.image_dock[n] = ImageDockWidget(dock_title=n)
             self.ui.addDockWidget(dock_layout_map[v],  self.image_dock[n])
 
+    def link_camera(self, canvas, group):
+        key = list(self.canvas_cfg_set.keys())
+        if len(key) >= 2:
+            canvas.view_panel[group].camera.link(
+                    canvas.view_panel['template'].camera)
 
-    def struct_canvas_init(self, cfg_dict:dict):
+    def struct_canvas_init(self, canvas, cfg_dict:dict):
         for key, results in cfg_dict.items():
-            if "camera" in results.keys():
-                self.canvas.create_view(results["type"], key, results['camera'])
-            else:
-                self.canvas.create_view(results["type"], key)
-            for vis_key, vis_res in results["vis"].items():
-                self.canvas.creat_vis(vis_res['type'], vis_key, key)
+            self.struct_single_canvas(canvas, results, key)
+
+    def struct_single_canvas(self, canvas, results, group):
+        if "camera" in results.keys() and group == "template":
+            canvas.create_view(results["type"], group, results['camera'])
+        else:
+            canvas.create_view(results["type"], group)
+        for vis_key, vis_res in results["vis"].items():
+            canvas.creat_vis(vis_res['type'], group + "_" + vis_key, group)
+        self.link_camera(canvas, group)
 
     def set_qspilter(self, spliter_name,
                         spliter_dir,
@@ -521,54 +542,55 @@ class View(QObject):
     def show(self):
         self.ui.show()
 
-    def set_voxel_mode(self, mode):
-        self.canvas.set_visible("point_voxel", mode)
-        self.canvas.set_visible("voxel_line", mode)
-        self.canvas.set_visible("point_cloud", not mode)
+    def set_voxel_mode(self, mode, group = "template"):
+        self.canvas.set_visible(group + "_" +"point_voxel", mode)
+        self.canvas.set_visible(group + "_" +"voxel_line", mode)
+        self.canvas.set_visible(group + "_" +"point_cloud", not mode)
 
     def set_car_visible(self, mode):
-        self.canvas.set_visible("car_model", mode)
-        if mode:
-            self.set_car_model_pos()
+        for group in self.canvas_cfg_set.keys():
+            self.canvas.set_visible(group + "_" + "car_model", mode)
+            if mode:
+                self.set_car_model_pos(group = group)
 
     def set_car_model_pos(self, x = 0, y = 0, z = 0,
-                    r = -90,s = 1):
-        mesh = self.canvas.vis_module['car_model']
+                    r = 90, s = 1, group="template"):
+        mesh = self.canvas.vis_module[group + "_" +'car_model']
         mesh.transform.rotate(r, (0, 0, 1))
-        mesh.transform.scale((s, s, s))
+        # mesh.transform.scale((s, s, s))
         # mesh.transform.translate((x, y, z))
 
     def set_reference_line_visible(self, mode):
-        if mode:
-            self.set_reference_line()
-        self.canvas.set_visible("reference_line", mode)
+        for group in self.canvas_cfg_set.keys():
+            self.set_reference_line(group)
+            self.canvas.set_visible(group + "_" + "reference_line", mode)
 
-    def set_bbox3d_visible(self, mode):
-        self.canvas.set_visible("bbox3d_line", mode)
+    def set_bbox3d_visible(self, mode, group="template"):
+        self.canvas.set_visible(group + "_" + "bbox3d_line", mode)
 
-    def set_point_cloud(self, points, color = "#00ff00", size = 1):
+    def set_point_cloud(self, points, color = "#00ff00", size = 1, group = "template"):
         # self.canvas.clear_voxel("point_voxel", "view3d")
-        self.canvas.draw_point_cloud("point_cloud", points, color, size)
+        self.canvas.draw_point_cloud(group + "_" + "point_cloud", points, color, size)
 
-    def set_point_voxel(self, points, w, l, h, face):
-        self.canvas.draw_point_voxel("point_voxel", points, w, l, h, face, face)
-        self.canvas.draw_voxel_line("voxel_line", points, w, l, h)
+    def set_point_voxel(self, points, w, l, h, face, group="template"):
+        self.canvas.draw_point_voxel(group + "_" + "point_voxel", points, w, l, h, face, face)
+        self.canvas.draw_voxel_line(group + "_" + "voxel_line", points, w, l, h)
 
     def set_image(self, img, meta_form):
         self.image_dock[meta_form].set_image(img)
 
-    def set_bbox3d(self, bboxes3d, color, arrow, text_info, show_format):
-        self.canvas.draw_box3d_line("bbox3d_line", bboxes3d, color)
+    def set_bbox3d(self, bboxes3d, color, arrow, text_info, show_format, group="template"):
+        self.canvas.draw_box3d_line(group + "_" + "bbox3d_line", bboxes3d, color)
         # show arrow
         if len(arrow) !=  0:
-            self.canvas.set_visible("obj_arrow", True)
+            self.canvas.set_visible(group + "_" + "obj_arrow", True)
             self.set_bbox3d_arrow(bboxes3d, arrow, color)
         else:
-            self.canvas.set_visible("obj_arrow", False)
+            self.canvas.set_visible(group + "_" + "obj_arrow", False)
 
         # show text
         if len(text_info) != 0:
-            self.canvas.set_visible("text", True)
+            self.canvas.set_visible(group + "_" + "text", True)
             text_pos = bboxes3d[:, 0:3]
             text_pos[:, -1] += 2.0
             text = []
@@ -576,16 +598,16 @@ class View(QObject):
                 text.append(show_format%tuple(txt))
             self.set_bbox3d_text(text_pos, text, (0.5, 0.5, 0.5, 1))
         else:
-            self.canvas.set_visible("text", False)
+            self.canvas.set_visible(group + "_" + "text", False)
 
-    def set_bbox3d_text(self, pos, txt, color):
-        self.canvas.draw_text("text", txt, pos, color)
+    def set_bbox3d_text(self, pos, txt, color, group="template"):
+        self.canvas.draw_text(group + "_" + "text", txt, pos, color)
 
-    def set_bbox3d_arrow(self, bboxes, vel_list, color):
-        self.canvas.draw_bbox3d_arrow("obj_arrow", bboxes, vel_list, color)
+    def set_bbox3d_arrow(self, bboxes, vel_list, color, group="template"):
+        self.canvas.draw_bbox3d_arrow(group + "_" + "obj_arrow", bboxes, vel_list, color)
 
-    def set_reference_line(self):
-        self.canvas.draw_reference_line("reference_line")
+    def set_reference_line(self, group="template"):
+        self.canvas.draw_reference_line(group + "_" + "reference_line")
 
     def set_canvas_bgcolor(self):
         self.canvas.set_vis_bgcolor(value=self.color_map["-2"])
