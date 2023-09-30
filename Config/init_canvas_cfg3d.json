@@ -6,8 +6,7 @@
             "elevation": 34.5,
             "azimuth" : -61.5,
             "roll" : 0.0,
-            "distance":60,
-            "translate_speed": 10
+            "translate_speed": 2
         },
         "vis": {
             "point_cloud": {

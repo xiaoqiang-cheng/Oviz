@@ -338,15 +338,15 @@ class Controller():
 
 
         if len(self.bbox3d_setting.color_dims) <= 0 or min(self.bbox3d_setting.color_dims) < 0 or max(self.bbox3d_setting.color_dims) >= max_dim:
-            send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.color_dims), max_dim))
+            # send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.color_dims), max_dim))
             color_id_list = -1
         else:
             color_id_list = msg[..., self.bbox3d_setting.color_dims]
 
         real_color, state = self.view.color_id_to_color_list(color_id_list)
 
-        if not state:
-            send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
+        # if not state:
+        #     send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
 
         self.view.set_bbox3d_visible(True)
         self.view.set_bbox3d(bboxes, real_color, arrow, text_info, self.bbox3d_setting.text_format)
@@ -364,15 +364,15 @@ class Controller():
         points = msg[...,self.points_setting.xyz_dims]
 
         if len(self.points_setting.color_dims) <= 0 or min(self.points_setting.color_dims) < 0 or max(self.points_setting.color_dims) >= max_dim:
-            send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.points_setting.color_dims), max_dim))
+            # send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.points_setting.color_dims), max_dim))
             color_id_list = -1
         else:
             color_id_list = msg[..., self.points_setting.color_dims]
 
         real_color, state = self.view.color_id_to_color_list(color_id_list)
 
-        if not state:
-            send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
+        # if not state:
+        #     send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
 
         if self.points_setting.show_voxel:
             if len(self.points_setting.color_dims) <= 0 or min(self.points_setting.wlh_dims) < 0 or max(self.points_setting.wlh_dims) > max_dim:

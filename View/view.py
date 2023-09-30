@@ -39,6 +39,11 @@ class View(QObject):
         self.dock_log_info = LogDockWidget()
         self.dock_range_slide = RangeSlideDockWidget()
 
+
+        self.global_control_box_layout_dict = {}
+        self.global_control_box_layout_dict = self.set_global_control_box()
+        self.dock_global_box = ControlBoxDockWidget(title="全局设置", layout_dict=self.global_control_box_layout_dict)
+
         # need add some layout
         self.control_box_layout_dict = {}
         self.control_box_layout_dict = self.set_control_box()
@@ -48,10 +53,9 @@ class View(QObject):
         self.add_control_tab_button.clicked.connect(self.add_control_box_tab)
         self.dock_control_box.tabwidget.tabCloseRequested.connect(self.remove_control_box_tab)
         self.dock_control_box.tabwidget.setCornerWidget(self.add_control_tab_button)
+        # self.dock_control_box.addControlBox.connect(self.add_sub_control_box)
+        # self.dock_control_box.removeControlBox.connect(self.remove_sub_control_box)
 
-        self.global_control_box_layout_dict = {}
-        self.global_control_box_layout_dict = self.set_global_control_box()
-        self.dock_global_box = ControlBoxDockWidget(title="全局设置", layout_dict=self.global_control_box_layout_dict)
 
         self.image_dock = {}
         self.point_size = 1
@@ -168,6 +172,15 @@ class View(QObject):
         self.canvas_cfg_set.pop(key)
         self.canvas.pop_view(key)
         self.removeControlTab.emit(key)
+
+    # def add_sub_control_box(self, box_name):
+    #     curr_group = self.get_curr_control_box_name()
+    #     tail_id = 0
+    #     # self.layout_config['element_control_box'][curr_group][box_name] =
+    #     pass
+
+    # def remove_sub_control_box(self):
+    #     pass
 
     def set_global_control_box(self):
         ret = dict()
@@ -408,12 +421,15 @@ class View(QObject):
             self.struct_single_canvas(canvas, results, key)
 
     def struct_single_canvas(self, canvas, results, group):
-        if "camera" in results.keys() and group == "template":
+        if "camera" in results.keys():
             canvas.create_view(results["type"], group, results['camera'])
         else:
             canvas.create_view(results["type"], group)
         for vis_key, vis_res in results["vis"].items():
             canvas.creat_vis(vis_res['type'], group + "_" + vis_key, group)
+
+        if self.global_control_box_layout_dict['global_setting']["checkbox_unlink_3dviz"].isChecked():
+            return
         self.link_camera(canvas, group)
 
     def set_qspilter(self, spliter_name,

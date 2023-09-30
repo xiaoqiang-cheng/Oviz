@@ -98,10 +98,10 @@ class Canvas(scene.SceneCanvas):
             "elevation": self.view_panel[view_name].camera._elevation,
             "azimuth" : self.view_panel[view_name].camera._azimuth,
             "roll" : self.view_panel[view_name].camera._roll,
-            "distance": self.view_panel[view_name].camera._distance
+            # "distance": self.view_panel[view_name].camera._distance
         }
 
-    def print_3dview_camera_params(self, view_name = "view3d"):
+    def print_3dview_camera_params(self, view_name = "template"):
         print("=================3D view Camera Params:============")
         print("fov: ", self.view_panel[view_name].camera._fov)
         print("elevation: ", self.view_panel[view_name].camera._elevation)

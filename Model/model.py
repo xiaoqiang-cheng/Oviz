@@ -44,9 +44,8 @@ class Model():
         return key
 
     def remove_sub_database(self, key_str):
-        pass
-        # self.database.pop(key_str)
-        # self.curr_frame_data.pop(key_str)
+        self.database.pop(key_str)
+        self.curr_frame_data.pop(key_str)
 
     def smart_read_bbox3d(self, bbox_path):
         return np.loadtxt(bbox_path, dtype=np.float32)

@@ -32,10 +32,10 @@
                         "text": "显示grid"
                     }
                 },
-                "checkbox_split_mode":{
+                "checkbox_unlink_3dviz" : {
                     "type" : "QCheckBox",
                     "params":{
-                        "text": "拆分显示"
+                        "text": "不联动3D视角"
                     }
                 },
                 "checkbox_online_mode":{

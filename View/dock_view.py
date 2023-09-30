@@ -288,15 +288,14 @@ class RangeSlideDockWidget(QDockWidget):
 
 
 class CollapsibleBox(QWidget):
-    addNewModule = Signal(str)
-    removeCurrentModule = Signal(str)
+    # addNewModule = Signal(str)
+    # removeCurrentModule = Signal(str)
     def __init__(self, title="", parent=None):
         super(CollapsibleBox, self).__init__(parent)
-        self.menu = QMenu()
-        self.menu.addAction("增加此模组")
-        self.menu.addAction("删除此模组")
-        self.operation_menu_triggered = self.menu.triggered[QAction]
-        self.operation_menu_triggered.connect(self.operation_menu_triggered)
+        # self.menu = QMenu()
+        # self.menu.addAction("增加此模组")
+        # self.menu.addAction("删除此模组")
+        # self.menu.triggered.connect(self.operation_menu_triggered)
 
         self.title = title
         self.toggle_button = QToolButton(
@@ -318,9 +317,15 @@ class CollapsibleBox(QWidget):
             maximumHeight=0,
             minimumHeight=0
         )
-        self.content_area.setSizePolicy(
-            QSizePolicy.Expanding, QSizePolicy.Fixed
-        )
+
+        # self.content_area = QTabWidget(
+        #     maximumHeight=0,
+        #     minimumHeight=0
+        # )
+
+        # self.content_area.setSizePolicy(
+        #     QSizePolicy.Expanding, QSizePolicy.Fixed
+        # )
 
         lay = QVBoxLayout(self)
         lay.setSpacing(0)
@@ -338,11 +343,11 @@ class CollapsibleBox(QWidget):
             QPropertyAnimation(self.content_area, b"maximumHeight")
         )
 
-    def operation_menu_triggered(self, q):
-        if q.text() == "增加此模组":
-            self.addNewModule.emit(self.title)
-        elif q.text() == "删除此模组":
-            self.removeCurrentModule.emit(self.title)
+    # def operation_menu_triggered(self, q):
+    #     if q.text() == "增加此模组":
+    #         self.addNewModule.emit(self.title)
+    #     elif q.text() == "删除此模组":
+    #         self.removeCurrentModule.emit(self.title)
 
     def right_clicked(self,  pos):
         self.menu.exec_(self.toggle_button.mapToGlobal(pos))
@@ -409,37 +414,28 @@ class ControlTabBoxDockWidget(QDockWidget):
 
     def add_tab_widget(self, ckey, cvalue):
         subwidget = QWidget()
-        vlay = QVBoxLayout(subwidget)  # 在widget上使用垂直布局
-        subbox = {}
+        self.boxes_layout[ckey] = QVBoxLayout(subwidget)
+        self.boxes[ckey] = {}
         for key, val in cvalue.items():
-            box = CollapsibleBox(key)
-            box.addNewModule.connect(self.add_box)
-            box.removeCurrentModule.connect(self.remove_box)
-            subbox[key] = box
-            vlay.addWidget(box)
-            box.setContentLayout(val['layout'])
-        vlay.addStretch()
-        self.boxes_layout[ckey] = vlay
-        self.boxes[ckey] = subbox
+            self.add_single_cbox(ckey, key, val)
+        self.boxes_layout[ckey].addStretch()
         self.tabwidget.addTab(subwidget, ckey)
+
+    def add_single_cbox(self, tabkey, box_key, box_content):
+        box = CollapsibleBox(box_key)
+        self.boxes[tabkey][box_key] = box
+        self.boxes_layout[tabkey].addWidget(box)
+        box.setContentLayout(box_content['layout'])
 
     def get_curr_control_box_name(self):
         curr_index = self.tabwidget.currentIndex()
         return self.tabwidget.tabText(curr_index)
 
     def add_box(self, box_name):
-        tail_id = 0
-        try:
-            tail_id = int(box_name[-1])
-        except:
-            tail_id = 1
-        new_box_name = box_name + "_%d"%tail_id
-
-
+        self.addControlBox.emit(box_name)
 
     def remove_box(self, box_name):
-        ckey = self.get_curr_control_box_name()
-        # self.boxes[ckey]
+        self.addControlBox.emit(box_name)
 
     def remove_tab_widget(self, index):
         self.tabwidget.removeTab(index)
