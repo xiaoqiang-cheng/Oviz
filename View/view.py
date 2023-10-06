@@ -21,6 +21,8 @@ class View(QObject):
     pointSizeChanged = Signal(int)
     addNewControlTab = Signal(str)
     removeControlTab = Signal(str)
+    addSubControlTab = Signal(str, int)
+    removeSubControlTab = Signal(str, int)
 
     def __init__(self) -> None:
         super().__init__()
@@ -29,9 +31,14 @@ class View(QObject):
         self.color_map = self.get_user_config("color_map.json")
         self.layout_config = self.get_user_config("layout_config.json")
 
+        self.image_flag = False
+        self.log_flag = False
+        self.slide_flag = False
+        self.status_bar_flag = False
+        self.control_box_flag = False
+
         self.canvas_cfg_set = {}
         self.canvas = Canvas(self.color_map["-2"])
-
 
         self.ui.setDockNestingEnabled(True)
 
@@ -48,14 +55,10 @@ class View(QObject):
         self.control_box_layout_dict = {}
         self.control_box_layout_dict = self.set_control_box()
         self.dock_control_box = ControlTabBoxDockWidget(title="控制台", layout_dict=self.control_box_layout_dict)
-        self.dock_control_box.tabwidget.setTabsClosable(True)
-        self.add_control_tab_button = QPushButton(" + ")
-        self.add_control_tab_button.clicked.connect(self.add_control_box_tab)
+        self.dock_control_box.addSubControlBox.connect(self.add_sub_control_box_tab)
+        self.dock_control_box.removeSubControlBox.connect(self.remove_sub_control_box_tab)
+        self.dock_control_box.add_control_tab_button.clicked.connect(self.add_control_box_tab)
         self.dock_control_box.tabwidget.tabCloseRequested.connect(self.remove_control_box_tab)
-        self.dock_control_box.tabwidget.setCornerWidget(self.add_control_tab_button)
-        # self.dock_control_box.addControlBox.connect(self.add_sub_control_box)
-        # self.dock_control_box.removeControlBox.connect(self.remove_sub_control_box)
-
 
         self.image_dock = {}
         self.point_size = 1
@@ -138,18 +141,47 @@ class View(QObject):
             ret[key] = self.set_element_box(value, key)
         return ret
 
+    def set_sub_element_box(self, value):
+        ret = {}
+        ret["layout"] = eval(value['type'])()
+        for wk, wv in value["widget"].items():
+            ret[wk] = eval(wv['type'])(**wv['params'])
+            ret["layout"].addWidget(ret[wk])
+        return ret
+
     def set_element_box(self, element_dict, group="template"):
         ret = dict()
         self.canvas_cfg_set[group] = self.canvas_cfg['view3d']
         self.struct_single_canvas(self.canvas, self.canvas_cfg['view3d'], group)
         for key, value in element_dict.items():
-            ret[key] = {}
-            ret[key]["layout"] = eval(value['type'])()
-            for wk, wv in value["widget"].items():
-                ret[key][wk] = eval(wv['type'])(**wv['params'])
-                ret[key]["layout"].addWidget(ret[key][wk])
-
+            if isinstance(value, list):
+                ret[key] = []
+                for val in value:
+                    tmp = self.set_sub_element_box(val)
+                    ret[key].append(tmp)
+            else:
+                ret[key] = self.set_sub_element_box(value)
         return ret
+
+    def add_sub_control_box_tab(self, ele_key):
+        print("i am here", ele_key)
+        parent_key = self.get_curr_control_box_name()
+        target_index = len(self.layout_config['element_control_box'][parent_key][ele_key])
+        template = copy.deepcopy(self.layout_config['element_control_box'][parent_key][ele_key][0])
+        self.layout_config['element_control_box'][parent_key][ele_key].append(template)
+        sub_element_widget = self.set_sub_element_box(template)
+        self.control_box_layout_dict[parent_key][ele_key].append(sub_element_widget)
+        self.dock_control_box.boxes[parent_key][ele_key].add_single_box(target_index, sub_element_widget)
+        self.addSubControlTab.emit(ele_key, target_index)
+
+    def remove_sub_control_box_tab(self, ele_key, index):
+        if index == 0:
+            send_log_msg(ERROR, "template can not be remove")
+            return
+        parent_key = self.get_curr_control_box_name()
+        self.layout_config['element_control_box'][parent_key][ele_key].pop(index)
+        self.dock_control_box.boxes[parent_key][ele_key].remove_single_box(index)
+        self.removeSubControlTab.emit(ele_key, index)
 
     def add_control_box_tab(self):
         target_index = len(self.control_box_layout_dict.keys())
@@ -280,12 +312,14 @@ class View(QObject):
 
     def revet_layout_config(self):
         for module, value in self.control_box_layout_dict.items():
-            for tk, tw in value.items():
-                for wk, wv in tw.items():
-                    try:
-                        wv.revert()
-                    except:
-                        pass
+            for tk, tws in value.items():
+                for index, tw in enumerate(tws):
+                    self.dock_control_box.boxes[module][tk].tab_widget.setCurrentIndex(index)
+                    for wk, wv in tw.items():
+                        try:
+                            wv.revert()
+                        except:
+                            pass
 
         for tk, tw in self.global_control_box_layout_dict.items():
             for wk, wv in tw.items():
@@ -456,26 +490,32 @@ class View(QObject):
         curr_index = self.dock_control_box.tabwidget.currentIndex()
         return self.dock_control_box.tabwidget.tabText(curr_index)
 
-    def get_pointsetting(self):
+    def get_curr_sub_element_index(self, group, key):
+        return self.dock_control_box.boxes[group][key].tab_widget.currentIndex()
+
+    def get_curr_sub_element_count(self,  group, key):
+        return self.dock_control_box.boxes[group][key].tab_widget.count()
+
+    def get_pointsetting(self, index = 0):
         curr_widget_key = self.get_curr_control_box_name()
         curr_element_dict = self.control_box_layout_dict[curr_widget_key]
 
-        pt_dim = int(curr_element_dict['point_setting']['linetxt_point_dim'].text())
-        pt_type = curr_element_dict['point_setting']['linetxt_point_type'].text()
-        xyz_dims = list(map(int, curr_element_dict['point_setting']['linetxt_xyz_dim'].text().split(',')))
-        wlh_dims = list(map(int, curr_element_dict['point_setting']['linetxt_wlh_dim'].text().split(',')))
-        color_dims = list(map(int, curr_element_dict['point_setting']['linetxt_color_dim'].text().split(',')))
+        pt_dim = int(curr_element_dict['point_setting'][index]['linetxt_point_dim'].text())
+        pt_type = curr_element_dict['point_setting'][index]['linetxt_point_type'].text()
+        xyz_dims = list(map(int, curr_element_dict['point_setting'][index]['linetxt_xyz_dim'].text().split(',')))
+        wlh_dims = list(map(int, curr_element_dict['point_setting'][index]['linetxt_wlh_dim'].text().split(',')))
+        color_dims = list(map(int, curr_element_dict['point_setting'][index]['linetxt_color_dim'].text().split(',')))
         return pt_dim, pt_type, xyz_dims, wlh_dims, color_dims
 
-    def get_bbox3dsetting(self):
+    def get_bbox3dsetting(self, index = 0):
         curr_widget_key = self.get_curr_control_box_name()
         curr_element_dict = self.control_box_layout_dict[curr_widget_key]
 
-        size_dims = list(map(int, curr_element_dict['bbox3d_setting']['bbox3d_txt_xyzwhlt_dim'].text().split(',')))
-        color_dims = list(map(int, curr_element_dict['bbox3d_setting']['bbox3d_txt_color_dim'].text().split(',')))
-        arrow_dims = list(map(int, curr_element_dict['bbox3d_setting']['bbox3d_txt_arrow_dim'].text().split(',')))
-        text_dims = list(map(int, curr_element_dict['bbox3d_setting']['bbox3d_txt_text_dim'].text().split(',')))
-        format_dims = curr_element_dict['bbox3d_setting']['bbox3d_txt_format_dim'].text()
+        size_dims = list(map(int, curr_element_dict['bbox3d_setting'][index]['bbox3d_txt_xyzwhlt_dim'].text().split(',')))
+        color_dims = list(map(int, curr_element_dict['bbox3d_setting'][index]['bbox3d_txt_color_dim'].text().split(',')))
+        arrow_dims = list(map(int, curr_element_dict['bbox3d_setting'][index]['bbox3d_txt_arrow_dim'].text().split(',')))
+        text_dims = list(map(int, curr_element_dict['bbox3d_setting'][index]['bbox3d_txt_text_dim'].text().split(',')))
+        format_dims = curr_element_dict['bbox3d_setting'][index]['bbox3d_txt_format_dim'].text()
 
         return size_dims, color_dims, arrow_dims, text_dims, format_dims
 
@@ -610,8 +650,8 @@ class View(QObject):
             text_pos = bboxes3d[:, 0:3]
             text_pos[:, -1] += 2.0
             text = []
-            for txt in text_info:
-                text.append(show_format%tuple(txt))
+            for i, txt in enumerate(text_info):
+                text.append(show_format[i]%tuple(txt))
             self.set_bbox3d_text(text_pos, text, (0.5, 0.5, 0.5, 1))
         else:
             self.canvas.set_visible(group + "_" + "text", False)

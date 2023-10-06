@@ -127,7 +127,7 @@
     {
         "template":
         {
-            "point_setting":{
+            "point_setting":[{
                 "type": "QVBoxLayout",
                 "widget":{
                     "linetxt_point_dim":{
@@ -197,9 +197,9 @@
                         }
                     }
                 }
-            },
+            }],
 
-            "bbox3d_setting":{
+            "bbox3d_setting":[{
                 "type": "QVBoxLayout",
                 "widget":{
                     "bbox3d_txt_xyzwhlt_dim":{
@@ -262,7 +262,7 @@
                         }
                     }
                 }
-            }
+            }]
         }
     }
 }

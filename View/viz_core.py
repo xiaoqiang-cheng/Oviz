@@ -27,7 +27,7 @@ class Canvas(scene.SceneCanvas):
     def __init__(self, background=(1,1,1,1)):
         scene.SceneCanvas.__init__(self, keys='interactive')
         self.unfreeze()
-        self.grid = self.central_widget.add_grid(spacing=5, bgcolor=background, border_color='b')
+        self.grid = self.central_widget.add_grid(spacing=2, bgcolor=background, border_color='w')
         # Bind the escape key to a custom function
         # vispy.app.use_app().bind_key("Escape", self.on_escape)
         self.view_panel = {}
@@ -73,7 +73,7 @@ class Canvas(scene.SceneCanvas):
     def add_3dview(self, view_name = "3d", camera = None):
         self.view_panel[view_name] = self.grid.add_view(row=0,
                                     col=self.curr_col_3d_view,
-                                    border_color='b')
+                                    border_color=(69/255.0, 83/255.0, 100/255.0))
         self.curr_col_3d_view += 1
         # self.view_panel[view_name].camera = 'turntable' # arcball
         # self.view_panel[view_name].camera.fov = 30
