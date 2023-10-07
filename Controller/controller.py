@@ -29,10 +29,10 @@ class Controller():
 
         self.magicpipe_setting = MagicPipeSetting()
 
-        self.points_setting_dict = dict()
+        self.point_setting_dict = dict()
         self.bbox3d_setting_dict = dict()
 
-        self.points_setting = PointCloudSetting()
+        self.point_setting = PointCloudSetting()
         self.bbox3d_setting = Bbox3DSetting()
 
         self.signal_connect()
@@ -102,7 +102,10 @@ class Controller():
 
     def remove_sub_element_control_box(self, ele_key, index):
         curr_group = self.view.get_curr_control_box_name()
-        self.points_setting_dict[curr_group][ele_key].pop(index)
+        eval("self." + ele_key + "_dict")[curr_group].pop(index)
+        # need remove database and update vis
+        self.model.remove_sub_element_database(curr_group, ele_key, index)
+        self.update_buffer_vis()
 
 
     def remove_sub_control_box(self, key):
@@ -178,12 +181,12 @@ class Controller():
 
     def change_voxel_mode(self, state):
         if state > 0:
-            self.points_setting.show_voxel = True
+            self.point_setting.show_voxel = True
             send_log_msg(NORMAL, "当前是体素模式")
         else:
-            self.points_setting.show_voxel = False
+            self.point_setting.show_voxel = False
             send_log_msg(NORMAL, "当前是点云模式")
-        self.view.set_voxel_mode(self.points_setting.show_voxel)
+        self.view.set_voxel_mode(self.point_setting.show_voxel)
         self.update_buffer_vis()
 
 
@@ -208,15 +211,16 @@ class Controller():
 
 
     def select_pointcloud(self, topic_path, meta_form):
+        self.update_pointsetting_dims()
         curr_group = self.view.get_curr_control_box_name()
         index = self.view.get_curr_sub_element_index(curr_group, "point_setting")
         if index > 0:
             meta_form += str(index)
         self.select_format(curr_group, POINTCLOUD, topic_path, meta_form)
-        print("!!!!!->" , meta_form)
 
 
     def select_bbox3d(self, topic_path, meta_form):
+        self.update_bbox3dsetting_dims()
         curr_group = self.view.get_curr_control_box_name()
         index = self.view.get_curr_sub_element_index(curr_group, "bbox3d_setting")
         if index > 0:
@@ -229,28 +233,27 @@ class Controller():
             self.update_system_vis(0)
 
     def update_pointsetting_dims(self):
-        # try:
+        try:
             curr_tab_key = self.view.get_curr_control_box_name()
             curr_sub_ele_index = self.view.get_curr_sub_element_index(curr_tab_key, "point_setting")
             count = self.view.get_curr_sub_element_count(curr_tab_key, "point_setting")
-            if curr_tab_key not in self.points_setting_dict.keys():
-                self.points_setting_dict[curr_tab_key] = {}
+            if curr_tab_key not in self.point_setting_dict.keys():
+                self.point_setting_dict[curr_tab_key] = {}
             for ele_index in range(count):
-                self.points_setting_dict[curr_tab_key].update(
+                self.point_setting_dict[curr_tab_key].update(
                         {ele_index : PointCloudSetting(*self.view.get_pointsetting(index=ele_index))}
                 )
-            self.points_setting = self.points_setting_dict[curr_tab_key][curr_sub_ele_index]
-            if not check_setting_dims(self.points_setting.xyz_dims, [2, 3]): return
+            self.point_setting = self.point_setting_dict[curr_tab_key][curr_sub_ele_index]
+            if not check_setting_dims(self.point_setting.xyz_dims, [2, 3]): return
             self.update_buffer_vis()
-            print(self.points_setting_dict)
-        # except:
-        #     print(self.points_setting.__dict__)
+        except:
+            print(self.point_setting.__dict__)
 
 
     def update_bbox3dsetting_dims(self):
         try:
             curr_tab_key = self.view.get_curr_control_box_name()
-            count = self.view.get_curr_sub_element_count(curr_tab_key, "point_setting")
+            count = self.view.get_curr_sub_element_count(curr_tab_key, "bbox3d_setting")
             curr_sub_ele_index = self.view.get_curr_sub_element_index(curr_tab_key, "bbox3d_setting")
             if curr_tab_key not in self.bbox3d_setting_dict.keys():
                 self.bbox3d_setting_dict[curr_tab_key] = {}
@@ -261,7 +264,6 @@ class Controller():
             self.bbox3d_setting = self.bbox3d_setting_dict[curr_tab_key][curr_sub_ele_index]
             if not check_setting_dims(self.bbox3d_setting.bbox_dims, 7): return
             self.update_buffer_vis()
-            print(self.bbox3d_setting_dict)
         except:
             print(self.bbox3d_setting.__dict__)
 
@@ -312,7 +314,6 @@ class Controller():
                 if topic_type not in curr_frame_data.keys():
                     curr_frame_data[topic_type] = {}
                 curr_frame_data[topic_type].update({meta_form: ret})
-                print(meta_form)
 
             for topic_type, topic_data in curr_frame_data.items():
                 eval("self.update_" + topic_type + "_vis")(topic_data, group)
@@ -351,10 +352,10 @@ class Controller():
             ele_index = int(meta_form[-1])
         except:
             ele_index = 0
-        bbox3d_setting = self.bbox3d_setting_dict_setting_dict[group][ele_index]
+        bbox3d_setting = self.bbox3d_setting_dict[group][ele_index]
 
         max_dim = msg.shape[-1]
-        self.view.set_bbox3d_visible(False)
+
         if max_dim == 0:
             return
 
@@ -404,45 +405,45 @@ class Controller():
             ele_index = int(meta_form[-1])
         except:
             ele_index = 0
-        points_setting = self.points_setting_dict[group][ele_index]
+        point_setting = self.point_setting_dict[group][ele_index]
 
         if len(msg.shape) == 1:
             try:
-                msg = np.frombuffer(msg.data, dtype = np.dtype(points_setting.points_type)).reshape(-1, points_setting.points_dim)
+                msg = np.frombuffer(msg.data, dtype = np.dtype(point_setting.points_type)).reshape(-1, point_setting.points_dim)
             except:
                 return
         max_dim = msg.shape[-1]
-        if max(points_setting.xyz_dims) >= max_dim:
-            send_log_msg(ERROR, "xyz维度无效:%s,最大维度为%d"%(str(points_setting.xyz_dims), max_dim))
+        if max(point_setting.xyz_dims) >= max_dim:
+            send_log_msg(ERROR, "xyz维度无效:%s,最大维度为%d"%(str(point_setting.xyz_dims), max_dim))
             return
-        points = msg[...,points_setting.xyz_dims]
+        points = msg[...,point_setting.xyz_dims]
 
-        if len(points_setting.color_dims) <= 0 or min(points_setting.color_dims) < 0 or max(points_setting.color_dims) >= max_dim:
-            # send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.points_setting.color_dims), max_dim))
+        if len(point_setting.color_dims) <= 0 or min(point_setting.color_dims) < 0 or max(point_setting.color_dims) >= max_dim:
+            # send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.point_setting.color_dims), max_dim))
             color_id_list = -1
         else:
-            color_id_list = msg[..., points_setting.color_dims]
+            color_id_list = msg[..., point_setting.color_dims]
 
         real_color, state = self.view.color_id_to_color_list(color_id_list)
 
         # if not state:
         #     send_log_msg(ERROR, "获取颜色维度失败，使用默认颜色")
         w, l, h = np.array([]), np.array([]), np.array([])
-        if points_setting.show_voxel:
-            if len(points_setting.color_dims) <= 0 or min(points_setting.wlh_dims) < 0 or max(points_setting.wlh_dims) > max_dim:
+        if point_setting.show_voxel:
+            if len(point_setting.color_dims) <= 0 or min(point_setting.wlh_dims) < 0 or max(point_setting.wlh_dims) > max_dim:
                 w = np.ones((len(points), 1)) * 0.4
                 l = np.ones((len(points), 1)) * 0.4
                 h = np.ones((len(points), 1)) * 0.4
             else:
-                w = msg[..., points_setting.wlh_dims[0]]
-                l = msg[..., points_setting.wlh_dims[1]]
-                h = msg[..., points_setting.wlh_dims[2]]
+                w = msg[..., point_setting.wlh_dims[0]]
+                l = msg[..., point_setting.wlh_dims[1]]
+                h = msg[..., point_setting.wlh_dims[2]]
         if isinstance(real_color, str):
             real_color = np.array([self.view.color_str_to_rgb(real_color)] * len(points))
             # self.view.set_point_voxel(points, w, l, h, real_color, group)
         # else:
             # self.view.set_point_cloud(points, color = real_color, size=self.view.point_size, group=group)
-        return points, real_color, self.view.point_size, w, l, h, points_setting.show_voxel, group
+        return points, real_color, self.view.point_size, w, l, h, point_setting.show_voxel, group
 
     def update_pointcloud_vis(self, data, group):
         points = []
@@ -479,7 +480,7 @@ class Controller():
             h = np.concatenate(h)
         except:
             pass
-
+        self.view.set_bbox3d_visible(False)
         if show_voxel:
             self.view.set_point_voxel(points, w, l, h, real_color, group)
         else:
@@ -499,7 +500,15 @@ class Controller():
             text_info.append(sub_data[3])
             text_format += sub_data[4] * len(sub_data[3])
         bboxes = np.concatenate(bboxes)
-        real_color = np.concatenate(real_color)
+        if len(data.keys()) > 1:
+            tmp_color = []
+            for i, curr_color in enumerate(real_color):
+                color_mask = np.array([i] * len(curr_color)).reshape(-1, 1)
+                tmp_color.append(self.view.color_id_to_color_list(color_mask)[0])
+            real_color = np.concatenate(tmp_color)
+
+        else:
+            real_color = np.concatenate(real_color)
         arrow = np.concatenate(arrow)
         text_info = np.concatenate(text_info)
         self.view.set_bbox3d_visible(True)

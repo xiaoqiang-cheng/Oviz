@@ -25,7 +25,7 @@ class Model():
             self.data_frame_list.sort()
 
     def get_curr_frame_data(self, index):
-        if index > self.offline_frame_cnt: return 0
+        if index >= self.offline_frame_cnt: return 0
         key = self.data_frame_list[index]
         self.curr_frame_data = {}
 
@@ -46,6 +46,15 @@ class Model():
     def remove_sub_database(self, key_str):
         self.database.pop(key_str)
         self.curr_frame_data.pop(key_str)
+
+    def remove_sub_element_database(self, group, ele_key, index):
+        # very very dirty and ugly, ready to refactor it
+        if ele_key == "point_setting":
+            self.database[group].pop("Point Cloud%d"%index)
+            self.curr_frame_data[group].pop("Point Cloud%d"%index)
+        elif ele_key == "bbox3d_setting":
+            self.database[group].pop("3D Bbox%d"%index)
+            self.curr_frame_data[group].pop("3D Bbox%d"%index)
 
     def smart_read_bbox3d(self, bbox_path):
         return np.loadtxt(bbox_path, dtype=np.float32)

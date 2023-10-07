@@ -5,7 +5,7 @@ from Utils.common_utils import *
 
 
 dirname = os.path.dirname(GuiCoreLib.__file__)
-plugin_path = os.path.join(dirname, 'plugins', 'platforms')
+plugin_path = os.path.join(dirname, "Qt",  'plugins', 'platforms')
 os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 
 def main():

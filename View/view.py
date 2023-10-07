@@ -31,12 +31,6 @@ class View(QObject):
         self.color_map = self.get_user_config("color_map.json")
         self.layout_config = self.get_user_config("layout_config.json")
 
-        self.image_flag = False
-        self.log_flag = False
-        self.slide_flag = False
-        self.status_bar_flag = False
-        self.control_box_flag = False
-
         self.canvas_cfg_set = {}
         self.canvas = Canvas(self.color_map["-2"])
 
