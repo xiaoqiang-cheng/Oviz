@@ -158,7 +158,6 @@ class View(QObject):
         return ret
 
     def add_sub_control_box_tab(self, ele_key):
-        print("i am here", ele_key)
         parent_key = self.get_curr_control_box_name()
         target_index = len(self.layout_config['element_control_box'][parent_key][ele_key])
         template = copy.deepcopy(self.layout_config['element_control_box'][parent_key][ele_key][0])
@@ -499,7 +498,8 @@ class View(QObject):
         xyz_dims = list(map(int, curr_element_dict['point_setting'][index]['linetxt_xyz_dim'].text().split(',')))
         wlh_dims = list(map(int, curr_element_dict['point_setting'][index]['linetxt_wlh_dim'].text().split(',')))
         color_dims = list(map(int, curr_element_dict['point_setting'][index]['linetxt_color_dim'].text().split(',')))
-        return pt_dim, pt_type, xyz_dims, wlh_dims, color_dims
+        show_voxel = self.global_control_box_layout_dict['global_setting']['show_voxel_mode'].isChecked()
+        return pt_dim, pt_type, xyz_dims, wlh_dims, color_dims, show_voxel
 
     def get_bbox3dsetting(self, index = 0):
         curr_widget_key = self.get_curr_control_box_name()

@@ -38,6 +38,12 @@
                         "text": "不联动3D视角"
                     }
                 },
+                "show_voxel_mode" : {
+                        "type": "QCheckBox",
+                        "params":{
+                            "text": "voxel模式"
+                        }
+                },
                 "checkbox_online_mode":{
                     "type" : "QCheckBox",
                     "params":{
@@ -187,13 +193,6 @@
                             "default_value": {
                                 "value": ""
                             }
-                        }
-                    },
-
-                    "show_voxel_mode" : {
-                        "type": "QCheckBox",
-                        "params":{
-                            "text": "voxel模式"
                         }
                     }
                 }

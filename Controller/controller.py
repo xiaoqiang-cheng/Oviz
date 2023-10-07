@@ -55,6 +55,7 @@ class Controller():
 
         self.view.global_control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
         self.view.global_control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
+        self.view.global_control_box_layout_dict['global_setting']['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
 
         self.view.global_control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.global_control_box_layout_dict['record_screen_setting']['checkbox_mouse_record_screen'].stateChanged.connect(self.change_mouse_record_mode)
@@ -69,7 +70,7 @@ class Controller():
             sub_module['linetxt_xyz_dim'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_wlh_dim'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_color_dim'].textChanged.connect(self.update_pointsetting_dims)
-            sub_module['show_voxel_mode'].stateChanged.connect(self.change_voxel_mode)
+            # sub_module['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
         for sub_module in value['bbox3d_setting']:
             sub_module['button_select_bbox3d'].SelectDone.connect(self.select_bbox3d)
             sub_module['bbox3d_txt_xyzwhlt_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
@@ -109,7 +110,7 @@ class Controller():
                 self.view.control_box_layout_dict[curr_group][ele_key][0]['button_select_bbox3d'].reset()
         else:
             eval("self." + ele_key + "_dict")[curr_group].pop(index)
-            # need remove database and update vis
+        # need remove database and update vis
         self.model.remove_sub_element_database(curr_group, ele_key, index)
 
         self.update_buffer_vis()
@@ -186,15 +187,14 @@ class Controller():
     def export_grab_video(self):
         self.view.export_grab_video()
 
-    def change_voxel_mode(self, state):
-        if state > 0:
-            self.point_setting.show_voxel = True
-            send_log_msg(NORMAL, "当前是体素模式")
-        else:
-            self.point_setting.show_voxel = False
-            send_log_msg(NORMAL, "当前是点云模式")
-        self.update_buffer_vis()
-
+    # def change_voxel_mode(self, state):
+    #     if state > 0:
+    #         self.point_setting.show_voxel = True
+    #         send_log_msg(NORMAL, "当前是体素模式")
+    #     else:
+    #         self.point_setting.show_voxel = False
+    #         send_log_msg(NORMAL, "当前是点云模式")
+    #     self.update_buffer_vis()
 
     def change_point_size(self, ptsize):
         self.update_buffer_vis()
@@ -318,6 +318,7 @@ class Controller():
                 fun_name = topic_type + "_callback"
                 callback_fun = getattr(self, fun_name, None)
                 ret = callback_fun(data, meta_form, meta_form, group)
+                if ret is None: continue
                 if topic_type not in curr_frame_data.keys():
                     curr_frame_data[topic_type] = {}
                 curr_frame_data[topic_type].update({meta_form: ret})
