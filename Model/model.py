@@ -49,12 +49,14 @@ class Model():
 
     def remove_sub_element_database(self, group, ele_key, index):
         # very very dirty and ugly, ready to refactor it
+        if index == 0:
+            index = ""
         if ele_key == "point_setting":
-            self.database[group].pop("Point Cloud%d"%index)
-            self.curr_frame_data[group].pop("Point Cloud%d"%index)
+            self.database[group].pop("Point Cloud%s"%str(index))
+            self.curr_frame_data[group].pop("Point Cloud%s"%str(index))
         elif ele_key == "bbox3d_setting":
-            self.database[group].pop("3D Bbox%d"%index)
-            self.curr_frame_data[group].pop("3D Bbox%d"%index)
+            self.database[group].pop("3D Bbox%s"%str(index))
+            self.curr_frame_data[group].pop("3D Bbox%s"%str(index))
 
     def smart_read_bbox3d(self, bbox_path):
         return np.loadtxt(bbox_path, dtype=np.float32)

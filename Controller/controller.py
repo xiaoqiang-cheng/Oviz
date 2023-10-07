@@ -102,9 +102,16 @@ class Controller():
 
     def remove_sub_element_control_box(self, ele_key, index):
         curr_group = self.view.get_curr_control_box_name()
-        eval("self." + ele_key + "_dict")[curr_group].pop(index)
-        # need remove database and update vis
+        if index == 0:
+            if ele_key == "point_setting":
+                self.view.control_box_layout_dict[curr_group][ele_key][0]['button_select_pointcloud'].reset()
+            elif ele_key == "bbox3d_setting":
+                self.view.control_box_layout_dict[curr_group][ele_key][0]['button_select_bbox3d'].reset()
+        else:
+            eval("self." + ele_key + "_dict")[curr_group].pop(index)
+            # need remove database and update vis
         self.model.remove_sub_element_database(curr_group, ele_key, index)
+
         self.update_buffer_vis()
 
 
@@ -186,7 +193,6 @@ class Controller():
         else:
             self.point_setting.show_voxel = False
             send_log_msg(NORMAL, "当前是点云模式")
-        self.view.set_voxel_mode(self.point_setting.show_voxel)
         self.update_buffer_vis()
 
 
@@ -306,6 +312,7 @@ class Controller():
             data_dict = self.exec_magic_pipeline(data_dict)
         for group, value in data_dict.items():
             curr_frame_data = {}
+            self.clear_buffer_vis(group)
             for meta_form, data in value.items():
                 topic_type = self.model.topic_path_meta[meta_form]
                 fun_name = topic_type + "_callback"
@@ -445,6 +452,12 @@ class Controller():
             # self.view.set_point_cloud(points, color = real_color, size=self.view.point_size, group=group)
         return points, real_color, self.view.point_size, w, l, h, point_setting.show_voxel, group
 
+    def clear_buffer_vis(self, group):
+        self.view.set_bbox3d_visible(False, group)
+        self.view.set_point_cloud_visible(False, group)
+        self.view.set_point_voxel_visible(False, group)
+        self.view.set_voxel_line_visible(False, group)
+
     def update_pointcloud_vis(self, data, group):
         points = []
         real_color = []
@@ -480,11 +493,12 @@ class Controller():
             h = np.concatenate(h)
         except:
             pass
-        self.view.set_bbox3d_visible(False)
+
         if show_voxel:
             self.view.set_point_voxel(points, w, l, h, real_color, group)
         else:
             self.view.set_point_cloud(points, color = real_color, size=self.view.point_size, group=group)
+        self.view.set_voxel_mode(show_voxel, group)
 
 
     def update_bbox3d_vis(self, data, group):
@@ -513,3 +527,4 @@ class Controller():
         text_info = np.concatenate(text_info)
         self.view.set_bbox3d_visible(True)
         self.view.set_bbox3d(bboxes, real_color, arrow, text_info, text_format, group)
+        self.view.set_bbox3d_visible(True, group)

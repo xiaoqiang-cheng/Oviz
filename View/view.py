@@ -171,10 +171,10 @@ class View(QObject):
     def remove_sub_control_box_tab(self, ele_key, index):
         if index == 0:
             send_log_msg(ERROR, "template can not be remove")
-            return
-        parent_key = self.get_curr_control_box_name()
-        self.layout_config['element_control_box'][parent_key][ele_key].pop(index)
-        self.dock_control_box.boxes[parent_key][ele_key].remove_single_box(index)
+        else:
+            parent_key = self.get_curr_control_box_name()
+            self.layout_config['element_control_box'][parent_key][ele_key].pop(index)
+            self.dock_control_box.boxes[parent_key][ele_key].remove_single_box(index)
         self.removeSubControlTab.emit(ele_key, index)
 
     def add_control_box_tab(self):
@@ -617,6 +617,15 @@ class View(QObject):
 
     def set_bbox3d_visible(self, mode, group="template"):
         self.canvas.set_visible(group + "_" + "bbox3d_line", mode)
+
+    def set_point_cloud_visible(self, mode, group="template"):
+        self.canvas.set_visible(group + "_" + "point_cloud", mode)
+
+    def set_point_voxel_visible(self, mode, group="template"):
+        self.canvas.set_visible(group + "_" + "point_voxel", mode)
+
+    def set_voxel_line_visible(self, mode, group="template"):
+        self.canvas.set_visible(group + "_" + "voxel_line", mode)
 
     def set_point_cloud(self, points, color = "#00ff00", size = 1, group = "template"):
         # self.canvas.clear_voxel("point_voxel", "view3d")

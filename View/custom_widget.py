@@ -57,6 +57,10 @@ class FolderSelectWidget(QWidget):
     def revert(self):
         self.set_topic_path(self.default_value['value'])
 
+    def reset(self):
+        self.default_value['value'] = ""
+        self.set_topic_path(self.default_value['value'])
+
     def select_topic_path(self):
         self.folder_path = os.path.expanduser(self.linetxt.text())
         if not os.path.exists(self.folder_path):
@@ -65,9 +69,9 @@ class FolderSelectWidget(QWidget):
         self.SelectDone.emit(self.folder_path, self.widget_title)
 
     def set_topic_path(self, txt_path):
+        self.linetxt.setText(txt_path)
         if not os.path.exists(txt_path):
             return
-        self.linetxt.setText(txt_path)
         self.select_topic_path()
 
     def select_folder(self):
