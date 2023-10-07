@@ -388,7 +388,7 @@ class Controller():
             return
 
         if max(bbox3d_setting.text_dims) == -1:
-            text_info = []
+            text_info = np.array([]).reshape(-1, len(bbox3d_setting.text_dims))
         else:
             text_info = msg[..., bbox3d_setting.text_dims]
 
@@ -481,7 +481,11 @@ class Controller():
         if len(data.keys()) > 1:
             tmp_color = []
             for i, curr_color in enumerate(real_color):
-                color_mask = np.array([i] * len(curr_color)).reshape(-1, 1)
+                try:
+                    mask_id = int(list(data.keys())[i][-1])
+                except:
+                    mask_id = 0
+                color_mask = np.array([mask_id] * len(curr_color)).reshape(-1, 1)
                 tmp_color.append(self.view.color_id_to_color_list(color_mask)[0])
             real_color = np.concatenate(tmp_color)
 
@@ -512,20 +516,24 @@ class Controller():
             bboxes.append(sub_data[0])
             real_color.append(sub_data[1])
             arrow.append(sub_data[2])
-            text_info.append(sub_data[3])
-            text_format += sub_data[4] * len(sub_data[3])
+            text_info += sub_data[3].tolist()
+            text_format += [sub_data[4]] * len(sub_data[3])
         bboxes = np.concatenate(bboxes)
         if len(data.keys()) > 1:
             tmp_color = []
             for i, curr_color in enumerate(real_color):
-                color_mask = np.array([i] * len(curr_color)).reshape(-1, 1)
+                try:
+                    mask_id = int(list(data.keys())[i][-1])
+                except:
+                    mask_id = 0
+                color_mask = np.array([mask_id] * len(curr_color)).reshape(-1, 1)
                 tmp_color.append(self.view.color_id_to_color_list(color_mask)[0])
             real_color = np.concatenate(tmp_color)
 
         else:
             real_color = np.concatenate(real_color)
         arrow = np.concatenate(arrow)
-        text_info = np.concatenate(text_info)
+
         self.view.set_bbox3d_visible(True)
         self.view.set_bbox3d(bboxes, real_color, arrow, text_info, text_format, group)
         self.view.set_bbox3d_visible(True, group)
