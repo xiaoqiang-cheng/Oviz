@@ -227,11 +227,14 @@ def rec_merge(d1, d2):
 
 def rec_exsit_merge(d1, d2, special_key = "element_control_box"):
     for key, value in d2.items():
-        if (key not in d1.keys()): continue
-        if isinstance(value, dict):
+        if isinstance(value, dict) and isinstance(d1, dict):
+            if (key not in d1.keys()): continue
             d1[key] = rec_exsit_merge(d1.get(key, {}), value)
         else:
-            d1[key] = value
+            try:
+                d1[key] = value
+            except:
+                pass
     return d1
 
 def if_not_exist_create(dir_path):
