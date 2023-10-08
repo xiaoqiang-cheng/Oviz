@@ -121,10 +121,16 @@ class ImageDockWidget(QDockWidget):
     def set_image(self, image_path):
         self.image_viewer.set_image(image_path)
 
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        # 强制进行重新绘制
-        self.update()
+    # def resizeEvent(self, event):
+    #     super().resizeEvent(event)
+    #     # 强制进行重新绘制
+    #     self.update()
+
+    def toggle_hide(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
 
 class LogDockWidget(QDockWidget):
     def __init__(self, parent=None, titie = "Qlog"):
@@ -152,6 +158,12 @@ class LogDockWidget(QDockWidget):
         super().resizeEvent(event)
         # 强制进行重新绘制
         self.update()
+
+    def toggle_hide(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
 
 class RangeSlideDockWidget(QDockWidget):
     frameChanged = Signal(int)
@@ -212,6 +224,12 @@ class RangeSlideDockWidget(QDockWidget):
         self.frame.textChanged.connect(self.set_bar)
         self.range_slider.valueChanged.connect(self.change_bar)
         self.auto.stateChanged.connect(self.auto_ctrl)
+
+    def toggle_hide(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
 
     def auto_play(self):
         # if self.update_handled:
@@ -466,6 +484,12 @@ class ControlTabBoxDockWidget(QDockWidget):
         # 强制进行重新绘制
         self.update()
 
+    def toggle_hide(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
+
 
 class ControlBoxDockWidget(QDockWidget):
     def __init__(self, parent=None, title="控制台", layout_dict=dict()):
@@ -498,3 +522,9 @@ class ControlBoxDockWidget(QDockWidget):
         super().resizeEvent(event)
         # 强制进行重新绘制
         self.update()
+
+    def toggle_hide(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()

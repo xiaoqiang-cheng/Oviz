@@ -39,7 +39,6 @@ class Controller():
 
         self.curr_frame_index = 0
         self.curr_frame_key = ""
-        self.view.set_spilter_style()
 
         self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
         self.revert_user_config()
@@ -94,7 +93,6 @@ class Controller():
         self.element_control_box_connect()
 
         self.view.load_history_menu_triggered.connect(self.reload_database)
-        self.view.operation_menu_triggered.connect(self.operation_menu_triggered)
         self.view.pointSizeChanged.connect(self.change_point_size)
         self.view.addNewControlTab.connect(self.sub_element_control_box_connect)
         self.view.removeControlTab.connect(self.remove_sub_control_box)
@@ -130,16 +128,6 @@ class Controller():
             print("ERROR REVERT")
             pass
         send_log_msg(NORMAL, "加载配置结束，如果未能显示上一次数据，请检查文件路径或本地资源是否正常")
-
-    def dump_database(self, target_path):
-        serialize_data(self.view.layout_config, target_path)
-
-    def operation_menu_triggered(self, q):
-        if q.text() == "保存":
-            name, ok = self.view.create_input_dialog("提示", "请输入数据名称")
-            if ok:
-                self.view.save_last_frame_num(self.curr_frame_index)
-                self.dump_database(os.path.join(DUMP_HISTORY_DIR, name))
 
     def reload_database(self, q):
         target_pkl_path = os.path.join(DUMP_HISTORY_DIR, q.text())
@@ -186,15 +174,6 @@ class Controller():
 
     def export_grab_video(self):
         self.view.export_grab_video()
-
-    # def change_voxel_mode(self, state):
-    #     if state > 0:
-    #         self.point_setting.show_voxel = True
-    #         send_log_msg(NORMAL, "当前是体素模式")
-    #     else:
-    #         self.point_setting.show_voxel = False
-    #         send_log_msg(NORMAL, "当前是点云模式")
-    #     self.update_buffer_vis()
 
     def change_point_size(self, ptsize):
         self.update_buffer_vis()
@@ -329,6 +308,7 @@ class Controller():
     def update_system_vis(self, index):
         print(index)
         self.curr_frame_index = index
+        self.view.save_last_frame_num(self.curr_frame_index)
         self.curr_frame_key = self.model.get_curr_frame_data(index)
         self.update_buffer_vis()
         self.view.send_update_vis_flag()
@@ -338,8 +318,6 @@ class Controller():
     def run(self):
         self.view.show()
         self.app.exec_()
-        self.view.save_last_frame_num(self.curr_frame_index)
-        self.view.save_layout_config()
 
     def monitor_timer(self):
         get_msg = ret_log_msg()
@@ -348,8 +326,6 @@ class Controller():
 
     def sigint_handler(self, signum = None, frame = None):
         self.Timer.stop
-        self.view.save_last_frame_num(self.curr_frame_index)
-        self.view.save_layout_config()
         sys.exit(self.app.exec_())
 
     def image_callback(self, msg, topic, meta_form, group):

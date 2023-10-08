@@ -1,0 +1,25 @@
+{
+    "author":{
+        "type" : "QLabel",
+        "stretch" : 1,
+        "params":{
+            "text": "Author: xiaoqiang"
+        }
+    },
+
+    "email" : {
+        "type" : "QLabel",
+        "stretch" : 1,
+        "params":{
+            "text": "xiaoqiang.cheng@foxmail.com"
+        }
+    },
+
+    "version" : {
+        "type" : "QLabel",
+        "stretch" : -1,
+        "params":{
+            "text": "v1.0.2"
+        }
+    }
+}

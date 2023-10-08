@@ -8,16 +8,8 @@ import cv2
 '''
 TODO: 扩展|magic link|filter|在线录
 '''
-dock_layout_map = {
-    "top"    : Qt.TopDockWidgetArea,
-    "buttom" : Qt.BottomDockWidgetArea,
-    "left"   : Qt.LeftDockWidgetArea,
-    "right"  : Qt.RightDockWidgetArea
-}
 
-rgb_color_map = {}
-
-class View(QObject):
+class View(QMainWindow):
     pointSizeChanged = Signal(int)
     addNewControlTab = Signal(str)
     removeControlTab = Signal(str)
@@ -26,71 +18,75 @@ class View(QObject):
 
     def __init__(self) -> None:
         super().__init__()
-        self.ui = QUiLoader().load('Config/qviz.ui')
+
+        self.get_system_config()
+        self.add_central_widget()
+        self.add_dock_widget()
+        self.add_status_bar()
+        self.add_menu_bar()
+
+        self.point_size = 1
+        self.mouse_record_screen = False
+        self.last_event_type = None
+        self.record_screen_image_list = []
+        self.record_image_start_time = None
+        self.record_screen_save_dir = None
+
+        self.installEventFilter(self)  # 将事件过滤器安装到UI对象上
+
+    def get_system_config(self):
         self.canvas_cfg = self.get_user_config("init_canvas_cfg3d.json")
         self.color_map = self.get_user_config("color_map.json")
         self.layout_config = self.get_user_config("layout_config.json")
+        self.menu_bar_config = self.get_user_config("menu_bar.json")
+        self.status_bar_config = self.get_user_config("status_bar.json")
 
+
+    def add_central_widget(self):
         self.canvas_cfg_set = {}
         self.canvas = Canvas(self.color_map["-2"])
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        self.central_widget.setLayout(QHBoxLayout())
+        self.central_widget.layout().addWidget(self.canvas.native)
+        self.central_widget.layout().setContentsMargins(0, 0, 0, 0)
 
-        self.ui.setDockNestingEnabled(True)
-
-        self.spliter_dict = {}
+    def add_dock_widget(self):
+        self.image_dock = dict()
+        self.setDockNestingEnabled(True)
         self.dock_log_info = LogDockWidget()
         self.dock_range_slide = RangeSlideDockWidget()
-
-
-        self.global_control_box_layout_dict = {}
         self.global_control_box_layout_dict = self.set_global_control_box()
         self.dock_global_box = ControlBoxDockWidget(title="全局设置", layout_dict=self.global_control_box_layout_dict)
 
         # need add some layout
-        self.control_box_layout_dict = {}
         self.control_box_layout_dict = self.set_control_box()
         self.dock_control_box = ControlTabBoxDockWidget(title="控制台", layout_dict=self.control_box_layout_dict)
+
+        self.add_image_dock_widget(self.layout_config["image_dock_path"])
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_box)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_control_box)
+
+        self.dock_control_box.unfold()
+        self.dock_global_box.unfold()
+
         self.dock_control_box.addSubControlBox.connect(self.add_sub_control_box_tab)
         self.dock_control_box.removeSubControlBox.connect(self.remove_sub_control_box_tab)
         self.dock_control_box.add_control_tab_button.clicked.connect(self.add_control_box_tab)
         self.dock_control_box.tabwidget.tabCloseRequested.connect(self.remove_control_box_tab)
 
-        self.image_dock = {}
-        self.point_size = 1
+    def add_menu_bar(self):
+        self.menubar = self.menuBar()
+        for key, value in self.menu_bar_config.items():
+            _menu = self.menubar.addMenu(key)
+            for e, s in value[0].items():
+                action = _menu.addAction(e)
+                action.setShortcut(s)
+            _menu.triggered[QAction].connect(eval(value[1]))
 
-        self.ui.centralwidget.setContentsMargins(0, 0, 0, 0)
-        self.ui.centralwidget.layout().setContentsMargins(0,0,0,0)
-        self.ui.pointcloud_vis_widget.setContentsMargins(0, 0, 0, 0)
-
-        self.ui.pointcloud_vis_widget_layout.addWidget(self.canvas.native)
-        self.ui.pointcloud_vis_widget_layout.setContentsMargins(0, 0, 0, 0)
-
-        self.add_image_dock_widget(self.layout_config["image_dock_path"])
-        self.ui.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
-        self.ui.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)
-        self.ui.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_box)
-        self.ui.addDockWidget(Qt.RightDockWidgetArea, self.dock_control_box)
-
-
-        self.author_info = QLabel("Author: xiaoqiang")
-        self.email_info = QLabel("Email: xiaoqiang.cheng@foxmail.com")
-        self.version_label = QLabel("v0.0.1")
-        self.ui.statusbar.addWidget(self.author_info, 1)
-        self.ui.statusbar.addWidget(self.email_info, 2)
-        self.ui.statusbar.addWidget(self.version_label)
-
-
-        self.ui.action_show_slide.triggered.connect(self.show_range_slide)
-        self.ui.action_show_log.triggered.connect(self.show_dock_log)
-        self.ui.action_show_image.triggered.connect(self.show_dock_image)
-        self.ui.action_show_image_titlebar.triggered.connect(self.show_image_titlebar)
-        self.ui.action_show_status_bar.triggered.connect(self.show_status_bar)
-        self.ui.action_show_control_box.triggered.connect(self.show_control_box)
-
-        self.operation_menu = self.ui.menubar.addMenu("操作")
-        self.operation_menu.addAction("保存").setShortcut("Ctrl+S")
-        self.operation_menu_triggered = self.operation_menu.triggered[QAction]
-
-        self.load_history_menu = self.ui.menubar.addMenu("历史记录")
+        self.load_history_menu = self.menubar.addMenu("历史记录")
 
         if os.path.exists(DUMP_HISTORY_DIR):
             for pkl_name in os.listdir(DUMP_HISTORY_DIR):
@@ -99,17 +95,29 @@ class View(QObject):
             self.load_history_menu.addAction("[empty]")
         self.load_history_menu_triggered = self.load_history_menu.triggered[QAction]
 
-        self.dock_control_box.unfold()
-        self.dock_global_box.unfold()
-        self.mouse_record_screen = False
-        self.last_event_type = None
+    def add_status_bar(self):
+        self.statusbar = self.statusBar()
+        for key, value in self.status_bar_config.items():
+            tmp_widget = eval(value['type'])(**value['params'])
+            self.statusbar.addWidget(tmp_widget, value['stretch'])
 
-        self.record_screen_image_list = []
-        self.record_image_start_time = None
-        self.record_screen_save_dir = None
-        self.ui.installEventFilter(self)  # 将事件过滤器安装到UI对象上
+    def menu_bar_trigger_view(self, q):
+        trigger_map = {
+            "显示图片"      : self.show_dock_image,
+            "显示日志"      : self.dock_log_info.toggle_hide,
+            "显示进度条"     : self.dock_range_slide.toggle_hide,
+            "显示元素控制台" : self.dock_control_box.toggle_hide,
+            "显示全局控制台" : self.dock_global_box.toggle_hide,
+            "显示图片标题栏" : self.show_dock_image_title,
+            "显示状态栏"    : self.show_status_bar
+        }
+        trigger_map[q.text()]()
 
-
+    def menu_bar_trigger_operation(self, q):
+        if q.text() == "保存":
+            name, ok = self.create_input_dialog("提示", "请输入数据名称")
+            if ok:
+                serialize_data(self.layout_config, os.path.join(DUMP_HISTORY_DIR, name))
 
     def create_color_map_widget(self):
         color_id_map_list = QListWidget()
@@ -198,14 +206,6 @@ class View(QObject):
         self.canvas.pop_view(key)
         self.removeControlTab.emit(key)
 
-    # def add_sub_control_box(self, box_name):
-    #     curr_group = self.get_curr_control_box_name()
-    #     tail_id = 0
-    #     # self.layout_config['element_control_box'][curr_group][box_name] =
-    #     pass
-
-    # def remove_sub_control_box(self):
-    #     pass
 
     def set_global_control_box(self):
         ret = dict()
@@ -218,15 +218,6 @@ class View(QObject):
                 ret[key]["layout"].addWidget(ret[key][wk])
 
         return ret
-
-    def set_spilter_style(self):
-        qss = '''
-            QMainWindow::separator {
-                width: 1px; /* 设置分隔条宽度 */
-                height: 1px; /* 设置分隔条高度 */
-            }
-        '''
-        self.ui.setStyleSheet(qss)
 
     def get_user_config(self, config_name):
         default_config_file = os.path.join("Config", config_name)
@@ -242,11 +233,6 @@ class View(QObject):
         self.layout_config["last_slide_num"] = num
 
     def save_layout_config(self):
-        self.layout_config["image_flag"] = not self.image_flag
-        self.layout_config["log_flag"]   = not self.log_flag
-        self.layout_config["slide_flag"] = not self.slide_flag
-        self.layout_config["status_bar_flag"] = not self.status_bar_flag
-        self.layout_config["control_box_flag"] = not self.control_box_flag
 
         for key in self.canvas_cfg.keys():
             if "camera" in self.canvas_cfg[key].keys():
@@ -271,7 +257,7 @@ class View(QObject):
             os.makedirs(self.record_screen_save_dir)
         image_name = frame_name + "_" + str(time.time()) + ext
         output_path = os.path.join(self.record_screen_save_dir, image_name)
-        self.ui.grab().save(output_path, "PNG", quality=100)
+        self.grab().save(output_path, "PNG", quality=100)
         self.record_screen_image_list.append(output_path)
 
     def export_grab_video(self):
@@ -321,28 +307,20 @@ class View(QObject):
                 except:
                     pass
 
-        self.image_flag = self.layout_config["image_flag"]
-        self.log_flag = self.layout_config["log_flag"]
-        self.slide_flag = self.layout_config["slide_flag"]
-        self.status_bar_flag = self.layout_config["status_bar_flag"]
-        self.control_box_flag = self.layout_config["control_box_flag"]
-
-        self.show_range_slide()
-        self.show_dock_log()
-        self.show_dock_image()
-        self.show_status_bar()
-        self.show_control_box()
-
         for key, val in self.layout_config['image_dock_path'].items():
             self.image_dock[key].set_topic_path(val)
 
         self.dock_range_slide.set_frmae_text(self.layout_config["last_slide_num"])
         self.load_layout()
 
+    def closeEvent(self, e):
+        e.accept()
+        self.save_layout_config()
+
     def save_layout(self):
         p = '%s/layout.ini'%USER_CONFIG_DIR
         with open(p, 'wb') as f:
-            s = self.ui.saveState()
+            s = self.saveState()
             f.write(bytes(s))
             f.flush()
 
@@ -351,54 +329,28 @@ class View(QObject):
         if os.path.exists(p):
             with open(p, 'rb') as f:
                 s = f.read()
-                self.ui.restoreState(s)
+                self.restoreState(s)
 
     def create_input_dialog(self, title, info):
-        inputs_name, ok = QInputDialog.getText(self.ui, title, info, QLineEdit.Normal)
+        inputs_name, ok = QInputDialog.getText(self, title, info, QLineEdit.Normal)
         return inputs_name, ok
 
-    def show_control_box(self):
-        if self.control_box_flag:
-            self.dock_control_box.show()
-        else:
-            self.dock_control_box.hide()
-
-        self.control_box_flag = not self.control_box_flag
-
-
-    def show_range_slide(self):
-        if self.slide_flag:
-            self.dock_range_slide.show()
-        else:
-            self.dock_range_slide.hide()
-
-        self.slide_flag = not self.slide_flag
-
     def show_status_bar(self):
-        if self.status_bar_flag:
-            self.ui.statusbar.show()
+        if self.statusbar.isVisible():
+            self.statusbar.hide()
         else:
-            self.ui.statusbar.hide()
-        self.status_bar_flag = not self.status_bar_flag
-
-    def show_image_titlebar(self):
-        for k, v in self.image_dock.items():
-            v.set_image_title_bar()
+            self.statusbar.show()
 
     def show_dock_image(self):
         for k, v in self.image_dock.items():
-            if self.image_flag:
-                v.show()
-            else:
-                v.hide()
-        self.image_flag = not self.image_flag
+            v.toggle_hide()
+        dock_widget_num = len(self.image_dock.values())
+        self.resizeDocks(list(self.image_dock.values()), [self.width() / dock_widget_num] * dock_widget_num, Qt.Horizontal)
+        self.resizeDocks(list(self.image_dock.values()), [list(self.image_dock.values())[0].height()] * dock_widget_num, Qt.Vertical)
 
-    def show_dock_log(self):
-        if self.log_flag:
-            self.dock_log_info.show()
-        else:
-            self.dock_log_info.hide()
-        self.log_flag = not self.log_flag
+    def show_dock_image_title(self):
+        for k, v in self.image_dock.items():
+            v.set_image_title_bar()
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.ShortcutOverride:
@@ -414,10 +366,10 @@ class View(QObject):
                 self.canvas.print_3dview_camera_params()
             elif event.key() == Qt.Key_R:
                 dock_widget_num = len(self.image_dock.values())
-                print("Target Size:", [self.ui.width() / dock_widget_num] * dock_widget_num)
-                self.ui.resizeDocks(list(self.image_dock.values()), [self.ui.width() / dock_widget_num] * dock_widget_num, Qt.Horizontal)
-                self.ui.resizeDocks(list(self.image_dock.values()), [list(self.image_dock.values())[0].height()] * dock_widget_num, Qt.Vertical)
-                print("main widnows width:", self.ui.width())
+                print("Target Size:", [self.width() / dock_widget_num] * dock_widget_num)
+                self.resizeDocks(list(self.image_dock.values()), [self.width() / dock_widget_num] * dock_widget_num, Qt.Horizontal)
+                self.resizeDocks(list(self.image_dock.values()), [list(self.image_dock.values())[0].height()] * dock_widget_num, Qt.Vertical)
+                print("main widnows width:", self.width())
                 for key, value in self.image_dock.items():
                     print(key, value.width())
 
@@ -436,7 +388,7 @@ class View(QObject):
     def add_image_dock_widget(self, wimage:dict):
         for n, v in wimage.items():
             self.image_dock[n] = ImageDockWidget(dock_title=n)
-            self.ui.addDockWidget(Qt.TopDockWidgetArea,  self.image_dock[n])
+            self.addDockWidget(Qt.TopDockWidgetArea,  self.image_dock[n])
 
     def link_camera(self, canvas, group):
         key = list(self.canvas_cfg_set.keys())
@@ -459,23 +411,6 @@ class View(QObject):
         if self.global_control_box_layout_dict['global_setting']["checkbox_unlink_3dviz"].isChecked():
             return
         self.link_camera(canvas, group)
-
-    def set_qspilter(self, spliter_name,
-                        spliter_dir,
-                        widget_list,
-                        factor_list,
-                        layout_set):
-        # Qt.Horizontal or v
-        self.spliter_dict[spliter_name] = QSplitter(spliter_dir)
-        self.spliter_dict[spliter_name].setStyleSheet("QSplitter {width: 0px; height: 0px; }")
-
-        for w in widget_list:
-            self.spliter_dict[spliter_name].addWidget(w)
-
-        for i, f in enumerate(factor_list):
-            self.spliter_dict[spliter_name].setStretchFactor(i, f)
-        layout_set.addWidget(self.spliter_dict[spliter_name])
-
 
     def send_update_vis_flag(self):
         self.dock_range_slide.update_handled = True
@@ -573,7 +508,7 @@ class View(QObject):
 
     def set_color_map_list(self):
         dlg = QColorDialog()
-        dlg.setWindowFlags(self.ui.windowFlags() | Qt.WindowStaysOnTopHint)
+        dlg.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
         item = self.global_control_box_layout_dict['global_setting']['color_id_map_list'].currentItem()
         if dlg.exec_():
             cur_color = dlg.currentColor()
@@ -590,9 +525,6 @@ class View(QObject):
     def set_data_range(self, listname):
         self.dock_range_slide.set_range(listname)
 
-    def show(self):
-        self.ui.show()
-
     def set_voxel_mode(self, mode, group = "template"):
         self.canvas.set_visible(group + "_" +"point_voxel", mode)
         self.canvas.set_visible(group + "_" +"voxel_line", mode)
@@ -608,8 +540,6 @@ class View(QObject):
                     r = 90, s = 1, group="template"):
         mesh = self.canvas.vis_module[group + "_" +'car_model']
         mesh.transform.rotate(r, (0, 0, 1))
-        # mesh.transform.scale((s, s, s))
-        # mesh.transform.translate((x, y, z))
 
     def set_reference_line_visible(self, mode):
         for group in self.canvas_cfg_set.keys():
