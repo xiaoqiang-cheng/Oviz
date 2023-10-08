@@ -423,10 +423,7 @@ class Controller():
                 l = msg[..., point_setting.wlh_dims[1]]
                 h = msg[..., point_setting.wlh_dims[2]]
         if isinstance(real_color, str):
-            real_color = np.array([self.view.color_str_to_rgb(real_color)] * len(points))
-            # self.view.set_point_voxel(points, w, l, h, real_color, group)
-        # else:
-            # self.view.set_point_cloud(points, color = real_color, size=self.view.point_size, group=group)
+            real_color = np.array([color_str_to_rgb(real_color)] * len(points))
         return points, real_color, self.view.point_size, w, l, h, point_setting.show_voxel, group
 
     def clear_buffer_vis(self, group):

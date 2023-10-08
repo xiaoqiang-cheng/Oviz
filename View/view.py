@@ -19,11 +19,11 @@ class View(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
 
-        self.get_system_config()
-        self.add_central_widget()
-        self.add_dock_widget()
-        self.add_status_bar()
-        self.add_menu_bar()
+        self.load_system_config()
+        self.create_central_widget()
+        self.create_dock_widget()
+        self.create_status_bar()
+        self.create_menu_bar()
 
         self.point_size = 1
         self.mouse_record_screen = False
@@ -34,7 +34,7 @@ class View(QMainWindow):
 
         self.installEventFilter(self)  # 将事件过滤器安装到UI对象上
 
-    def get_system_config(self):
+    def load_system_config(self):
         self.canvas_cfg = self.get_user_config("init_canvas_cfg3d.json")
         self.color_map = self.get_user_config("color_map.json")
         self.layout_config = self.get_user_config("layout_config.json")
@@ -42,7 +42,7 @@ class View(QMainWindow):
         self.status_bar_config = self.get_user_config("status_bar.json")
 
 
-    def add_central_widget(self):
+    def create_central_widget(self):
         self.canvas_cfg_set = {}
         self.canvas = Canvas(self.color_map["-2"])
         self.central_widget = QWidget()
@@ -51,7 +51,7 @@ class View(QMainWindow):
         self.central_widget.layout().addWidget(self.canvas.native)
         self.central_widget.layout().setContentsMargins(0, 0, 0, 0)
 
-    def add_dock_widget(self):
+    def create_dock_widget(self):
         self.image_dock = dict()
         self.setDockNestingEnabled(True)
         self.dock_log_info = LogDockWidget()
@@ -77,7 +77,7 @@ class View(QMainWindow):
         self.dock_control_box.add_control_tab_button.clicked.connect(self.add_control_box_tab)
         self.dock_control_box.tabwidget.tabCloseRequested.connect(self.remove_control_box_tab)
 
-    def add_menu_bar(self):
+    def create_menu_bar(self):
         self.menubar = self.menuBar()
         for key, value in self.menu_bar_config.items():
             _menu = self.menubar.addMenu(key)
@@ -95,7 +95,7 @@ class View(QMainWindow):
             self.load_history_menu.addAction("[empty]")
         self.load_history_menu_triggered = self.load_history_menu.triggered[QAction]
 
-    def add_status_bar(self):
+    def create_status_bar(self):
         self.statusbar = self.statusBar()
         for key, value in self.status_bar_config.items():
             tmp_widget = eval(value['type'])(**value['params'])
@@ -233,11 +233,9 @@ class View(QMainWindow):
         self.layout_config["last_slide_num"] = num
 
     def save_layout_config(self):
-
         for key in self.canvas_cfg.keys():
             if "camera" in self.canvas_cfg[key].keys():
                 self.canvas_cfg[key]['camera'].update(self.canvas.get_canvas_camera("template"))
-
 
         for key in self.layout_config['image_dock_path'].keys():
             self.layout_config['image_dock_path'][key] = self.image_dock[key].folder_path
@@ -458,14 +456,6 @@ class View(QMainWindow):
         hex_array += np.char.zfill(np.char.upper(np.base_repr(rgb_array[:, 2], 16)), 2)
         return hex_array
 
-    def color_str_to_rgb(self, color_str, alpha = 1.0):
-        color_int = int(color_str[1:], 16)
-        r = (color_int >> 16) & 255
-        g = (color_int >> 8) & 255
-        b = color_int & 255
-        return np.array([r / 255.0, g / 255.0, b / 255.0, alpha])
-
-
     def color_id_to_color_list(self, id_list):
         try:
             if id_list.shape[-1] == 1:
@@ -473,7 +463,7 @@ class View(QMainWindow):
                 color_dim = 3
                 rgb_color_map = {}
                 for key, value in self.color_map.items():
-                    rgb_color_map[key] = self.color_str_to_rgb(value)
+                    rgb_color_map[key] = color_str_to_rgb(value)
                     color_dim = len(rgb_color_map[key])
                 ret_color = np.zeros((len(id_list), color_dim))
                 for key, value in rgb_color_map.items():
@@ -485,7 +475,7 @@ class View(QMainWindow):
                 color_dim = 3
                 rgb_color_map = {}
                 for key, value in self.color_map.items():
-                    rgb_color_map[key] = self.color_str_to_rgb(value)
+                    rgb_color_map[key] = color_str_to_rgb(value)
                     color_dim = len(rgb_color_map[key])
                 ret_color = np.zeros((len(id_list), color_dim))
                 for key, value in rgb_color_map.items():
@@ -559,7 +549,6 @@ class View(QMainWindow):
         self.canvas.set_visible(group + "_" + "voxel_line", mode)
 
     def set_point_cloud(self, points, color = "#00ff00", size = 1, group = "template"):
-        # self.canvas.clear_voxel("point_voxel", "view3d")
         self.canvas.draw_point_cloud(group + "_" + "point_cloud", points, color, size)
 
     def set_point_voxel(self, points, w, l, h, face, group="template"):

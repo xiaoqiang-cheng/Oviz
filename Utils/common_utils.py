@@ -237,6 +237,13 @@ def rec_exsit_merge(d1, d2, special_key = "element_control_box"):
                 pass
     return d1
 
+def color_str_to_rgb(color_str, alpha = 1.0):
+    color_int = int(color_str[1:], 16)
+    r = (color_int >> 16) & 255
+    g = (color_int >> 8) & 255
+    b = color_int & 255
+    return np.array([r / 255.0, g / 255.0, b / 255.0, alpha])
+
 def if_not_exist_create(dir_path):
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
