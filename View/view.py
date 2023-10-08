@@ -416,6 +416,7 @@ class View(QObject):
                 dock_widget_num = len(self.image_dock.values())
                 print("Target Size:", [self.ui.width() / dock_widget_num] * dock_widget_num)
                 self.ui.resizeDocks(list(self.image_dock.values()), [self.ui.width() / dock_widget_num] * dock_widget_num, Qt.Horizontal)
+                self.ui.resizeDocks(list(self.image_dock.values()), [list(self.image_dock.values())[0].height()] * dock_widget_num, Qt.Vertical)
                 print("main widnows width:", self.ui.width())
                 for key, value in self.image_dock.items():
                     print(key, value.width())
