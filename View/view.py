@@ -18,6 +18,9 @@ class View(QMainWindow):
 
     def __init__(self) -> None:
         super().__init__()
+        self.setWindowTitle("Qviz")
+        appIcon = QIcon(os.path.join(os.getcwd(), os.path.join("Config", "xshow.ico")))
+        self.setWindowIcon(appIcon)
 
         self.load_system_config()
         self.create_central_widget()
@@ -56,26 +59,26 @@ class View(QMainWindow):
         self.setDockNestingEnabled(True)
         self.dock_log_info = LogDockWidget()
         self.dock_range_slide = RangeSlideDockWidget()
-        self.global_control_box_layout_dict = self.set_global_control_box()
-        self.dock_global_box = ControlBoxDockWidget(title="全局设置", layout_dict=self.global_control_box_layout_dict)
+        self.dock_global_control_box_layout_dict = self.set_global_control_box()
+        self.dock_global_control_box = ControlBoxDockWidget(title="全局设置", layout_dict=self.dock_global_control_box_layout_dict)
 
         # need add some layout
-        self.control_box_layout_dict = self.set_control_box()
-        self.dock_control_box = ControlTabBoxDockWidget(title="控制台", layout_dict=self.control_box_layout_dict)
+        self.dock_element_control_box_layout_dict = self.set_control_box()
+        self.dock_element_control_box = ControlTabBoxDockWidget(title="控制台", layout_dict=self.dock_element_control_box_layout_dict)
 
         self.add_image_dock_widget(self.layout_config["image_dock_path"])
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_box)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_control_box)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_control_box)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_element_control_box)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
 
-        self.dock_control_box.unfold()
-        self.dock_global_box.unfold()
+        self.dock_element_control_box.unfold()
+        self.dock_global_control_box.unfold()
 
-        self.dock_control_box.addSubControlBox.connect(self.add_sub_control_box_tab)
-        self.dock_control_box.removeSubControlBox.connect(self.remove_sub_control_box_tab)
-        self.dock_control_box.add_control_tab_button.clicked.connect(self.add_control_box_tab)
-        self.dock_control_box.tabwidget.tabCloseRequested.connect(self.remove_control_box_tab)
+        self.dock_element_control_box.addSubControlBox.connect(self.add_sub_control_box_tab)
+        self.dock_element_control_box.removeSubControlBox.connect(self.remove_sub_control_box_tab)
+        self.dock_element_control_box.add_control_tab_button.clicked.connect(self.add_control_box_tab)
+        self.dock_element_control_box.tabwidget.tabCloseRequested.connect(self.remove_control_box_tab)
 
     def create_menu_bar(self):
         self.menubar = self.menuBar()
@@ -106,8 +109,8 @@ class View(QMainWindow):
             "显示图片"      : self.show_dock_image,
             "显示日志"      : self.dock_log_info.toggle_hide,
             "显示进度条"     : self.dock_range_slide.toggle_hide,
-            "显示元素控制台" : self.dock_control_box.toggle_hide,
-            "显示全局控制台" : self.dock_global_box.toggle_hide,
+            "显示元素控制台" : self.dock_element_control_box.toggle_hide,
+            "显示全局控制台" : self.dock_global_control_box.toggle_hide,
             "显示图片标题栏" : self.show_dock_image_title,
             "显示状态栏"    : self.show_status_bar
         }
@@ -171,8 +174,8 @@ class View(QMainWindow):
         template = copy.deepcopy(self.layout_config['element_control_box'][parent_key][ele_key][0])
         self.layout_config['element_control_box'][parent_key][ele_key].append(template)
         sub_element_widget = self.set_sub_element_box(template)
-        self.control_box_layout_dict[parent_key][ele_key].append(sub_element_widget)
-        self.dock_control_box.boxes[parent_key][ele_key].add_single_box(target_index, sub_element_widget)
+        self.dock_element_control_box_layout_dict[parent_key][ele_key].append(sub_element_widget)
+        self.dock_element_control_box.boxes[parent_key][ele_key].add_single_box(target_index, sub_element_widget)
         self.addSubControlTab.emit(ele_key, target_index)
 
     def remove_sub_control_box_tab(self, ele_key, index):
@@ -181,27 +184,27 @@ class View(QMainWindow):
         else:
             parent_key = self.get_curr_control_box_name()
             self.layout_config['element_control_box'][parent_key][ele_key].pop(index)
-            self.dock_control_box.boxes[parent_key][ele_key].remove_single_box(index)
+            self.dock_element_control_box.boxes[parent_key][ele_key].remove_single_box(index)
         self.removeSubControlTab.emit(ele_key, index)
 
     def add_control_box_tab(self):
-        target_index = len(self.control_box_layout_dict.keys())
+        target_index = len(self.dock_element_control_box_layout_dict.keys())
         target_key = "sub_%s"%(target_index)
         self.layout_config['element_control_box'][target_key] = copy.deepcopy(self.layout_config['element_control_box']["template"])
         subwidget = self.set_element_box(self.layout_config['element_control_box'][target_key], target_key)
-        self.control_box_layout_dict[target_key] = subwidget
-        self.dock_control_box.add_tab_widget(target_key, subwidget)
-        self.dock_control_box.tabwidget.setCurrentIndex(target_index)
+        self.dock_element_control_box_layout_dict[target_key] = subwidget
+        self.dock_element_control_box.add_tab_widget(target_key, subwidget)
+        self.dock_element_control_box.tabwidget.setCurrentIndex(target_index)
         self.addNewControlTab.emit(target_key)
 
     def remove_control_box_tab(self, index):
         if index == 0:
             send_log_msg(ERROR, "template can not be remove")
             return
-        key = self.dock_control_box.tabwidget.tabText(index)
+        key = self.dock_element_control_box.tabwidget.tabText(index)
         self.layout_config['element_control_box'].pop(key)
-        self.control_box_layout_dict.pop(key)
-        self.dock_control_box.remove_tab_widget(index)
+        self.dock_element_control_box_layout_dict.pop(key)
+        self.dock_element_control_box.remove_tab_widget(index)
         self.canvas_cfg_set.pop(key)
         self.canvas.pop_view(key)
         self.removeControlTab.emit(key)
@@ -250,7 +253,7 @@ class View(QMainWindow):
 
     def grab_form(self, frame_name, ext):
         self.record_screen_save_dir = \
-            os.path.join(self.global_control_box_layout_dict['record_screen_setting']['button_select_record_save'].folder_path, self.record_image_start_time)
+            os.path.join(self.dock_global_control_box_layout_dict['record_screen_setting']['folder_path'].folder_path, self.record_image_start_time)
         if not os.path.exists(self.record_screen_save_dir ):
             os.makedirs(self.record_screen_save_dir)
         image_name = frame_name + "_" + str(time.time()) + ext
@@ -261,7 +264,7 @@ class View(QMainWindow):
     def export_grab_video(self):
         import matplotlib.pyplot as plt
 
-        video_name = os.path.join(self.global_control_box_layout_dict['record_screen_setting']['button_select_record_save'].folder_path,
+        video_name = os.path.join(self.dock_global_control_box_layout_dict['record_screen_setting']['folder_path'].folder_path,
                 self.record_image_start_time + ".mp4")
 
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -285,20 +288,20 @@ class View(QMainWindow):
         out.release()
         self.record_screen_image_list = []
         self.record_image_start_time = get_wall_time_str()
-        os.system("xdg-open %s"%self.global_control_box_layout_dict['record_screen_setting']['button_select_record_save'].folder_path)
+        os.system("xdg-open %s"%self.dock_global_control_box_layout_dict['record_screen_setting']['folder_path'].folder_path)
 
     def revet_layout_config(self):
-        for module, value in self.control_box_layout_dict.items():
+        for module, value in self.dock_element_control_box_layout_dict.items():
             for tk, tws in value.items():
                 for index, tw in enumerate(tws):
-                    self.dock_control_box.boxes[module][tk].tab_widget.setCurrentIndex(index)
+                    self.dock_element_control_box.boxes[module][tk].tab_widget.setCurrentIndex(index)
                     for wk, wv in tw.items():
                         try:
                             wv.revert()
                         except:
                             pass
 
-        for tk, tw in self.global_control_box_layout_dict.items():
+        for tk, tw in self.dock_global_control_box_layout_dict.items():
             for wk, wv in tw.items():
                 try:
                     wv.revert()
@@ -406,7 +409,7 @@ class View(QMainWindow):
         for vis_key, vis_res in results["vis"].items():
             canvas.creat_vis(vis_res['type'], group + "_" + vis_key, group)
 
-        if self.global_control_box_layout_dict['global_setting']["checkbox_unlink_3dviz"].isChecked():
+        if self.dock_global_control_box_layout_dict['global_setting']["checkbox_unlink_3dviz"].isChecked():
             return
         self.link_camera(canvas, group)
 
@@ -414,30 +417,30 @@ class View(QMainWindow):
         self.dock_range_slide.update_handled = True
 
     def get_curr_control_box_name(self):
-        curr_index = self.dock_control_box.tabwidget.currentIndex()
-        return self.dock_control_box.tabwidget.tabText(curr_index)
+        curr_index = self.dock_element_control_box.tabwidget.currentIndex()
+        return self.dock_element_control_box.tabwidget.tabText(curr_index)
 
     def get_curr_sub_element_index(self, group, key):
-        return self.dock_control_box.boxes[group][key].tab_widget.currentIndex()
+        return self.dock_element_control_box.boxes[group][key].tab_widget.currentIndex()
 
     def get_curr_sub_element_count(self,  group, key):
-        return self.dock_control_box.boxes[group][key].tab_widget.count()
+        return self.dock_element_control_box.boxes[group][key].tab_widget.count()
 
     def get_pointsetting(self, index = 0):
         curr_widget_key = self.get_curr_control_box_name()
-        curr_element_dict = self.control_box_layout_dict[curr_widget_key]
+        curr_element_dict = self.dock_element_control_box_layout_dict[curr_widget_key]
 
         pt_dim = int(curr_element_dict['point_setting'][index]['linetxt_point_dim'].text())
         pt_type = curr_element_dict['point_setting'][index]['linetxt_point_type'].text()
         xyz_dims = list(map(int, curr_element_dict['point_setting'][index]['linetxt_xyz_dim'].text().split(',')))
         wlh_dims = list(map(int, curr_element_dict['point_setting'][index]['linetxt_wlh_dim'].text().split(',')))
         color_dims = list(map(int, curr_element_dict['point_setting'][index]['linetxt_color_dim'].text().split(',')))
-        show_voxel = self.global_control_box_layout_dict['global_setting']['show_voxel_mode'].isChecked()
+        show_voxel = self.dock_global_control_box_layout_dict['global_setting']['show_voxel_mode'].isChecked()
         return pt_dim, pt_type, xyz_dims, wlh_dims, color_dims, show_voxel
 
     def get_bbox3dsetting(self, index = 0):
         curr_widget_key = self.get_curr_control_box_name()
-        curr_element_dict = self.control_box_layout_dict[curr_widget_key]
+        curr_element_dict = self.dock_element_control_box_layout_dict[curr_widget_key]
 
         size_dims = list(map(int, curr_element_dict['bbox3d_setting'][index]['bbox3d_txt_xyzwhlt_dim'].text().split(',')))
         color_dims = list(map(int, curr_element_dict['bbox3d_setting'][index]['bbox3d_txt_color_dim'].text().split(',')))
@@ -499,7 +502,7 @@ class View(QMainWindow):
     def set_color_map_list(self):
         dlg = QColorDialog()
         dlg.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
-        item = self.global_control_box_layout_dict['global_setting']['color_id_map_list'].currentItem()
+        item = self.dock_global_control_box_layout_dict['global_setting']['color_id_map_list'].currentItem()
         if dlg.exec_():
             cur_color = dlg.currentColor()
             if item.background().color() != cur_color:
@@ -507,9 +510,9 @@ class View(QMainWindow):
                 self.update_color_map(item.text(), cur_color.name())
                 if (item.text() == "-2"):
                     self.set_canvas_bgcolor()
-                self.global_control_box_layout_dict["global_setting"]["color_id_map_list"].clearSelection()
+                self.dock_global_control_box_layout_dict["global_setting"]["color_id_map_list"].clearSelection()
                 return True
-        self.global_control_box_layout_dict["global_setting"]["color_id_map_list"].clearSelection()
+        self.dock_global_control_box_layout_dict["global_setting"]["color_id_map_list"].clearSelection()
         return False
 
     def set_data_range(self, listname):

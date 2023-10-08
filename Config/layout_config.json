@@ -64,7 +64,7 @@
                         "text": "鼠标事件录屏"
                     }
                 },
-                "button_select_record_save" : {
+                "folder_path" : {
                     "type": "FolderSelectWidget",
                     "params":{
                         "widget_titie" : "Save Dir",
@@ -181,7 +181,7 @@
                         }
                     },
 
-                    "button_select_pointcloud" : {
+                    "folder_path" : {
                         "type": "FolderSelectWidget",
                         "params":{
                             "widget_titie" : "Point Cloud",
@@ -246,7 +246,7 @@
                         }
                     },
 
-                    "button_select_bbox3d" : {
+                    "folder_path" : {
                         "type": "FolderSelectWidget",
                         "params":{
                             "widget_titie" : "3D Bbox",

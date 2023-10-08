@@ -45,25 +45,21 @@ class Controller():
         send_log_msg(NORMAL, "Qviz 系統开始运行！")
 
     def global_box_signal_connect(self):
-
-        self.view.global_control_box_layout_dict['car_model_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
-
-        self.view.global_control_box_layout_dict['magic_pipeline_setting']['checkbox_enable_magic'].stateChanged.connect(self.check_magic_pipeline)
-        self.view.global_control_box_layout_dict['magic_pipeline_setting']['button_open_magic_pipe_editor'].clicked.connect(self.open_magic_pipeline)
-        self.magicpipe_setting.magic_params = self.view.global_control_box_layout_dict['magic_pipeline_setting']['text_magic_pipe_paramters'].get_json_data
-
-        self.view.global_control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
-        self.view.global_control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
-        self.view.global_control_box_layout_dict['global_setting']['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
-
-        self.view.global_control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
-        self.view.global_control_box_layout_dict['record_screen_setting']['checkbox_mouse_record_screen'].stateChanged.connect(self.change_mouse_record_mode)
-        self.view.global_control_box_layout_dict['record_screen_setting']['button_export_record_video'].clicked.connect(self.export_grab_video)
+        self.view.dock_global_control_box_layout_dict['car_model_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
+        self.view.dock_global_control_box_layout_dict['magic_pipeline_setting']['checkbox_enable_magic'].stateChanged.connect(self.check_magic_pipeline)
+        self.view.dock_global_control_box_layout_dict['magic_pipeline_setting']['button_open_magic_pipe_editor'].clicked.connect(self.open_magic_pipeline)
+        self.magicpipe_setting.magic_params = self.view.dock_global_control_box_layout_dict['magic_pipeline_setting']['text_magic_pipe_paramters'].get_json_data
+        self.view.dock_global_control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
+        self.view.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
+        self.view.dock_global_control_box_layout_dict['global_setting']['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
+        self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
+        self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_mouse_record_screen'].stateChanged.connect(self.change_mouse_record_mode)
+        self.view.dock_global_control_box_layout_dict['record_screen_setting']['button_export_record_video'].clicked.connect(self.export_grab_video)
 
     def sub_element_control_box_connect(self, key_str):
-        value = self.view.control_box_layout_dict[key_str]
+        value = self.view.dock_element_control_box_layout_dict[key_str]
         for sub_module in value['point_setting']:
-            sub_module['button_select_pointcloud'].SelectDone.connect(self.select_pointcloud)
+            sub_module['folder_path'].SelectDone.connect(self.select_pointcloud)
             sub_module['linetxt_point_dim'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_point_type'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_xyz_dim'].textChanged.connect(self.update_pointsetting_dims)
@@ -71,7 +67,7 @@ class Controller():
             sub_module['linetxt_color_dim'].textChanged.connect(self.update_pointsetting_dims)
             # sub_module['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
         for sub_module in value['bbox3d_setting']:
-            sub_module['button_select_bbox3d'].SelectDone.connect(self.select_bbox3d)
+            sub_module['folder_path'].SelectDone.connect(self.select_bbox3d)
             sub_module['bbox3d_txt_xyzwhlt_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
             sub_module['bbox3d_txt_color_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
             sub_module['bbox3d_txt_format_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
@@ -79,7 +75,7 @@ class Controller():
             sub_module['bbox3d_txt_arrow_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
 
     def element_control_box_connect(self):
-        for key in self.view.control_box_layout_dict.keys():
+        for key in self.view.dock_element_control_box_layout_dict.keys():
             self.sub_element_control_box_connect(key)
 
     def add_sub_element_control_box(self, ele_key, index):
@@ -103,9 +99,9 @@ class Controller():
         curr_group = self.view.get_curr_control_box_name()
         if index == 0:
             if ele_key == "point_setting":
-                self.view.control_box_layout_dict[curr_group][ele_key][0]['button_select_pointcloud'].reset()
+                self.view.dock_element_control_box_layout_dict[curr_group][ele_key][0]['folder_path'].reset()
             elif ele_key == "bbox3d_setting":
-                self.view.control_box_layout_dict[curr_group][ele_key][0]['button_select_bbox3d'].reset()
+                self.view.dock_element_control_box_layout_dict[curr_group][ele_key][0]['folder_path'].reset()
         else:
             eval("self." + ele_key + "_dict")[curr_group].pop(index)
         # need remove database and update vis

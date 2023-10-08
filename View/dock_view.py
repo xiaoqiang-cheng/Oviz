@@ -313,6 +313,7 @@ class CollapsibleBox(QWidget):
         self.toggle_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.toggle_button.setStyleSheet("QToolButton { border: none; }")
         self.toggle_button.setToolButtonStyle(
+
             Qt.ToolButtonTextBesideIcon
         )
         self.toggle_button.setArrowType(Qt.RightArrow)
