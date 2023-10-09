@@ -69,11 +69,11 @@ class View(QMainWindow):
         self.dock_log_info = LogDockWidget()
         self.dock_range_slide = RangeSlideDockWidget()
         self.dock_global_control_box_layout_dict = self.set_global_control_box()
-        self.dock_global_control_box = ControlBoxDockWidget(title="全局设置", layout_dict=self.dock_global_control_box_layout_dict)
+        self.dock_global_control_box = ControlBoxDockWidget(title="GlobalSetting", layout_dict=self.dock_global_control_box_layout_dict)
 
         # need add some layout
         self.dock_element_control_box_layout_dict = self.set_control_box()
-        self.dock_element_control_box = ControlTabBoxDockWidget(title="控制台", layout_dict=self.dock_element_control_box_layout_dict)
+        self.dock_element_control_box = ControlTabBoxDockWidget(title="ElementSetting", layout_dict=self.dock_element_control_box_layout_dict)
 
         self.add_image_dock_widget(self.layout_config["image_dock_path"])
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)

@@ -167,7 +167,7 @@ class LogDockWidget(QDockWidget):
 
 class RangeSlideDockWidget(QDockWidget):
     frameChanged = Signal(int)
-    def __init__(self, parent=None, titie = "frame"):
+    def __init__(self, parent=None, titie = "Progress"):
         super().__init__(titie, parent)
         # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
         self.setObjectName(titie)
@@ -503,6 +503,7 @@ class ControlBoxDockWidget(QDockWidget):
     def __init__(self, parent=None, title="控制台", layout_dict=dict()):
         super().__init__(title, parent)
         self.setObjectName(title)
+        self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
 
         scroll_area = QScrollArea()
