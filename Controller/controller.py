@@ -370,7 +370,12 @@ class Controller():
 
         if len(msg.shape) == 1:
             try:
-                msg = np.frombuffer(msg.data, dtype = np.dtype(pointcloud_setting.points_type)).reshape(-1, pointcloud_setting.points_dim)
+                surplus = msg.shape[-1] % pointcloud_setting.points_dim
+                if surplus == 0:
+                    msg = np.frombuffer(msg.data, dtype = np.dtype(pointcloud_setting.points_type)).reshape(-1, pointcloud_setting.points_dim)
+                else:
+                    msg = np.frombuffer(msg.data, dtype = np.dtype(pointcloud_setting.points_type))[:-surplus].reshape(-1, pointcloud_setting.points_dim)
+                    send_log_msg(ERROR, "your point dim [%d] is error, please check it"%pointcloud_setting.points_dim)
             except:
                 return
         max_dim = msg.shape[-1]
