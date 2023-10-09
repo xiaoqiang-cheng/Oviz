@@ -23,10 +23,13 @@ def magic_debug(self, key, data_dict, **kargs):
 
 def point_cloud_reshape(self, key, data_dict, **kargs):
     for group, subdata in data_dict.items():
-        if 'Point Cloud' in subdata.keys() and len(subdata['Point Cloud'].shape) == 1:
-            subdata['Point Cloud'] = np.frombuffer(subdata['Point Cloud'].data,
-                    dtype = np.dtype(self.points_setting_dict[group].points_type)).reshape(-1,
-                                self.points_setting_dict[group].points_dim)
+        if 'pointcloud' in subdata.keys():
+            for i, single_pc in enumerate(subdata['pointcloud']):
+                if len(single_pc.shape) == 1:
+                    single_pc = np.frombuffer(single_pc.data,
+                            dtype = np.dtype(self.pointcloud_setting_dict[group][i].points_type)).reshape(-1,
+                                        self.pointcloud_setting_dict[group][i].points_dim)
+                    subdata['pointcloud'][i] = single_pc
     return data_dict
 
 def append_seg_dim_for_pcd(self, key, data_dict, **kargs):
@@ -38,14 +41,13 @@ def append_seg_dim_for_pcd(self, key, data_dict, **kargs):
         }
     '''
     for group, subdata in data_dict.items():
-        if "Point Cloud" in subdata.keys() and 'seg_path' in kargs.keys():
-            length = len(subdata['Point Cloud'])
+        if "pointcloud" in subdata.keys() and 'seg_path' in kargs.keys():
             seg_path =  os.path.join(kargs['seg_path'], key + ".bin")
             if os.path.exists(seg_path):
                 seg_bin = np.fromfile(seg_path, dtype=np.int32).reshape(-1, kargs['seg_dim']).astype(np.float32)
-            else:
-                seg_bin = np.array([-1] * length).reshape(length, kargs['seg_dim']).astype(np.float32)
-            subdata['Point Cloud'] = np.concatenate((subdata['Point Cloud'], seg_bin), axis=1)
+                for i, single_pc in enumerate(subdata['pointcloud']):
+                    single_pc = np.concatenate((single_pc, seg_bin), axis=1)
+                    subdata['pointcloud'][i] = single_pc
     return data_dict
 
 def append_ins_dim_for_pcd(self, key, data_dict, **kargs):
@@ -57,15 +59,15 @@ def append_ins_dim_for_pcd(self, key, data_dict, **kargs):
         }
     '''
     for group, subdata in data_dict.items():
-        if "Point Cloud" in subdata.keys() and 'ins_path' in kargs.keys():
+        if "pointcloud" in subdata.keys() and 'ins_path' in kargs.keys():
             ins_path =  os.path.join(kargs['ins_path'], key + ".bin")
 
-            length = len(subdata['Point Cloud'])
             if os.path.exists(ins_path):
                 ins_bin = np.fromfile(ins_path, dtype=np.int32).reshape(-1, kargs['ins_dim']).astype(np.float32)
-            else:
-                ins_bin = np.array([-1] * length).reshape(length, kargs['ins_dim']).astype(np.float32)
-            subdata['Point Cloud'] = np.concatenate((subdata['Point Cloud'], ins_bin), axis=1)
+                for i, single_pc in enumerate(subdata['pointcloud']):
+                    single_pc = np.concatenate((single_pc, ins_bin), axis=1)
+                    subdata['pointcloud'][i] = single_pc
+
     return data_dict
 
 def vel2rgb_flow_for_pcd(self, key, data_dict, **kargs):
@@ -163,15 +165,16 @@ def vel2rgb_flow_for_pcd(self, key, data_dict, **kargs):
         return flow_image
 
     for group, subdatase in data_dict.items():
-        pts = subdatase['Point Cloud'].reshape(-1, 6)
-        pts_vel = pts[:, -2:]
+        for single_pc in subdatase['pointcloud']:
+            pts = single_pc.reshape(-1, 6)
+            pts_vel = pts[:, -2:]
 
-        max_norm = np.linalg.norm(pts_vel, axis=-1).max()
-        pts_vel = pts_vel / (max_norm + 1e-5)
-        pts_vel = pts_vel[np.newaxis, ...]
-        color = flow_uv_to_colors(pts_vel[..., 0], pts_vel[..., 1])
-        color = color[0] / 255.
-        pts = np.concatenate((pts[:, :4], color), axis=-1)
+            max_norm = np.linalg.norm(pts_vel, axis=-1).max()
+            pts_vel = pts_vel / (max_norm + 1e-5)
+            pts_vel = pts_vel[np.newaxis, ...]
+            color = flow_uv_to_colors(pts_vel[..., 0], pts_vel[..., 1])
+            color = color[0] / 255.
+            pts = np.concatenate((pts[:, :4], color), axis=-1)
 
-        subdatase['Point Cloud'] = pts
+            single_pc = pts
     return data_dict
