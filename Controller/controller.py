@@ -17,7 +17,6 @@ class Controller():
         self.app = QApplication([])
         self.view = View()
         self.model = Model()
-        self.system_online_mode = False
 
         # vis log timer
         self.Timer = QTimer()
@@ -58,15 +57,14 @@ class Controller():
 
     def sub_element_control_box_connect(self, key_str):
         value = self.view.dock_element_control_box_layout_dict[key_str]
-        for sub_module in value['point_setting']:
+        for sub_module in value['pointcloud']:
             sub_module['folder_path'].SelectDone.connect(self.select_pointcloud)
             sub_module['linetxt_point_dim'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_point_type'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_xyz_dim'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_wlh_dim'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_color_dim'].textChanged.connect(self.update_pointsetting_dims)
-            # sub_module['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
-        for sub_module in value['bbox3d_setting']:
+        for sub_module in value['bbox3d']:
             sub_module['folder_path'].SelectDone.connect(self.select_bbox3d)
             sub_module['bbox3d_txt_xyzwhlt_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
             sub_module['bbox3d_txt_color_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
@@ -178,35 +176,27 @@ class Controller():
         if self.view.set_color_map_list():
             self.update_buffer_vis()
 
-    def select_format(self, group, format, topic_path, meta_form):
-        send_log_msg(NORMAL, "亲，你选择了 [%s] topic为: %s"%(format, topic_path))
-        if self.system_online_mode:
-            pass
-        else:
-            eval("self.model.deal_%s_folder"%format)(group, topic_path, meta_form)
-            self.select_done_update_range_and_vis()
+    def select_format(self, group, topic_type, topic_path, ele_index):
+        send_log_msg(NORMAL, "亲，你选择了 [%s] topic为: %s"%(topic_type, topic_path))
+        eval("self.model.deal_%s_folder"%topic_type)(group, topic_path, ele_index)
+        self.select_done_update_range_and_vis()
 
     def select_image(self, topic_path, meta_form):
-        group = meta_form
-        self.select_format(group, IMAGE, topic_path, meta_form)
+        self.select_format("template", IMAGE, topic_path, int(meta_form))
 
 
-    def select_pointcloud(self, topic_path, meta_form):
+    def select_pointcloud(self, topic_path, topic_type):
         self.update_pointsetting_dims()
         curr_group = self.view.get_curr_control_box_name()
-        index = self.view.get_curr_sub_element_index(curr_group, "point_setting")
-        if index > 0:
-            meta_form += str(index)
-        self.select_format(curr_group, POINTCLOUD, topic_path, meta_form)
+        ele_index = self.view.get_curr_sub_element_index(curr_group, topic_type)
+        self.select_format(curr_group, topic_type, topic_path, ele_index)
 
 
-    def select_bbox3d(self, topic_path, meta_form):
+    def select_bbox3d(self, topic_path, topic_type):
         self.update_bbox3dsetting_dims()
         curr_group = self.view.get_curr_control_box_name()
-        index = self.view.get_curr_sub_element_index(curr_group, "bbox3d_setting")
-        if index > 0:
-            meta_form += str(index)
-        self.select_format(curr_group, BBOX3D, topic_path, meta_form)
+        ele_index = self.view.get_curr_sub_element_index(curr_group, topic_type)
+        self.select_format(curr_group, topic_type, topic_path, ele_index)
 
     def select_done_update_range_and_vis(self):
         self.view.set_data_range(self.model.data_frame_list)
@@ -216,8 +206,8 @@ class Controller():
     def update_pointsetting_dims(self):
         try:
             curr_tab_key = self.view.get_curr_control_box_name()
-            curr_sub_ele_index = self.view.get_curr_sub_element_index(curr_tab_key, "point_setting")
-            count = self.view.get_curr_sub_element_count(curr_tab_key, "point_setting")
+            curr_sub_ele_index = self.view.get_curr_sub_element_index(curr_tab_key, POINTCLOUD)
+            count = self.view.get_curr_sub_element_count(curr_tab_key, POINTCLOUD)
             if curr_tab_key not in self.point_setting_dict.keys():
                 self.point_setting_dict[curr_tab_key] = {}
             for ele_index in range(count):
@@ -225,6 +215,7 @@ class Controller():
                         {ele_index : PointCloudSetting(*self.view.get_pointsetting(index=ele_index))}
                 )
             self.point_setting = self.point_setting_dict[curr_tab_key][curr_sub_ele_index]
+
             if not check_setting_dims(self.point_setting.xyz_dims, [2, 3]): return
             self.update_buffer_vis()
         except:
@@ -234,13 +225,13 @@ class Controller():
     def update_bbox3dsetting_dims(self):
         try:
             curr_tab_key = self.view.get_curr_control_box_name()
-            count = self.view.get_curr_sub_element_count(curr_tab_key, "bbox3d_setting")
-            curr_sub_ele_index = self.view.get_curr_sub_element_index(curr_tab_key, "bbox3d_setting")
+            count = self.view.get_curr_sub_element_count(curr_tab_key, BBOX3D)
+            curr_sub_ele_index = self.view.get_curr_sub_element_index(curr_tab_key, BBOX3D)
             if curr_tab_key not in self.bbox3d_setting_dict.keys():
                 self.bbox3d_setting_dict[curr_tab_key] = {}
             for ele_index in range(count):
                 self.bbox3d_setting_dict[curr_tab_key].update(
-                    {ele_index:Bbox3DSetting(*self.view.get_bbox3dsetting(index=ele_index))}
+                    {ele_index: Bbox3DSetting(*self.view.get_bbox3dsetting(index=ele_index))}
                 )
             self.bbox3d_setting = self.bbox3d_setting_dict[curr_tab_key][curr_sub_ele_index]
             if not check_setting_dims(self.bbox3d_setting.bbox_dims, 7): return
@@ -286,19 +277,19 @@ class Controller():
         if self.magicpipe_setting.enable:
             data_dict = self.exec_magic_pipeline(data_dict)
         for group, value in data_dict.items():
-            curr_frame_data = {}
+            collect_frame_data = {}
             self.clear_buffer_vis(group)
-            for meta_form, data in value.items():
-                topic_type = self.model.topic_path_meta[meta_form]
-                fun_name = topic_type + "_callback"
-                callback_fun = getattr(self, fun_name, None)
-                ret = callback_fun(data, meta_form, meta_form, group)
-                if ret is None: continue
-                if topic_type not in curr_frame_data.keys():
-                    curr_frame_data[topic_type] = {}
-                curr_frame_data[topic_type].update({meta_form: ret})
+            for topic_type, data_list in value.items():
+                for ele_index, data in enumerate(data_list):
+                    fun_name = topic_type + "_callback"
+                    callback_fun = getattr(self, fun_name, None)
+                    ret = callback_fun(data, topic_type, ele_index, group)
+                    if ret is None: continue
+                    if topic_type not in collect_frame_data.keys():
+                        collect_frame_data[topic_type] = {}
+                    collect_frame_data[topic_type].update({ele_index: ret})
 
-            for topic_type, topic_data in curr_frame_data.items():
+            for topic_type, topic_data in collect_frame_data.items():
                 eval("self.update_" + topic_type + "_vis")(topic_data, group)
 
     def update_system_vis(self, index):
@@ -324,14 +315,11 @@ class Controller():
         self.Timer.stop
         sys.exit(self.app.exec_())
 
-    def image_callback(self, msg, topic, meta_form, group):
-        self.view.set_image(msg, meta_form)
+    def image_callback(self, msg, topic_type, ele_index, group):
+        self.view.set_image(msg, ele_index)
 
-    def bbox3d_callback(self, msg, topic, meta_form, group):
-        try:
-            ele_index = int(meta_form[-1])
-        except:
-            ele_index = 0
+    def bbox3d_callback(self, msg, topic, ele_index, group):
+
         bbox3d_setting = self.bbox3d_setting_dict[group][ele_index]
 
         max_dim = msg.shape[-1]
@@ -380,11 +368,7 @@ class Controller():
         # self.view.set_bbox3d(bboxes, real_color, arrow, text_info, bbox3d_setting.text_format, group=group)
         return bboxes, real_color, arrow, text_info, bbox3d_setting.text_format, group
 
-    def pointcloud_callback(self, msg, topic, meta_form, group):
-        try:
-            ele_index = int(meta_form[-1])
-        except:
-            ele_index = 0
+    def pointcloud_callback(self, msg, topic, ele_index, group):
         point_setting = self.point_setting_dict[group][ele_index]
 
         if len(msg.shape) == 1:

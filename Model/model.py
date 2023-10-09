@@ -5,24 +5,11 @@ import os
 import cv2
 
 class Model():
-    def __init__(self, cfg_path = "Config/global_config.json"):
-        # super(Model, self).__init__()
-        self.global_cfg_path = cfg_path
-        self.global_cfg = parse_json(self.global_cfg_path)
+    def __init__(self):
         self.offline_frame_cnt = 0
         self.data_frame_list = []
         self.database = {}
-        self.topic_path_meta = {}
         self.curr_frame_data = {}
-
-    def dump_database(self):
-        return [self.database, self.topic_path_meta]
-
-    def reload_database(self, model_data):
-        self.database, self.topic_path_meta = model_data
-        for meta_form, value in self.database.items():
-            self.data_frame_list = list(value.keys())
-            self.data_frame_list.sort()
 
     def get_curr_frame_data(self, index):
         if index >= self.offline_frame_cnt: return 0
@@ -31,16 +18,14 @@ class Model():
 
         for group, subdatabase  in self.database.items():
             self.curr_frame_data[group] = {}
-            for meta_form in subdatabase.keys():
-                topic_type = self.topic_path_meta[meta_form]
-                if key in subdatabase[meta_form].keys():
-                    data_path = subdatabase[meta_form][key]
-                    if topic_type == POINTCLOUD:
-                        self.curr_frame_data[group][meta_form] = self.smart_read_pointcloud(data_path)
-                    elif topic_type == IMAGE:
-                        self.curr_frame_data[group][meta_form] = self.smart_read_image(data_path)
-                    elif topic_type == BBOX3D:
-                        self.curr_frame_data[group][meta_form] = self.smart_read_bbox3d(data_path)
+            for topic_type, values in subdatabase.items():
+                self.curr_frame_data[group][topic_type] = []
+                for value in values:
+                    if key in value.keys():
+                        data_path = value[key]
+                        parse_data = eval("self.smart_read_%s"%topic_type)(data_path)
+                        self.curr_frame_data[group][topic_type].append(parse_data)
+
         return key
 
     def remove_sub_database(self, key_str):
@@ -48,15 +33,8 @@ class Model():
         self.curr_frame_data.pop(key_str)
 
     def remove_sub_element_database(self, group, ele_key, index):
-        # very very dirty and ugly, ready to refactor it
-        if index == 0:
-            index = ""
-        if ele_key == "point_setting":
-            self.database[group].pop("Point Cloud%s"%str(index))
-            self.curr_frame_data[group].pop("Point Cloud%s"%str(index))
-        elif ele_key == "bbox3d_setting":
-            self.database[group].pop("3D Bbox%s"%str(index))
-            self.curr_frame_data[group].pop("3D Bbox%s"%str(index))
+        self.database[group].pop(index)
+        self.curr_frame_data[group].pop(index)
 
     def smart_read_bbox3d(self, bbox_path):
         return np.loadtxt(bbox_path, dtype=np.float32)
@@ -72,38 +50,40 @@ class Model():
         img = cv2.imread(image_path)
         return img
 
-    def deal_image_folder(self, group, folder_path, meta_form):
-        cnt = self.deal_folder(group, folder_path, meta_form, IMAGE, [".jpg", ".png", ".tiff"])
+    def deal_image_folder(self, group, folder_path, ele_index):
+        cnt = self.deal_folder(group, folder_path, ele_index, IMAGE, [".jpg", ".png", ".tiff"])
         return cnt
 
-    def deal_pointcloud_folder(self, group, folder_path, meta_form):
-        cnt = self.deal_folder(group, folder_path, meta_form, POINTCLOUD, [".pcd", ".bin"])
+    def deal_pointcloud_folder(self, group, folder_path, ele_index):
+        cnt = self.deal_folder(group, folder_path, ele_index, POINTCLOUD, [".pcd", ".bin"])
         return cnt
 
-    def deal_bbox3d_folder(self, group, folder_path, meta_form):
-        cnt = self.deal_folder(group, folder_path, meta_form, BBOX3D, [".txt"])
+    def deal_bbox3d_folder(self, group, folder_path, ele_index):
+        cnt = self.deal_folder(group, folder_path, ele_index, BBOX3D, [".txt"])
         return cnt
 
-    def deal_folder(self, group, folder_path, meta_form, TOPIC_META, allowed_extensions):
-        database = {}
-        database[meta_form] = {}
-
-        self.topic_path_meta[meta_form] = TOPIC_META
+    def deal_folder(self, group, folder_path, ele_index, topic_type, allowed_extensions):
+        latest_database = {}
 
         datanames = os.listdir(folder_path)
 
         for f in datanames:
             key, ext = os.path.splitext(f)
             if ext in allowed_extensions:
-                database[meta_form][key] = os.path.join(folder_path, f)
+                latest_database[key] = os.path.join(folder_path, f)
 
-        cnt = len(database[meta_form].keys())
+        cnt = len(latest_database)
         if cnt > 0:
-            self.data_frame_list = sorted(database[meta_form].keys())
+            self.data_frame_list = sorted(latest_database.keys())
             self.offline_frame_cnt = cnt
             send_log_msg(NORMAL, f"共发现了{'、'.join(allowed_extensions)}格式的文件 {cnt} 帧")
-            if group in self.database.keys():
-                self.database[group].update(database)
+
+            group_data = self.database.setdefault(group, {})
+            topic_data = group_data.setdefault(topic_type, [])
+
+            if ele_index < len(topic_data):
+                topic_data[ele_index] = latest_database
             else:
-                self.database[group] = database
+                topic_data.append(latest_database)
+
         return cnt

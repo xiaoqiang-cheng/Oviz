@@ -2,13 +2,12 @@
     "last_slide_num" : 0,
     "image_dock_path":
     {
-        "rl": "",
-        "sl": "",
-        "fl": "",
-        "fc": "",
-        "fr": "",
-        "sr": ""
-        //"rr": ""
+        "0": "",
+        "1": "",
+        "2": "",
+        "3": "",
+        "4": "",
+        "5": ""
     },
 
     "global_control_box":
@@ -128,7 +127,7 @@
     {
         "template":
         {
-            "point_setting":[{
+            "pointcloud":[{
                 "type": "QVBoxLayout",
                 "widget":{
                     "linetxt_point_dim":{
@@ -184,7 +183,7 @@
                     "folder_path" : {
                         "type": "FolderSelectWidget",
                         "params":{
-                            "widget_titie" : "Point Cloud",
+                            "widget_titie" : "pointcloud",
                             "default_value": {
                                 "value": ""
                             }
@@ -193,7 +192,7 @@
                 }
             }],
 
-            "bbox3d_setting":[{
+            "bbox3d":[{
                 "type": "QVBoxLayout",
                 "widget":{
                     "bbox3d_txt_xyzwhlt_dim":{
@@ -249,7 +248,7 @@
                     "folder_path" : {
                         "type": "FolderSelectWidget",
                         "params":{
-                            "widget_titie" : "3D Bbox",
+                            "widget_titie" : "bbox3d",
                             "default_value": {
                                 "value": ""
                             }

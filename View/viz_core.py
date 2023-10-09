@@ -98,7 +98,8 @@ class Canvas(scene.SceneCanvas):
             "elevation": self.view_panel[view_name].camera._elevation,
             "azimuth" : self.view_panel[view_name].camera._azimuth,
             "roll" : self.view_panel[view_name].camera._roll,
-            # "distance": self.view_panel[view_name].camera._distance
+            "distance": self.view_panel[view_name].camera._distance,
+            "scale_factor": self.view_panel[view_name].camera._scale_factor
         }
 
     def print_3dview_camera_params(self, view_name = "template"):
@@ -108,6 +109,7 @@ class Canvas(scene.SceneCanvas):
         print("azimuth:", self.view_panel[view_name].camera._azimuth)
         print("roll:", self.view_panel[view_name].camera._roll)
         print("distance:", self.view_panel[view_name].camera._distance)
+        print("scale_factor", self.view_panel[view_name].camera._scale_factor)
         print("=======================ending=====================\n")
 
     def add_2dview(self, view_name = "2d"):

@@ -427,26 +427,28 @@ class View(QMainWindow):
         return self.dock_element_control_box.boxes[group][key].tab_widget.count()
 
     def get_pointsetting(self, index = 0):
+        topic_type = POINTCLOUD
         curr_widget_key = self.get_curr_control_box_name()
         curr_element_dict = self.dock_element_control_box_layout_dict[curr_widget_key]
 
-        pt_dim = int(curr_element_dict['point_setting'][index]['linetxt_point_dim'].text())
-        pt_type = curr_element_dict['point_setting'][index]['linetxt_point_type'].text()
-        xyz_dims = list(map(int, curr_element_dict['point_setting'][index]['linetxt_xyz_dim'].text().split(',')))
-        wlh_dims = list(map(int, curr_element_dict['point_setting'][index]['linetxt_wlh_dim'].text().split(',')))
-        color_dims = list(map(int, curr_element_dict['point_setting'][index]['linetxt_color_dim'].text().split(',')))
+        pt_dim = int(curr_element_dict[topic_type][index]['linetxt_point_dim'].text())
+        pt_type = curr_element_dict[topic_type][index]['linetxt_point_type'].text()
+        xyz_dims = list(map(int, curr_element_dict[topic_type][index]['linetxt_xyz_dim'].text().split(',')))
+        wlh_dims = list(map(int, curr_element_dict[topic_type][index]['linetxt_wlh_dim'].text().split(',')))
+        color_dims = list(map(int, curr_element_dict[topic_type][index]['linetxt_color_dim'].text().split(',')))
         show_voxel = self.dock_global_control_box_layout_dict['global_setting']['show_voxel_mode'].isChecked()
         return pt_dim, pt_type, xyz_dims, wlh_dims, color_dims, show_voxel
 
     def get_bbox3dsetting(self, index = 0):
+        topic_type = BBOX3D
         curr_widget_key = self.get_curr_control_box_name()
         curr_element_dict = self.dock_element_control_box_layout_dict[curr_widget_key]
 
-        size_dims = list(map(int, curr_element_dict['bbox3d_setting'][index]['bbox3d_txt_xyzwhlt_dim'].text().split(',')))
-        color_dims = list(map(int, curr_element_dict['bbox3d_setting'][index]['bbox3d_txt_color_dim'].text().split(',')))
-        arrow_dims = list(map(int, curr_element_dict['bbox3d_setting'][index]['bbox3d_txt_arrow_dim'].text().split(',')))
-        text_dims = list(map(int, curr_element_dict['bbox3d_setting'][index]['bbox3d_txt_text_dim'].text().split(',')))
-        format_dims = curr_element_dict['bbox3d_setting'][index]['bbox3d_txt_format_dim'].text()
+        size_dims = list(map(int, curr_element_dict[topic_type][index]['bbox3d_txt_xyzwhlt_dim'].text().split(',')))
+        color_dims = list(map(int, curr_element_dict[topic_type][index]['bbox3d_txt_color_dim'].text().split(',')))
+        arrow_dims = list(map(int, curr_element_dict[topic_type][index]['bbox3d_txt_arrow_dim'].text().split(',')))
+        text_dims = list(map(int, curr_element_dict[topic_type][index]['bbox3d_txt_text_dim'].text().split(',')))
+        format_dims = curr_element_dict[topic_type][index]['bbox3d_txt_format_dim'].text()
 
         return size_dims, color_dims, arrow_dims, text_dims, format_dims
 
