@@ -111,9 +111,9 @@ class Controller():
 
     def revert_user_config(self):
         try:
+            self.view.revet_layout_config()
             self.update_pointsetting_dims()
             self.update_bbox3dsetting_dims()
-            self.view.revet_layout_config()
             self.update_system_vis(self.view.layout_config["last_slide_num"])
         except:
             print("ERROR REVERT")
@@ -123,8 +123,8 @@ class Controller():
     def reload_database(self, q):
         target_pkl_path = os.path.join(DUMP_HISTORY_DIR, q.text())
         history_config = deserialize_data(target_pkl_path)
-        rec_exsit_merge(self.view.layout_config, history_config)
-        self.revert_user_config()
+        write_json(history_config, "%s/layout_config.json"%USER_CONFIG_DIR)
+        os.system("qviz&")
 
     def show_car_mode(self, state):
         flag = state > 0
@@ -404,7 +404,6 @@ class Controller():
         return points, real_color, w, l, h, pointcloud_setting.show_voxel, group
 
     def clear_buffer_vis(self, group):
-        self.view.set_bbox3d_text_visible(False, group)
         self.view.set_bbox3d_visible(False, group)
         self.view.set_point_cloud_visible(False, group)
         self.view.set_point_voxel_visible(False, group)
