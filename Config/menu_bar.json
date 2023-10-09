@@ -6,7 +6,7 @@
             "显示进度条": "Ctrl+Shift+P",
             "显示元素控制台" : "Ctrl+Shift+E",
             "显示全局控制台" : "Ctrl+Shift+G",
-            "显示图片标题栏" : "Ctrl+Shift+B",
+            "显示图片标题栏" : "Ctrl+Shift+T",
             "显示状态栏" : "Ctrl+Shift+S"
         },
         "self.menu_bar_trigger_view"
