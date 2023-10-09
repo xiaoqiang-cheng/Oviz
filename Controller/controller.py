@@ -404,6 +404,7 @@ class Controller():
         return points, real_color, w, l, h, pointcloud_setting.show_voxel, group
 
     def clear_buffer_vis(self, group):
+        self.view.set_bbox3d_text_visible(False, group)
         self.view.set_bbox3d_visible(False, group)
         self.view.set_point_cloud_visible(False, group)
         self.view.set_point_voxel_visible(False, group)
@@ -426,14 +427,10 @@ class Controller():
 
         points = np.concatenate(points)
 
-        if len(data.keys()) > 1:
+        if len(data) > 1:
             tmp_color = []
             for i, curr_color in enumerate(real_color):
-                try:
-                    mask_id = int(list(data.keys())[i][-1])
-                except:
-                    mask_id = 0
-                color_mask = np.array([mask_id] * len(curr_color)).reshape(-1, 1)
+                color_mask = np.array([i] * len(curr_color)).reshape(-1, 1)
                 tmp_color.append(self.view.color_id_to_color_list(color_mask)[0])
             real_color = np.concatenate(tmp_color)
 
@@ -446,13 +443,11 @@ class Controller():
             h = np.concatenate(h)
         except:
             pass
-
         if show_voxel:
             self.view.set_point_voxel(points, w, l, h, real_color, group)
         else:
             self.view.set_point_cloud(points, color = real_color, group=group)
         self.view.set_voxel_mode(show_voxel, group)
-
 
     def update_bbox3d_vis(self, data, group):
         bboxes = []
@@ -467,14 +462,11 @@ class Controller():
             text_info += sub_data[3].tolist()
             text_format += [sub_data[4]] * len(sub_data[3])
         bboxes = np.concatenate(bboxes)
-        if len(data.keys()) > 1:
+
+        if len(data) > 1:
             tmp_color = []
             for i, curr_color in enumerate(real_color):
-                try:
-                    mask_id = int(list(data.keys())[i][-1])
-                except:
-                    mask_id = 0
-                color_mask = np.array([mask_id] * len(curr_color)).reshape(-1, 1)
+                color_mask = np.array([i] * len(curr_color)).reshape(-1, 1)
                 tmp_color.append(self.view.color_id_to_color_list(color_mask)[0])
             real_color = np.concatenate(tmp_color)
 

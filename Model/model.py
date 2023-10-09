@@ -33,8 +33,8 @@ class Model():
         self.curr_frame_data.pop(key_str)
 
     def remove_sub_element_database(self, group, ele_key, index):
-        self.database[group].pop(index)
-        self.curr_frame_data[group].pop(index)
+        self.database[group][ele_key].pop(index)
+        self.curr_frame_data[group][ele_key].pop(index)
 
     def smart_read_bbox3d(self, bbox_path):
         return np.loadtxt(bbox_path, dtype=np.float32)

@@ -553,6 +553,9 @@ class View(QMainWindow):
     def set_bbox3d_visible(self, mode, group="template"):
         self.canvas.set_visible(group + "_" + "bbox3d_line", mode)
 
+    def set_bbox3d_text_visible(self, mode, group="template"):
+        self.canvas.set_visible(group + "_" + "text", mode)
+
     def set_point_cloud_visible(self, mode, group="template"):
         self.canvas.set_visible(group + "_" + "point_cloud", mode)
 
