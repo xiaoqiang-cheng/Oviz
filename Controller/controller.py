@@ -404,7 +404,7 @@ class Controller():
                 h = msg[..., point_setting.wlh_dims[2]]
         if isinstance(real_color, str):
             real_color = np.array([color_str_to_rgb(real_color)] * len(points))
-        return points, real_color, self.view.point_size, w, l, h, point_setting.show_voxel, group
+        return points, real_color, w, l, h, point_setting.show_voxel, group
 
     def clear_buffer_vis(self, group):
         self.view.set_bbox3d_visible(False, group)
@@ -415,7 +415,6 @@ class Controller():
     def update_pointcloud_vis(self, data, group):
         points = []
         real_color = []
-        point_size = 1
         w = []
         l = []
         h = []
@@ -423,11 +422,10 @@ class Controller():
         for sub_data in data.values():
             points.append(sub_data[0])
             real_color.append(sub_data[1])
-            point_size = sub_data[2]
-            w.append(sub_data[3])
-            l.append(sub_data[4])
-            h.append(sub_data[5])
-            show_voxel |= sub_data[6]
+            w.append(sub_data[2])
+            l.append(sub_data[3])
+            h.append(sub_data[4])
+            show_voxel |= sub_data[5]
 
         points = np.concatenate(points)
 
@@ -455,7 +453,7 @@ class Controller():
         if show_voxel:
             self.view.set_point_voxel(points, w, l, h, real_color, group)
         else:
-            self.view.set_point_cloud(points, color = real_color, size=self.view.point_size, group=group)
+            self.view.set_point_cloud(points, color = real_color, group=group)
         self.view.set_voxel_mode(show_voxel, group)
 
 

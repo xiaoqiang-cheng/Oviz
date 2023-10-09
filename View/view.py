@@ -562,8 +562,8 @@ class View(QMainWindow):
     def set_voxel_line_visible(self, mode, group="template"):
         self.canvas.set_visible(group + "_" + "voxel_line", mode)
 
-    def set_point_cloud(self, points, color = "#00ff00", size = 1, group = "template"):
-        self.canvas.draw_point_cloud(group + "_" + "point_cloud", points, color, size)
+    def set_point_cloud(self, points, color = "#00ff00", group = "template"):
+        self.canvas.draw_point_cloud(group + "_" + "point_cloud", points, color, self.point_size)
 
     def set_point_voxel(self, points, w, l, h, face, group="template"):
         self.canvas.draw_point_voxel(group + "_" + "point_voxel", points, w, l, h, face, face)
