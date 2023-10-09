@@ -130,6 +130,8 @@ class View(QMainWindow):
             name, ok = self.create_input_dialog("提示", "请输入数据名称")
             if ok:
                 serialize_data(self.layout_config, os.path.join(DUMP_HISTORY_DIR, name))
+        elif q.text() == "自动播放":
+            self.dock_range_slide.toggle_state()
 
     def create_color_map_widget(self):
         color_id_map_list = QListWidget()
@@ -375,8 +377,6 @@ class View(QMainWindow):
                 if self.point_size < 1:
                     self.point_size = 1
                 self.pointSizeChanged.emit(self.point_size)
-            elif event.key() == Qt.Key_P:
-                self.canvas.print_3dview_camera_params()
             elif event.key() == Qt.Key_R:
                 dock_widget_num = len(self.image_dock.values())
                 print("Target Size:", [self.width() / dock_widget_num] * dock_widget_num)

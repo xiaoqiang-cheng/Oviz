@@ -14,7 +14,8 @@
 
     "操作" : [
         {
-            "保存": "Ctrl+S"
+            "保存": "Ctrl+S",
+            "自动播放": "Ctrl+P"
         },
         "self.menu_bar_trigger_operation"
     ]
