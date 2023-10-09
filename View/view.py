@@ -561,7 +561,7 @@ class View(QMainWindow):
         self.canvas.draw_voxel_line(group + "_" + "voxel_line", points, w, l, h)
 
     def set_image(self, img, meta_form):
-        self.image_dock[meta_form].set_image(img)
+        self.image_dock[str(meta_form)].set_image(img)
 
     def set_bbox3d(self, bboxes3d, color, arrow, text_info, show_format, group="template"):
         self.canvas.draw_box3d_line(group + "_" + "bbox3d_line", bboxes3d, color)

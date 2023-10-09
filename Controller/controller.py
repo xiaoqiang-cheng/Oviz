@@ -312,7 +312,7 @@ class Controller():
             self.view.dock_log_info.display_append_msg_list(get_msg)
 
     def sigint_handler(self, signum = None, frame = None):
-        self.Timer.stop
+        self.Timer.stop()
         sys.exit(self.app.exec_())
 
     def image_callback(self, msg, topic_type, ele_index, group):
