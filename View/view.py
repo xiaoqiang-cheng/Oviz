@@ -27,7 +27,7 @@ class View(QMainWindow):
         self.create_dock_widget()
         self.create_status_bar()
         self.create_menu_bar()
-
+        self.set_spilter_style()
         self.point_size = 1
         self.mouse_record_screen = False
         self.last_event_type = None
@@ -36,6 +36,15 @@ class View(QMainWindow):
         self.record_screen_save_dir = None
 
         self.installEventFilter(self)  # 将事件过滤器安装到UI对象上
+
+    def set_spilter_style(self):
+        qss = '''
+            QMainWindow::separator {
+                width: 1px; /* 设置分隔条宽度 */
+                height: 1px; /* 设置分隔条高度 */
+            }
+        '''
+        self.setStyleSheet(qss)
 
     def load_system_config(self):
         self.canvas_cfg = self.get_user_config("init_canvas_cfg3d.json")
