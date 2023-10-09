@@ -239,7 +239,7 @@ class View(QMainWindow):
             user_cfg = parse_json(user_config_file)
         else:
             user_cfg = {}
-        return rec_exsit_merge(default_cfg, user_cfg)
+        return rec_merge_map_list(default_cfg, user_cfg)
 
     def save_last_frame_num(self, num):
         self.layout_config["last_slide_num"] = num
@@ -300,14 +300,17 @@ class View(QMainWindow):
         os.system("xdg-open %s"%self.dock_global_control_box_layout_dict['record_screen_setting']['folder_path'].folder_path)
 
     def revet_layout_config(self):
+        group_index = 0
         for module, value in self.dock_element_control_box_layout_dict.items():
+            self.dock_element_control_box.tabwidget.setCurrentIndex(group_index)
+            group_index += 1
             for tk, tws in value.items():
-                for index, tw in enumerate(tws):
-                    self.dock_element_control_box.boxes[module][tk].tab_widget.setCurrentIndex(index)
+                for ele_index, tw in enumerate(tws):
+                    self.dock_element_control_box.boxes[module][tk].tab_widget.setCurrentIndex(ele_index)
                     for wk, wv in tw.items():
                         try:
                             wv.revert()
-                        except:
+                        except Exception as e:
                             pass
 
         for tk, tw in self.dock_global_control_box_layout_dict.items():

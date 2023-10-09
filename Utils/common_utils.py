@@ -225,9 +225,9 @@ def rec_merge(d1, d2):
     return d1
 
 
-def rec_exsit_merge(d1, d2, special_key = "element_control_box"):
+def rec_exsit_merge(d1, d2):
     for key, value in d2.items():
-        if isinstance(value, dict) and isinstance(d1, dict):
+        if isinstance(d1, dict):
             if (key not in d1.keys()): continue
             d1[key] = rec_exsit_merge(d1.get(key, {}), value)
         else:
@@ -236,6 +236,31 @@ def rec_exsit_merge(d1, d2, special_key = "element_control_box"):
             except:
                 pass
     return d1
+
+def rec_merge_map_list(d1, d2):
+    for key, value in d2.items():
+        if isinstance(value, (list, dict)) and isinstance(d1.get(key), (list, dict)):
+            if isinstance(value, dict) and isinstance(d1.get(key), dict):
+                d1[key] = rec_merge_map_list(d1.get(key, {}), value)  # 递归合并字典
+            elif isinstance(value, list) and isinstance(d1.get(key), list):
+                # 合并同索引下的列表
+                merged_list = []
+                max_len = max(len(d1[key]), len(value))
+                for i in range(max_len):
+                    if i < len(d1[key]) and i < len(value):
+                        merged_list.append(rec_merge_map_list(d1[key][i], value[i]))
+                    elif i < len(d1[key]):
+                        merged_list.append(d1[key][i])
+                    elif i < len(value):
+                        merged_list.append(value[i])
+                d1[key] = merged_list
+        else:
+            try:
+                d1[key] = value
+            except:
+                pass
+    return d1
+
 
 def color_str_to_rgb(color_str, alpha = 1.0):
     color_int = int(color_str[1:], 16)
