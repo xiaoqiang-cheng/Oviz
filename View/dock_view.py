@@ -304,7 +304,8 @@ class RangeSlideDockWidget(QDockWidget):
         self.frame_range = len(self.listname)
         self.range_slider.setRange(0, self.frame_range - 1)
         self.set_frame_cnt(self.frame_range - 1)
-        self.set_frmae_text(0)
+        if self.curr_index >= self.frame_range:
+            self.set_frmae_text(0)
 
 
 class CollapsibleBox(QWidget):

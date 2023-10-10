@@ -35,17 +35,6 @@ class Canvas(scene.SceneCanvas):
         self.curr_col_image_view = 0
         self.curr_col_3d_view = 0
 
-    #     self.canvas.events.key_press.connect(on_escape)
-
-    # #     self.native.keyPressEvent = lambda event: self.on_escape(event) if event.key() == vispy.keys.ESCAPE else None
-
-    # # def on_escape(self, event):
-    # #     pass
-
-    # def on_key_press(event):
-    #     if event.key == vispy.keys.ESCAPE:
-    #         event.handled = True
-
     def create_view(self, view_type, view_name, camera = None):
         create_method = getattr(self, view_type, None)
         if create_method is None:

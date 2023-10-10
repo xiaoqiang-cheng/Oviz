@@ -111,9 +111,9 @@ class Controller():
 
     def revert_user_config(self):
         try:
-            self.view.revet_layout_config()
             self.update_pointsetting_dims()
             self.update_bbox3dsetting_dims()
+            self.view.revet_layout_config()
             self.update_system_vis(self.view.layout_config["last_slide_num"])
         except:
             print("ERROR REVERT")
@@ -198,7 +198,7 @@ class Controller():
     def select_done_update_range_and_vis(self):
         self.view.set_data_range(self.model.data_frame_list)
         if self.model.offline_frame_cnt:
-            self.update_system_vis(0)
+            self.update_system_vis(self.curr_frame_index)
 
     def update_pointsetting_dims(self):
         try:
@@ -292,7 +292,6 @@ class Controller():
     def update_system_vis(self, index):
         print(index)
         self.curr_frame_index = index
-        self.view.save_last_frame_num(self.curr_frame_index)
         self.curr_frame_key = self.model.get_curr_frame_data(index)
         self.update_buffer_vis()
         self.view.send_update_vis_flag()

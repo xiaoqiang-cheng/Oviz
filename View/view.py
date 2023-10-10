@@ -247,8 +247,8 @@ class View(QMainWindow):
             user_cfg = {}
         return rec_merge_map_list(default_cfg, user_cfg)
 
-    def save_last_frame_num(self, num):
-        self.layout_config["last_slide_num"] = num
+    def save_last_frame_num(self):
+        self.layout_config["last_slide_num"] = self.dock_range_slide.get_curr_index()
 
     def save_layout_config(self):
         for key in self.canvas_cfg.keys():
@@ -260,7 +260,7 @@ class View(QMainWindow):
 
         if not os.path.exists(USER_CONFIG_DIR):
             os.mkdir(USER_CONFIG_DIR)
-
+        self.save_last_frame_num()
         write_json(self.layout_config, "%s/layout_config.json"%USER_CONFIG_DIR)
         write_json(self.color_map, "%s/color_map.json"%USER_CONFIG_DIR)
         write_json(self.canvas_cfg, "%s/init_canvas_cfg3d.json"%USER_CONFIG_DIR)
@@ -329,8 +329,8 @@ class View(QMainWindow):
         for key, val in self.layout_config['image_dock_path'].items():
             self.image_dock[key].set_topic_path(val)
 
-        self.dock_range_slide.set_frmae_text(self.layout_config["last_slide_num"])
         self.load_layout()
+        self.dock_range_slide.set_frmae_text(self.layout_config["last_slide_num"])
 
     def closeEvent(self, e):
         e.accept()
