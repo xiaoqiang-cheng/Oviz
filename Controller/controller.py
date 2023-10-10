@@ -85,8 +85,6 @@ class Controller():
             self.view.image_dock[key].SelectDone.connect(self.select_image)
         self.global_box_signal_connect()
         self.element_control_box_connect()
-
-        self.view.load_history_menu_triggered.connect(self.reload_database)
         self.view.pointSizeChanged.connect(self.change_point_size)
         self.view.addNewControlTab.connect(self.sub_element_control_box_connect)
         self.view.removeControlTab.connect(self.remove_sub_control_box)
@@ -119,12 +117,6 @@ class Controller():
             print("ERROR REVERT")
             pass
         send_log_msg(NORMAL, "加载配置结束，如果未能显示上一次数据，请检查文件路径或本地资源是否正常")
-
-    def reload_database(self, q):
-        target_pkl_path = os.path.join(DUMP_HISTORY_DIR, q.text())
-        history_config = deserialize_data(target_pkl_path)
-        write_json(history_config, "%s/layout_config.json"%USER_CONFIG_DIR)
-        os.system("qviz&")
 
     def show_car_mode(self, state):
         flag = state > 0

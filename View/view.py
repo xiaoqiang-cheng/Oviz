@@ -106,6 +106,7 @@ class View(QMainWindow):
         else:
             self.load_history_menu.addAction("[empty]")
         self.load_history_menu_triggered = self.load_history_menu.triggered[QAction]
+        self.load_history_menu_triggered.connect(self.reload_database)
 
     def create_status_bar(self):
         self.statusbar = self.statusBar()
@@ -125,11 +126,38 @@ class View(QMainWindow):
         }
         trigger_map[q.text()]()
 
+    def save_history_database(self):
+        name, ok = self.create_input_dialog("提示", "请输入数据名称")
+        if ok:
+            for key in self.canvas_cfg.keys():
+                if "camera" in self.canvas_cfg[key].keys():
+                    self.canvas_cfg[key]['camera'].update(self.canvas.get_canvas_camera("template"))
+            for key in self.layout_config['image_dock_path'].keys():
+                self.layout_config['image_dock_path'][key] = self.image_dock[key].folder_path
+            self.save_last_frame_num()
+
+            history_config = {}
+            history_config['layout_config.json'] = self.layout_config
+            history_config['init_canvas_cfg3d.json'] = self.canvas_cfg
+            history_config['layout.ini'] = self.saveState()
+            serialize_data(history_config, os.path.join(DUMP_HISTORY_DIR, name))
+
+    def reload_database(self, q):
+        target_pkl_path = os.path.join(DUMP_HISTORY_DIR, q.text())
+        history_config = deserialize_data(target_pkl_path)
+        for key, value in history_config.items():
+            target_path = os.path.join(USER_CONFIG_DIR, key)
+            if key != "layout.ini":
+                write_json(value, "%s"%target_path)
+            else:
+                with open(target_path, 'wb') as f:
+                    f.write(bytes(value))
+                    f.flush()
+        os.system("qviz")
+
     def menu_bar_trigger_operation(self, q):
         if q.text() == "保存":
-            name, ok = self.create_input_dialog("提示", "请输入数据名称")
-            if ok:
-                serialize_data(self.layout_config, os.path.join(DUMP_HISTORY_DIR, name))
+            self.save_history_database()
         elif q.text() == "自动播放":
             self.dock_range_slide.toggle_state()
         elif q.text() == "上一帧":
@@ -258,9 +286,10 @@ class View(QMainWindow):
         for key in self.layout_config['image_dock_path'].keys():
             self.layout_config['image_dock_path'][key] = self.image_dock[key].folder_path
 
+        self.save_last_frame_num()
+
         if not os.path.exists(USER_CONFIG_DIR):
             os.mkdir(USER_CONFIG_DIR)
-        self.save_last_frame_num()
         write_json(self.layout_config, "%s/layout_config.json"%USER_CONFIG_DIR)
         write_json(self.color_map, "%s/color_map.json"%USER_CONFIG_DIR)
         write_json(self.canvas_cfg, "%s/init_canvas_cfg3d.json"%USER_CONFIG_DIR)
