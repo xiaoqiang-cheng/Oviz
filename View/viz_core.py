@@ -169,7 +169,7 @@ class Canvas(scene.SceneCanvas):
 
     def add_veh_model(self, vis_name, parent_view,
                         obj_path="Config/colorful_car/car.obj",
-                        texture_path='Config/colorful_car/uisee.png'):
+                        texture_path='Config/colorful_car/00008.BMP'):
         mesh_path = load_data_file(obj_path, directory=".")
         texture_path = load_data_file(texture_path,  directory=".")
         vertices, faces, normals, texcoords = read_mesh(mesh_path)
@@ -180,7 +180,7 @@ class Canvas(scene.SceneCanvas):
 
         mesh.transform.rotate(90, (1, 0, 0))
         # mesh.transform.rotate(-90, (0, 0, 1))
-        mesh.transform.scale((1.5, 1.5, 1.5))
+        mesh.transform.scale((1.3, 1.3, 1.3))
         mesh.transform.translate((0.5, 0., 1.0))
         texture_filter = TextureFilter(texture, texcoords)
 

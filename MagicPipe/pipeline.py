@@ -165,7 +165,7 @@ def vel2rgb_flow_for_pcd(self, key, data_dict, **kargs):
         return flow_image
 
     for group, subdatase in data_dict.items():
-        for single_pc in subdatase['pointcloud']:
+        for i, single_pc in enumerate(subdatase['pointcloud']):
             pts = single_pc.reshape(-1, 6)
             pts_vel = pts[:, -2:]
 
@@ -174,7 +174,12 @@ def vel2rgb_flow_for_pcd(self, key, data_dict, **kargs):
             pts_vel = pts_vel[np.newaxis, ...]
             color = flow_uv_to_colors(pts_vel[..., 0], pts_vel[..., 1])
             color = color[0] / 255.
+
+            # set background
+            mask = color.sum(-1) == 3.0
+            color[mask] = color[mask] * 0.5
+
             pts = np.concatenate((pts[:, :4], color), axis=-1)
 
-            single_pc = pts
+            subdatase['pointcloud'][i] = pts
     return data_dict

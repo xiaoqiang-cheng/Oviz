@@ -153,7 +153,7 @@ class View(QMainWindow):
                 with open(target_path, 'wb') as f:
                     f.write(bytes(value))
                     f.flush()
-        os.system("qviz")
+        os.system("qviz&")
 
     def menu_bar_trigger_operation(self, q):
         if q.text() == "保存":
