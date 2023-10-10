@@ -126,16 +126,18 @@ class View(QMainWindow):
         }
         trigger_map[q.text()]()
 
+    def update_config_buffer(self):
+        for key in self.canvas_cfg.keys():
+            if "camera" in self.canvas_cfg[key].keys():
+                self.canvas_cfg[key]['camera'].update(self.canvas.get_canvas_camera("template"))
+        for key in self.layout_config['image_dock_path'].keys():
+            self.layout_config['image_dock_path'][key] = self.image_dock[key].folder_path
+        self.save_last_frame_num()
+
     def save_history_database(self):
         name, ok = self.create_input_dialog("提示", "请输入数据名称")
         if ok:
-            for key in self.canvas_cfg.keys():
-                if "camera" in self.canvas_cfg[key].keys():
-                    self.canvas_cfg[key]['camera'].update(self.canvas.get_canvas_camera("template"))
-            for key in self.layout_config['image_dock_path'].keys():
-                self.layout_config['image_dock_path'][key] = self.image_dock[key].folder_path
-            self.save_last_frame_num()
-
+            self.update_config_buffer()
             history_config = {}
             history_config['layout_config.json'] = self.layout_config
             history_config['init_canvas_cfg3d.json'] = self.canvas_cfg
@@ -279,14 +281,7 @@ class View(QMainWindow):
         self.layout_config["last_slide_num"] = self.dock_range_slide.get_curr_index()
 
     def save_layout_config(self):
-        for key in self.canvas_cfg.keys():
-            if "camera" in self.canvas_cfg[key].keys():
-                self.canvas_cfg[key]['camera'].update(self.canvas.get_canvas_camera("template"))
-
-        for key in self.layout_config['image_dock_path'].keys():
-            self.layout_config['image_dock_path'][key] = self.image_dock[key].folder_path
-
-        self.save_last_frame_num()
+        self.update_config_buffer()
 
         if not os.path.exists(USER_CONFIG_DIR):
             os.mkdir(USER_CONFIG_DIR)
