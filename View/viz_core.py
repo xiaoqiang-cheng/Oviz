@@ -27,7 +27,7 @@ class Canvas(scene.SceneCanvas):
     def __init__(self, background=(1,1,1,1)):
         scene.SceneCanvas.__init__(self, keys='interactive')
         self.unfreeze()
-        self.grid = self.central_widget.add_grid(spacing=2, bgcolor=background, border_color='w')
+        self.grid = self.central_widget.add_grid(spacing=1, bgcolor=background, border_color='w')
         # Bind the escape key to a custom function
         # vispy.app.use_app().bind_key("Escape", self.on_escape)
         self.view_panel = {}

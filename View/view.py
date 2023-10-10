@@ -132,6 +132,10 @@ class View(QMainWindow):
                 serialize_data(self.layout_config, os.path.join(DUMP_HISTORY_DIR, name))
         elif q.text() == "自动播放":
             self.dock_range_slide.toggle_state()
+        elif q.text() == "上一帧":
+            self.dock_range_slide.last_frame()
+        elif q.text() == "下一帧":
+            self.dock_range_slide.next_frame()
 
     def create_color_map_widget(self):
         color_id_map_list = QListWidget()
