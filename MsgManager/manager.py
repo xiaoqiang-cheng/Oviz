@@ -1,81 +1,90 @@
-from .utils import *
 from types import FunctionType, MethodType
-import json
-import numpy as np
+from UltraDict import UltraDict
+import getpass
+import time
+import copy
 
-class NumpyEncoder(json.JSONEncoder):
-    """ Special json encoder for numpy types """
-    def default(self, obj):
-        if isinstance(obj, (np.int_, np.intc, np.intp, np.int8,
-                            np.int16, np.int32, np.int64, np.uint8,
-                            np.uint16, np.uint32, np.uint64)):
-            return int(obj)
-        elif isinstance(obj, (np.float_, np.float16, np.float32,
-                              np.float64)):
-            return float(obj)
-        elif isinstance(obj, (np.ndarray,)):
-            return obj.tolist()
-        return json.JSONEncoder.default(self, obj)
+def get_mac_address():
+    import uuid
+    node = uuid.getnode()
+    mac = uuid.UUID(int = node).hex[-12:]
+    return mac
 
 
-class NodeRegister(object):
-    def __init__(self) -> None:
-        super().__init__()
-        self.node = redis.StrictRedis(connection_pool=defual_pool)
-        self.suber = self.node.pubsub()
-        self.subcall = {}
-        self.suber.subscribe("control")
-        self._step = 0
+class NodeRegister():
+    def __init__(self, name = None, node_type = None):
+        # name: username+mac
+        if name is None:
+            self.name = getpass.getuser() + "_" + get_mac_address()
 
+        if node_type is None:
+            self.shared_dict = UltraDict(name=self.name, auto_unlink = False)
+            self.shared_dict.setdefault('data', {})
+            self.shared_dict.setdefault('timestamp', -1.0)
+            self.shared_dict.setdefault('control', False)
+            self.shared_dict.setdefault('lock', False)
+        self.last_msg_timestamp = -1.0
 
-    def pub(self, topic : str, msg):
-        if isinstance(msg, dict):
-            # self.node.publish(topic, str(msg))
-            data = json.dumps(msg, cls=NumpyEncoder)
-            self.node.publish(topic, data)
-        elif isinstance(msg, object):
-            # self.node.publish(topic, str(msg.__dict__))
-            data = json.dumps(msg, default=lambda o:o.__dict__)
-            self.node.publish(topic, data)
-        else:
-            print("不支持的消息类型")
+    def __del__(self):
+        self.shared_dict.close()
+        self.shared_dict.unlink()
 
-    def sub(self, topic : str, callback: FunctionType):
-        if isinstance(callback, (FunctionType,MethodType)):
-            self.suber.subscribe(topic)
-            self.subcall[topic] = callback
-        else:
-            print("需要指定回调函数")
+    def sleep(self, ms = 10.0):
+        time.sleep(ms / 1000.0)
 
-    def wait_next_pub(self, wait = True):
-        if wait == True:
-            for item in self.suber.listen():
-                if item['type']=='message':
-                    data = item['data'].decode()
-                    data = eval(data)
-                    topic = item['channel'].decode()
-                    if topic == "control":
-                        self._step == data["data"]
-                        break
+    def lock(self):
+        self.shared_dict['lock'] = True
 
+    def unlock(self):
+        self.shared_dict['lock'] = False
 
-    def subspin(self):
-        for item in self.suber.listen():
-            if item['type']=='message':
-                data = item['data'].decode()
-                data = eval(data)
-                topic = item['channel'].decode()
-                # msg = CreateObjectFromMsg(data)
-                if topic == "control":
-                    continue
-                self.subcall[topic](data, topic)
+    def get_lock_state(self):
+        return self.shared_dict['lock']
 
-    def unsub(self, topic : str):
-        try:
-            self.suber.unsubscribe(topic)
-            self.subcall.pop(topic)
-        except:
-            print("没有找到当前话题:%s" %topic)
+    def wait_unlock(self):
+        while self.get_lock_state():
+            self.sleep()
+
+    def set_control(self):
+        self.wait_unlock()
+        self.lock()
+        self.shared_dict['control'] = True
+        self.unlock()
+
+    def set_decontrol(self):
+        self.wait_unlock()
+        self.lock()
+        self.shared_dict['control'] = False
+        self.unlock()
+
+    def wait_control(self):
+        while not self.shared_dict['control']:
+            self.sleep()
+        self.set_decontrol()
+
+    def has_new_msg(self):
+        if self.last_msg_timestamp == self.shared_dict['timestamp']:
+            return False
+        self.last_msg_timestamp = self.shared_dict['timestamp']
+        return True
+
+    def pub(self, msg):
+        self.wait_unlock()
+        self.lock()
+        self.shared_dict['timestamp'] = time.time()
+        self.shared_dict['data'] = msg
+        self.unlock()
+
+    def sub(self):
+        while not self.has_new_msg():
+            self.sleep()
+
+        self.wait_unlock()
+        self.lock()
+        msg = copy.deepcopy(self.shared_dict)
+        self.unlock()
+        return msg
+
 
 
 
