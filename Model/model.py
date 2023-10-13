@@ -3,13 +3,30 @@ from Utils.point_cloud_utils import read_pcd, read_bin
 from log_sys import send_log_msg
 import os
 import cv2
+from MsgManager.manager import NodeRegister
 
-class Model():
+
+class Model(QThread):
+    hasNewMsg = Signal(float)
     def __init__(self):
+        super().__init__()
         self.offline_frame_cnt = 0
         self.data_frame_list = []
         self.database = {}
         self.curr_frame_data = {}
+        self.qviz_node = NodeRegister()
+
+    def __del__(self):
+        self.wait()
+        self.quit()
+
+    def run(self):
+        while True:
+            print("live")
+            msg =  self.qviz_node.sub()
+            self.curr_frame_data = msg['data']
+            print(self.curr_frame_data)
+            self.hasNewMsg.emit(msg['timestamp'])
 
     def get_curr_frame_data(self, index):
         if index >= self.offline_frame_cnt: return 0

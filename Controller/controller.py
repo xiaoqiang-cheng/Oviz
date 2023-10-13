@@ -48,12 +48,16 @@ class Controller():
         self.view.dock_global_control_box_layout_dict['magic_pipeline_setting']['checkbox_enable_magic'].stateChanged.connect(self.check_magic_pipeline)
         self.view.dock_global_control_box_layout_dict['magic_pipeline_setting']['button_open_magic_pipe_editor'].clicked.connect(self.open_magic_pipeline)
         self.magicpipe_setting.magic_params = self.view.dock_global_control_box_layout_dict['magic_pipeline_setting']['text_magic_pipe_paramters'].get_json_data
+
         self.view.dock_global_control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
         self.view.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
         self.view.dock_global_control_box_layout_dict['global_setting']['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
+        self.view.dock_global_control_box_layout_dict['global_setting']['checkbox_online_mode'].clicked.connect(self.startup_msg_recv)
+
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_mouse_record_screen'].stateChanged.connect(self.change_mouse_record_mode)
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['button_export_record_video'].clicked.connect(self.export_grab_video)
+
 
     def sub_element_control_box_connect(self, key_str):
         value = self.view.dock_element_control_box_layout_dict[key_str]
@@ -80,6 +84,7 @@ class Controller():
         self.element_control_box_connect()
 
     def signal_connect(self):
+        self.model.hasNewMsg.connect(self.update_buffer_vis)
         self.view.dock_range_slide.frameChanged.connect(self.update_system_vis)
         for key in self.view.image_dock.keys():
             self.view.image_dock[key].SelectDone.connect(self.select_image)
@@ -90,6 +95,12 @@ class Controller():
         self.view.removeControlTab.connect(self.remove_sub_control_box)
         self.view.addSubControlTab.connect(self.add_sub_element_control_box)
         self.view.removeSubControlTab.connect(self.remove_sub_element_control_box)
+
+    def startup_msg_recv(self, state):
+        if state > 0:
+            self.model.start()
+        else:
+            self.model.quit()
 
     def remove_sub_element_control_box(self, ele_key, index):
         curr_group = self.view.get_curr_control_box_name()
@@ -261,7 +272,11 @@ class Controller():
         data_dict = self.exec_user_magic_pipeline(data_dict, kargs)
         return data_dict
 
-    def update_buffer_vis(self):
+    def update_buffer_vis(self, timestamp = None):
+
+        if timestamp:
+            print("msg delay [%.2f] ms"%((time.time() - timestamp) * 1000))
+
         data_dict = self.model.curr_frame_data
         if self.magicpipe_setting.enable:
             data_dict = self.exec_magic_pipeline(data_dict)

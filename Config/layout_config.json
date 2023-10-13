@@ -41,7 +41,7 @@
                 "checkbox_online_mode":{
                     "type" : "QCheckBox",
                     "params":{
-                        "text": "在线模式"
+                        "text": "启动在线模式"
                     }
                 }
             }

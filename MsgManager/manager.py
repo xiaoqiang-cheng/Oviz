@@ -26,8 +26,9 @@ class NodeRegister():
         self.last_msg_timestamp = -1.0
 
     def __del__(self):
-        self.shared_dict.close()
+        print("?????")
         self.shared_dict.unlink()
+        self.shared_dict.close()
 
     def sleep(self, ms = 10.0):
         time.sleep(ms / 1000.0)
@@ -64,6 +65,8 @@ class NodeRegister():
 
     def has_new_msg(self):
         if self.last_msg_timestamp == self.shared_dict['timestamp']:
+            return False
+        if abs(time.time() - self.shared_dict['timestamp']) > 5.0:
             return False
         self.last_msg_timestamp = self.shared_dict['timestamp']
         return True
