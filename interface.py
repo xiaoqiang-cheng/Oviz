@@ -1,6 +1,7 @@
 from MsgManager.manager import NodeRegister
 from Utils.common_utils import *
 import time
+import cv2
 
 group_template = ['template', "sub_1"]
 
@@ -18,7 +19,12 @@ class Qviz:
     def imshow(group = "template", msg = None):
         group_data = Qviz._data.setdefault(group, {})
         topic_data = group_data.setdefault(IMAGE, [])
-        topic_data.append(msg)
+
+        if isinstance(msg, str):
+            msg_data = cv2.imread(msg)
+            topic_data.append(msg_data)
+        else:
+            topic_data.append(msg)
 
     @staticmethod
     def pcshow(group = "template", msg = None):

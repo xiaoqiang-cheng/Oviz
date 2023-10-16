@@ -15,17 +15,21 @@ class Model(QThread):
         self.database = {}
         self.curr_frame_data = {}
         self.qviz_node = NodeRegister()
+        self.start()
 
     def __del__(self):
-        self.wait()
         self.quit()
+        self.wait()
+        print("hello")
+
+    def online_set_control(self):
+        self.qviz_node.set_control()
 
     def run(self):
         while True:
             print("live")
             msg =  self.qviz_node.sub()
             self.curr_frame_data = msg['data']
-            print(self.curr_frame_data)
             self.hasNewMsg.emit(msg['timestamp'])
 
     def get_curr_frame_data(self, index):

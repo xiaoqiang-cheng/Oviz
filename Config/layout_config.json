@@ -37,12 +37,6 @@
                         "params":{
                             "text": "voxel模式"
                         }
-                },
-                "checkbox_online_mode":{
-                    "type" : "QCheckBox",
-                    "params":{
-                        "text": "启动在线模式"
-                    }
                 }
             }
         },

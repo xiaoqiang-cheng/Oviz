@@ -26,7 +26,6 @@ class NodeRegister():
         self.last_msg_timestamp = -1.0
 
     def __del__(self):
-        print("?????")
         self.shared_dict.unlink()
         self.shared_dict.close()
 
@@ -47,7 +46,7 @@ class NodeRegister():
             self.sleep()
 
     def set_control(self):
-        self.wait_unlock()
+        # self.wait_unlock()
         self.lock()
         self.shared_dict['control'] = True
         self.unlock()
@@ -64,12 +63,15 @@ class NodeRegister():
         self.set_decontrol()
 
     def has_new_msg(self):
-        if self.last_msg_timestamp == self.shared_dict['timestamp']:
+        try:
+            if self.last_msg_timestamp == self.shared_dict['timestamp']:
+                return False
+            if abs(time.time() - self.shared_dict['timestamp']) > 5.0:
+                return False
+            self.last_msg_timestamp = self.shared_dict['timestamp']
+            return True
+        except:
             return False
-        if abs(time.time() - self.shared_dict['timestamp']) > 5.0:
-            return False
-        self.last_msg_timestamp = self.shared_dict['timestamp']
-        return True
 
     def pub(self, msg):
         self.wait_unlock()
