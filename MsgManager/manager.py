@@ -81,14 +81,14 @@ class NodeRegister():
         self.unlock()
 
     def sub(self):
-        while not self.has_new_msg():
-            self.sleep()
-
-        self.wait_unlock()
-        self.lock()
-        msg = copy.deepcopy(self.shared_dict)
-        self.unlock()
-        return msg
+        if self.has_new_msg():
+            self.wait_unlock()
+            self.lock()
+            msg = copy.deepcopy(self.shared_dict)
+            self.unlock()
+            return msg
+        else:
+            return None
 
 
 

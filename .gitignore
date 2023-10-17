@@ -5,3 +5,5 @@ Output/
 .history/
 .pipeline
 test.py
+dist/
+build/

@@ -10,6 +10,7 @@ class Model(QThread):
     hasNewMsg = Signal(float)
     def __init__(self):
         super().__init__()
+        self.stop = False
         self.offline_frame_cnt = 0
         self.data_frame_list = []
         self.database = {}
@@ -17,20 +18,23 @@ class Model(QThread):
         self.qviz_node = NodeRegister()
         self.start()
 
-    def __del__(self):
+    def free(self):
+        self.stop = True
         self.quit()
         self.wait()
-        print("hello")
 
     def online_set_control(self):
         self.qviz_node.set_control()
 
     def run(self):
         while True:
-            print("live")
             msg =  self.qviz_node.sub()
-            self.curr_frame_data = msg['data']
-            self.hasNewMsg.emit(msg['timestamp'])
+            if msg:
+                self.curr_frame_data = msg['data']
+                self.hasNewMsg.emit(msg['timestamp'])
+            if self.stop:
+                break
+            self.msleep(20)
 
     def get_curr_frame_data(self, index):
         if index >= self.offline_frame_cnt: return 0

@@ -1,8 +1,9 @@
-matplotlib==3.5.3
-numpy==1.26.0
-opencv_python_headless==4.8.0.76
-PySide2==5.15.2.1
-python_lzf==0.2.4
-QDarkStyle==3.1
-scipy==1.11.3
-vispy==0.13.0
+matplotlib>=3.5.3
+numpy>=1.24.1
+opencv_python>=4.8.1.78
+PySide2>=5.15.2.1
+python_lzf>=0.2.4
+QDarkStyle>=3.1
+scipy>=1.9.0
+UltraDict>=0.0.6
+vispy>=0.13.0

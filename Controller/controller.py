@@ -309,6 +309,7 @@ class Controller():
     def run(self):
         self.view.show()
         self.app.exec_()
+        self.model.free()
 
     def monitor_timer(self):
         get_msg = ret_log_msg()
