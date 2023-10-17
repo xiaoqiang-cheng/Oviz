@@ -54,12 +54,18 @@ class Model(QThread):
         return key
 
     def remove_sub_database(self, key_str):
-        self.database.pop(key_str)
-        self.curr_frame_data.pop(key_str)
+        try:
+            self.database.pop(key_str)
+            self.curr_frame_data.pop(key_str)
+        except:
+            pass
 
     def remove_sub_element_database(self, group, ele_key, index):
-        self.database[group][ele_key].pop(index)
-        self.curr_frame_data[group][ele_key].pop(index)
+        try:
+            self.database[group][ele_key].pop(index)
+            self.curr_frame_data[group][ele_key].pop(index)
+        except:
+            pass
 
     def smart_read_bbox3d(self, bbox_path):
         return np.loadtxt(bbox_path, dtype=np.float32)

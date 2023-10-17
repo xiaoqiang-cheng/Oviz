@@ -17,6 +17,8 @@ from vispy.io import imread, load_data_file, read_mesh
 from vispy.scene.visuals import Mesh
 from vispy.visuals.filters import TextureFilter
 
+VIEW3D_COL_MAX_NUM = 3
+
 class Canvas(scene.SceneCanvas):
     """Class that creates and handles a visualizer for a pointcloud"""
     # view相当于是面板，下面可以有好多vis
@@ -60,8 +62,10 @@ class Canvas(scene.SceneCanvas):
         self.view_panel.pop(view_name)
 
     def add_3dview(self, view_name = "3d", camera = None):
-        self.view_panel[view_name] = self.grid.add_view(row=0,
-                                    col=self.curr_col_3d_view,
+        row_idx = int(self.curr_col_3d_view / VIEW3D_COL_MAX_NUM)
+        col_idx = int(self.curr_col_3d_view % VIEW3D_COL_MAX_NUM)
+        self.view_panel[view_name] = self.grid.add_view(row=row_idx,
+                                    col=col_idx,
                                     border_color=(69/255.0, 83/255.0, 100/255.0))
         self.curr_col_3d_view += 1
         # self.view_panel[view_name].camera = 'turntable' # arcball
