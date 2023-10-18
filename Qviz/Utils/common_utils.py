@@ -31,7 +31,7 @@ np.seterr(divide='ignore',invalid='ignore')
 
 GUICOREVERSION = __GUICOREVERSION__
 QVIZ_CONFIG_DIR = os.path.join(os.path.dirname(Qviz.__file__), "Config")
-QVIZ_HOME_DIR = os.path.join(os.environ['HOME'], ".qviz")
+QVIZ_HOME_DIR = os.path.join(os.path.expanduser("~"), ".qviz")
 USER_CONFIG_DIR = os.path.join(QVIZ_HOME_DIR, ".user")
 DUMP_HISTORY_DIR = os.path.join(QVIZ_HOME_DIR, ".history")
 MAGIC_PIPELINE_DIR = "MagicPipe"

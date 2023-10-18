@@ -1,5 +1,5 @@
 from types import FunctionType, MethodType
-from UltraDict import UltraDict
+from .UltraDict import UltraDict
 import getpass
 import time
 import copy

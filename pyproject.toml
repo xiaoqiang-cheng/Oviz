@@ -26,7 +26,6 @@ dependencies = [
         'python_lzf>=0.2.4',
         'QDarkStyle>=3.1',
         'scipy>=1.9.0',
-        'UltraDict>=0.0.6',
         'vispy>=0.13.0'
     ]
 
