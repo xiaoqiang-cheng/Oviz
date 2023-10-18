@@ -4,7 +4,7 @@ from Qviz.Utils.point_cloud_utils import *
 from Qviz.View.view import View
 from Qviz.Model.model import Model
 from Qviz.Utils.common_utils import *
-from log_sys import *
+from Qviz.log_sys import *
 import sys
 import qdarkstyle
 from qdarkstyle.dark.palette import DarkPalette

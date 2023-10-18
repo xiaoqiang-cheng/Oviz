@@ -1,6 +1,6 @@
 from Qviz.Utils.common_utils import *
 from .viz_core import Canvas
-from log_sys import send_log_msg
+from Qviz.log_sys import send_log_msg
 from .custom_widget import *
 from .dock_view import *
 import cv2

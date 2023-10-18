@@ -1,6 +1,6 @@
 from Qviz.Utils.common_utils import *
 from Qviz.Utils.point_cloud_utils import read_pcd, read_bin
-from log_sys import send_log_msg
+from Qviz.log_sys import send_log_msg
 import os
 import cv2
 from Qviz.MsgManager.manager import NodeRegister
