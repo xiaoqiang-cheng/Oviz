@@ -1,8 +1,8 @@
-from Utils.common_utils import *
-from View.viz_core import Canvas
+from Qviz.Utils.common_utils import *
+from .viz_core import Canvas
 from log_sys import send_log_msg
-from View.custom_widget import *
-from View.dock_view import *
+from .custom_widget import *
+from .dock_view import *
 import cv2
 
 '''
@@ -19,7 +19,7 @@ class View(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Qviz")
-        appIcon = QIcon(os.path.join(os.getcwd(), os.path.join("Config", "xshow.ico")))
+        appIcon = QIcon(os.path.join(QVIZ_CONFIG_DIR, "xshow.ico"))
         self.setWindowIcon(appIcon)
 
         self.load_system_config()
@@ -268,7 +268,7 @@ class View(QMainWindow):
         return ret
 
     def get_user_config(self, config_name):
-        default_config_file = os.path.join("Config", config_name)
+        default_config_file = os.path.join(QVIZ_CONFIG_DIR, config_name)
         default_cfg = parse_json(default_config_file)
         user_config_file = os.path.join(USER_CONFIG_DIR, config_name)
         if os.path.exists(user_config_file):

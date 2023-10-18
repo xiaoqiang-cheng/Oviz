@@ -1,14 +1,14 @@
 
 import numpy as np
-from Utils.point_cloud_utils import *
-from View.view import View
-from Model.model import Model
-from Utils.common_utils import *
+from Qviz.Utils.point_cloud_utils import *
+from Qviz.View.view import View
+from Qviz.Model.model import Model
+from Qviz.Utils.common_utils import *
 from log_sys import *
 import sys
 import qdarkstyle
 from qdarkstyle.dark.palette import DarkPalette
-from Controller.core import *
+from Qviz.Controller.core import *
 from importlib import reload
 
 

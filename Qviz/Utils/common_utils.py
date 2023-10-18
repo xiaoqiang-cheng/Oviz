@@ -26,9 +26,11 @@ import numpy as np
 import pickle
 import time
 import sys
+import Qviz
 np.seterr(divide='ignore',invalid='ignore')
 
 GUICOREVERSION = __GUICOREVERSION__
+QVIZ_CONFIG_DIR = os.path.join(os.path.dirname(Qviz.__file__), "Config")
 QVIZ_HOME_DIR = os.path.join(os.environ['HOME'], ".qviz")
 USER_CONFIG_DIR = os.path.join(QVIZ_HOME_DIR, ".user")
 DUMP_HISTORY_DIR = os.path.join(QVIZ_HOME_DIR, ".history")
@@ -45,7 +47,6 @@ sys.path.append(os.path.join(os.getcwd(), MAGIC_USER_PIPELINE_DIR))
 POINTCLOUD = "pointcloud"
 IMAGE = "image"
 BBOX3D = "bbox3d"
-
 
 ERROR = 0
 NORMAL = 1

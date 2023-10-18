@@ -1,5 +1,5 @@
-from MsgManager.manager import NodeRegister
-from Utils.common_utils import *
+from .MsgManager.manager import NodeRegister
+from .Utils.common_utils import *
 import time
 import cv2
 

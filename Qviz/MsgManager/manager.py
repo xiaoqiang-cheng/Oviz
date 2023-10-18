@@ -58,6 +58,7 @@ class NodeRegister():
         self.unlock()
 
     def wait_control(self):
+        self.set_decontrol()
         while not self.shared_dict['control']:
             self.sleep()
         self.set_decontrol()

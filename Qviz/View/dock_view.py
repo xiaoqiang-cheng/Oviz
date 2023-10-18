@@ -1,7 +1,7 @@
 # import cv2
 import sys
 import os
-from Utils.common_utils import *
+from Qviz.Utils.common_utils import *
 import time
 import copy
 class ImageViewer(QWidget):
@@ -88,7 +88,7 @@ class ImageDockWidget(QDockWidget):
         widget.setContentsMargins(0, 0, 0, 0)
         self.setWidget(widget)
         self.setContentsMargins(0, 0, 0, 0)
-        self.set_image("Config/default.png")
+        self.set_image(os.path.join(QVIZ_CONFIG_DIR, "default.png"))
         self.setMinimumSize(100, 100)
         self.image_viewer.doubleClicked.connect(self.select_image)
         self.linetxt.returnPressed.connect(self.select_topic_path)

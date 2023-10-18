@@ -1,7 +1,7 @@
 # import cv2
 import sys
 import os
-from Utils.common_utils import *
+from Qviz.Utils.common_utils import *
 import time
 
 

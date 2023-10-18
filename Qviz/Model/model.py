@@ -1,9 +1,9 @@
-from Utils.common_utils import *
-from Utils.point_cloud_utils import read_pcd, read_bin
+from Qviz.Utils.common_utils import *
+from Qviz.Utils.point_cloud_utils import read_pcd, read_bin
 from log_sys import send_log_msg
 import os
 import cv2
-from MsgManager.manager import NodeRegister
+from Qviz.MsgManager.manager import NodeRegister
 
 
 class Model(QThread):

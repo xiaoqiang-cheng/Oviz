@@ -1,7 +1,7 @@
-from Controller.controller import Controller
-import signal
+from Qviz.Controller.controller import Controller
+from Qviz.Utils.common_utils import *
 from log_sys import _log_sys_init
-from Utils.common_utils import *
+import signal
 import platform
 
 system_platform = platform.platform()
