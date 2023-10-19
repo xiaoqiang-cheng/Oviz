@@ -32,11 +32,11 @@ np.seterr(divide='ignore',invalid='ignore')
 GUICOREVERSION = __GUICOREVERSION__
 OVIZ_CONFIG_DIR = os.path.join(os.path.dirname(Oviz.__file__), "Config")
 OVIZ_HOME_DIR = os.path.join(os.path.expanduser("~"), ".oviz")
-USER_CONFIG_DIR = os.path.join(OVIZ_HOME_DIR, ".user")
-DUMP_HISTORY_DIR = os.path.join(OVIZ_HOME_DIR, ".history")
+USER_CONFIG_DIR = os.path.join(OVIZ_HOME_DIR, "user")
+DUMP_HISTORY_DIR = os.path.join(OVIZ_HOME_DIR, "history")
 MAGIC_PIPELINE_DIR = "MagicPipe"
 MAGIC_PIPELINE_SCRIPT = os.path.join(MAGIC_PIPELINE_DIR, "pipeline.py")
-MAGIC_USER_PIPELINE_DIR = os.path.join(OVIZ_HOME_DIR, ".pipeline")
+MAGIC_USER_PIPELINE_DIR = os.path.join(OVIZ_HOME_DIR, "pipeline")
 MAGIC_USER_PIPELINE_SCRIPT = os.path.join(MAGIC_USER_PIPELINE_DIR, "user_pipeline.py")
 
 
