@@ -1,6 +1,6 @@
-from Qviz.Controller.controller import Controller
-from Qviz.Utils.common_utils import *
-from Qviz.log_sys import _log_sys_init
+from Oviz.Controller.controller import Controller
+from Oviz.Utils.common_utils import *
+from Oviz.log_sys import _log_sys_init
 import signal
 import platform
 

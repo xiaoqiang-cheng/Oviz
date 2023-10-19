@@ -9,9 +9,9 @@
       </a>
     </sup>
     &nbsp;&nbsp;&nbsp;&nbsp;
-    <b><font size="6">Qviz</font></b>
+    <b><font size="6">Oviz</font></b>
     <sup>
-      <a href="https://github.com/xiaoqiang-cheng/Qviz">
+      <a href="https://github.com/xiaoqiang-cheng/Oviz">
         <i><font size="4">TRY IT OUT</font></i>
       </a>
     </sup>
@@ -48,9 +48,9 @@
 - pip install -r requirements
 
 ### 使用发布环境
-1. 下载打包好的qviz_env
+1. 下载打包好的oviz_env
 2. 安装 ./install.sh
-3. 激活虚拟环境 source /usr/local/qviz_env/bin/activate
+3. 激活虚拟环境 source /usr/local/oviz_env/bin/activate
 
 ### 开始
 ```

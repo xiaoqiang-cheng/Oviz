@@ -1,9 +1,9 @@
-from Qviz.Utils.common_utils import *
-from Qviz.Utils.point_cloud_utils import read_pcd, read_bin
-from Qviz.log_sys import send_log_msg
+from Oviz.Utils.common_utils import *
+from Oviz.Utils.point_cloud_utils import read_pcd, read_bin
+from Oviz.log_sys import send_log_msg
 import os
 import cv2
-from Qviz.MsgManager.manager import NodeRegister
+from Oviz.MsgManager.manager import NodeRegister
 
 
 class Model(QThread):
@@ -15,7 +15,7 @@ class Model(QThread):
         self.data_frame_list = []
         self.database = {}
         self.curr_frame_data = {}
-        self.qviz_node = NodeRegister()
+        self.oviz_node = NodeRegister()
         self.start()
 
     def free(self):
@@ -24,11 +24,11 @@ class Model(QThread):
         self.wait()
 
     def online_set_control(self):
-        self.qviz_node.set_control()
+        self.oviz_node.set_control()
 
     def run(self):
         while True:
-            msg =  self.qviz_node.sub()
+            msg =  self.oviz_node.sub()
             if msg:
                 self.curr_frame_data = msg['data']
                 self.hasNewMsg.emit(msg['timestamp'])

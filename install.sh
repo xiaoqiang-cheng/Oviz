@@ -1,10 +1,10 @@
 #!/bin/bash
 
-WORKSPACE=~/.qviz
-ENVSPACE=/usr/local/qviz_env
+WORKSPACE=~/.oviz
+ENVSPACE=/usr/local/oviz_env
 sudo rm $WORKSPACE
 #sudo rm -r $ENVSPACE
 sudo ln -s $PWD $WORKSPACE
-# sudo ln -s $PWD/qviz_env $ENVSPACE
-sudo cp ./Pack/qviz /usr/bin/
+# sudo ln -s $PWD/oviz_env $ENVSPACE
+sudo cp ./Pack/oviz /usr/bin/
 echo "install done!"

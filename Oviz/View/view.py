@@ -1,6 +1,6 @@
-from Qviz.Utils.common_utils import *
+from Oviz.Utils.common_utils import *
 from .viz_core import Canvas
-from Qviz.log_sys import send_log_msg
+from Oviz.log_sys import send_log_msg
 from .custom_widget import *
 from .dock_view import *
 import cv2
@@ -18,8 +18,8 @@ class View(QMainWindow):
 
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("Qviz")
-        appIcon = QIcon(os.path.join(QVIZ_CONFIG_DIR, "xshow.ico"))
+        self.setWindowTitle("Oviz")
+        appIcon = QIcon(os.path.join(OVIZ_CONFIG_DIR, "xshow.ico"))
         self.setWindowIcon(appIcon)
 
         self.load_system_config()
@@ -155,7 +155,7 @@ class View(QMainWindow):
                 with open(target_path, 'wb') as f:
                     f.write(bytes(value))
                     f.flush()
-        os.system("qviz&")
+        os.system("oviz&")
 
     def menu_bar_trigger_operation(self, q):
         if q.text() == "保存":
@@ -268,7 +268,7 @@ class View(QMainWindow):
         return ret
 
     def get_user_config(self, config_name):
-        default_config_file = os.path.join(QVIZ_CONFIG_DIR, config_name)
+        default_config_file = os.path.join(OVIZ_CONFIG_DIR, config_name)
         default_cfg = parse_json(default_config_file)
         user_config_file = os.path.join(USER_CONFIG_DIR, config_name)
         if os.path.exists(user_config_file):

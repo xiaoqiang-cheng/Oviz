@@ -11,7 +11,7 @@ from vispy.color import Color
 from vispy.visuals import transforms
 from .box_marker import BoxMarkers
 from scipy.spatial.transform import Rotation
-from Qviz.Utils.common_utils import *
+from Oviz.Utils.common_utils import *
 
 from vispy.io import imread, load_data_file, read_mesh
 from vispy.scene.visuals import Mesh
@@ -172,8 +172,8 @@ class Canvas(scene.SceneCanvas):
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_veh_model(self, vis_name, parent_view,
-                        obj_path=os.path.join(QVIZ_CONFIG_DIR, "colorful_car/car.obj"),
-                        texture_path=os.path.join(QVIZ_CONFIG_DIR, 'colorful_car/00008.BMP')
+                        obj_path=os.path.join(OVIZ_CONFIG_DIR, "colorful_car/car.obj"),
+                        texture_path=os.path.join(OVIZ_CONFIG_DIR, 'colorful_car/00008.BMP')
                     ):
         mesh_path = load_data_file(obj_path, directory=".")
         texture_path = load_data_file(texture_path,  directory=".")

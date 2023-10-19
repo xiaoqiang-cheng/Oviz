@@ -1,14 +1,14 @@
 
 import numpy as np
-from Qviz.Utils.point_cloud_utils import *
-from Qviz.View.view import View
-from Qviz.Model.model import Model
-from Qviz.Utils.common_utils import *
-from Qviz.log_sys import *
+from Oviz.Utils.point_cloud_utils import *
+from Oviz.View.view import View
+from Oviz.Model.model import Model
+from Oviz.Utils.common_utils import *
+from Oviz.log_sys import *
 import sys
 import qdarkstyle
 from qdarkstyle.dark.palette import DarkPalette
-from Qviz.Controller.core import *
+from Oviz.Controller.core import *
 from importlib import reload
 
 
@@ -41,7 +41,7 @@ class Controller():
 
         self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
         self.revert_user_config()
-        send_log_msg(NORMAL, "Qviz 系統开始运行！")
+        send_log_msg(NORMAL, "Oviz 系統开始运行！")
 
     def global_box_signal_connect(self):
         self.view.dock_global_control_box_layout_dict['car_model_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
