@@ -25,6 +25,9 @@ class Model(QObject):
     def online_set_control(self):
         self.oviz_node.set_control()
 
+    def update_middleware(self, ip, port):
+        self.oviz_node.set_remote_mode(ip, port)
+
     def online_callback(self, msg):
         self.curr_frame_data = msg['data']
         self.hasNewMsg.emit(msg['timestamp'])

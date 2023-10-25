@@ -9,11 +9,14 @@ class MiddleManager(threading.Thread):
         self.event = event
         self.callback_func = callback_func
         # default use share_memory
-        self.default_middleware = UltraMiddleWare()
+        self.set_default_mode()
 
     def set_remote_mode(self, target_ip = None, target_port=None):
         self.default_middleware = UDPMiddleWare(target_ip=target_ip,
                 target_port=target_port)
+
+    def set_default_mode(self):
+        self.default_middleware = UltraMiddleWare()
 
     def set_control(self):
         self.default_middleware.set_control()

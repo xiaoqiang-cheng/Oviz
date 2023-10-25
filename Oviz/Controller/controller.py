@@ -52,7 +52,8 @@ class Controller():
         self.view.dock_global_control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
         self.view.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
         self.view.dock_global_control_box_layout_dict['global_setting']['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
-        # self.view.dock_global_control_box_layout_dict['global_setting']['checkbox_online_mode'].clicked.connect(self.startup_msg_recv)
+
+        self.view.dock_global_control_box_layout_dict['remote_api_setting']['enable_remote_link'].clicked.connect(self.enable_remote_api)
 
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_mouse_record_screen'].stateChanged.connect(self.change_mouse_record_mode)
@@ -96,11 +97,13 @@ class Controller():
         self.view.addSubControlTab.connect(self.add_sub_element_control_box)
         self.view.removeSubControlTab.connect(self.remove_sub_element_control_box)
 
-    # def startup_msg_recv(self, state):
-    #     if state > 0:
-    #         self.model.start()
-    #     else:
-    #         self.model.quit()
+    def enable_remote_api(self, state):
+        if state > 0:
+            ip, port = self.view.get_remote_api_setting()
+            print(ip, port)
+            self.model.update_middleware(ip, port)
+        else:
+            self.model.quit()
 
     def remove_sub_element_control_box(self, ele_key, index):
         curr_group = self.view.get_curr_control_box_name()

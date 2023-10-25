@@ -19,7 +19,7 @@ class UltraMiddleWare():
         self.shared_dict = UltraDict(name=self.name, auto_unlink = False)
         self.shared_dict.setdefault('data', {})
         self.shared_dict.setdefault('timestamp', -1.0)
-        self.shared_dict.setdefault('control', False)
+        self.shared_dict['control'] = False
         self.last_msg_timestamp = -1.0
 
     def __del__(self):

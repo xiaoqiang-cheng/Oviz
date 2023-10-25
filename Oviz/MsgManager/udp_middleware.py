@@ -11,10 +11,10 @@ class UDPMiddleWare():
         self.send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.recv_sock.bind(("0.0.0.0", target_port))
-
+        self.shared_dict = dict()
         self.shared_dict.setdefault('data', {})
         self.shared_dict.setdefault('timestamp', -1.0)
-        self.shared_dict.setdefault('control', False)
+        self.shared_dict['control'] = False
 
     def pub(self, msg):
         self.shared_dict['timestamp'] = time.time()

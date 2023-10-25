@@ -75,6 +75,37 @@
             }
         },
 
+        "remote_api_setting":
+        {
+            "type": "QVBoxLayout",
+            "widget" : {
+                "enable_remote_link":{
+                    "type" : "QCheckBox",
+                    "params":{
+                        "text": "使用远程API功能"
+                    }
+                },
+                "linetxt_target_ip":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "target_ip",
+                        "default_value": {
+                            "value": "0.0.0.0"
+                        }
+                    }
+                },
+                "linetxt_target_port":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "target_port",
+                        "default_value": {
+                            "value": "12345"
+                        }
+                    }
+                }
+            }
+        },
+
         "car_model_setting":
         {
             "type": "QVBoxLayout",

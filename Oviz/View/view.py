@@ -466,6 +466,13 @@ class View(QMainWindow):
     def get_curr_sub_element_count(self,  group, key):
         return self.dock_element_control_box.boxes[group][key].tab_widget.count()
 
+    def get_remote_api_setting(self):
+        curr_widget = self.dock_global_control_box_layout_dict['remote_api_setting']
+        ip = curr_widget['linetxt_target_ip'].text()
+        port = curr_widget['linetxt_target_port'].text()
+
+        return ip, int(port)
+
     def get_pointsetting(self, index = 0):
         topic_type = POINTCLOUD
         curr_widget_key = self.get_curr_control_box_name()
