@@ -311,6 +311,7 @@ class Controller():
         self.app.exec_()
         self.model.free()
 
+
     def monitor_timer(self):
         get_msg = ret_log_msg()
         if get_msg != []:
@@ -318,6 +319,7 @@ class Controller():
 
     def sigint_handler(self, signum = None, frame = None):
         self.Timer.stop()
+        self.model.free()
         sys.exit(self.app.exec_())
 
     def image_callback(self, msg, topic_type, ele_index, group):

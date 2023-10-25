@@ -3,10 +3,10 @@ from Oviz.Utils.point_cloud_utils import read_pcd, read_bin
 from Oviz.log_sys import send_log_msg
 import os
 import cv2
-from Oviz.MsgManager.manager import NodeRegister
+from Oviz.MsgManager.manager import MiddleManager
+import threading
 
-
-class Model(QThread):
+class Model(QObject):
     hasNewMsg = Signal(float)
     def __init__(self):
         super().__init__()
@@ -15,26 +15,19 @@ class Model(QThread):
         self.data_frame_list = []
         self.database = {}
         self.curr_frame_data = {}
-        self.oviz_node = NodeRegister()
-        self.start()
+        self.oviz_node_event = threading.Event()
+        self.oviz_node = MiddleManager(self.online_callback, self.oviz_node_event)
+        self.oviz_node.start()
 
     def free(self):
-        self.stop = True
-        self.quit()
-        self.wait()
+        self.oviz_node_event.set()
 
     def online_set_control(self):
         self.oviz_node.set_control()
 
-    def run(self):
-        while True:
-            msg =  self.oviz_node.sub()
-            if msg:
-                self.curr_frame_data = msg['data']
-                self.hasNewMsg.emit(msg['timestamp'])
-            if self.stop:
-                break
-            self.msleep(20)
+    def online_callback(self, msg):
+        self.curr_frame_data = msg['data']
+        self.hasNewMsg.emit(msg['timestamp'])
 
     def get_curr_frame_data(self, index):
         if index >= self.offline_frame_cnt: return 0

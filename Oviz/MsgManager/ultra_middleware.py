@@ -16,53 +16,32 @@ class UltraMiddleWare():
         if name is None:
             self.name = getpass.getuser() + "_" + get_mac_address()
 
-        if node_type is None:
-            self.shared_dict = UltraDict(name=self.name, auto_unlink = False)
-            self.shared_dict.setdefault('data', {})
-            self.shared_dict.setdefault('timestamp', -1.0)
-            self.shared_dict.setdefault('control', False)
-            self.shared_dict.setdefault('lock', False)
+        self.shared_dict = UltraDict(name=self.name, auto_unlink = False)
+        self.shared_dict.setdefault('data', {})
+        self.shared_dict.setdefault('timestamp', -1.0)
+        self.shared_dict.setdefault('control', False)
         self.last_msg_timestamp = -1.0
 
     def __del__(self):
         self.shared_dict.unlink()
         self.shared_dict.close()
 
-    def sleep(self, ms = 10.0):
-        time.sleep(ms / 1000.0)
-
-    def lock(self):
-        self.shared_dict['lock'] = True
-
-    def unlock(self):
-        self.shared_dict['lock'] = False
-
-    def get_lock_state(self):
-        return self.shared_dict['lock']
-
-    def wait_unlock(self):
-        while self.get_lock_state():
-            self.sleep()
-
     def set_control(self):
-        # self.wait_unlock()
-        self.lock()
         self.shared_dict['control'] = True
-        self.unlock()
 
-    def set_decontrol(self):
-        self.wait_unlock()
-        self.lock()
+    def wait_control(self, event = None):
+        if event is None:
+            while (not self.shared_dict['control']):
+                self._sleep()
+        else:
+            while (not self.shared_dict['control']) and (not event.is_set()):
+                event.wait(0.1)
+        self._set_decontrol()
+
+    def _set_decontrol(self):
         self.shared_dict['control'] = False
-        self.unlock()
 
-    def wait_control(self):
-        self.set_decontrol()
-        while not self.shared_dict['control']:
-            self.sleep()
-        self.set_decontrol()
-
-    def has_new_msg(self):
+    def _has_new_msg(self):
         try:
             if self.last_msg_timestamp == self.shared_dict['timestamp']:
                 return False
@@ -74,21 +53,19 @@ class UltraMiddleWare():
             return False
 
     def pub(self, msg):
-        self.wait_unlock()
-        self.lock()
         self.shared_dict['timestamp'] = time.time()
         self.shared_dict['data'] = msg
-        self.unlock()
 
-    def sub(self):
-        if self.has_new_msg():
-            self.wait_unlock()
-            self.lock()
-            msg = copy.deepcopy(self.shared_dict)
-            self.unlock()
-            return msg
-        else:
-            return None
+    def sub(self, event = None):
+        while (not self._has_new_msg()) and (not event.is_set()):
+            event.wait(0.1)
+        msg = copy.deepcopy(self.shared_dict)
+        return msg
+
+    def _sleep(self, ms = 10.0):
+        time.sleep(ms / 1000.0)
+
+
 
 
 
