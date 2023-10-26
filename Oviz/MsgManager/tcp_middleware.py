@@ -8,6 +8,8 @@ class TCPMiddleWare():
         self.ip = ip
         self.port = port
         self.buffer_size = buffer_size
+        self.ending_symbol = b'kxkxkxkxkx'
+        self.ending_symbol_length = len(self.ending_symbol)
         if ip is None:
             self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.tcp_socket.bind(("", self.port))
@@ -42,15 +44,19 @@ class TCPMiddleWare():
         self.shared_dict['timestamp'] = time.time()
         self.shared_dict['data'] = msg
         serialized_data = pickle.dumps(self.shared_dict)
+        print(len(serialized_data))
         self.client_socket.send(serialized_data)
+        self.client_socket.send(self.ending_symbol)
 
 
     def recv(self, buffer):
         data = []
         while True:
-            packet = self.client_socket.recv(2048)
-            if not packet: break
+            packet = self.client_socket.recv(4096)
             data.append(packet)
+            if len(packet) >= self.ending_symbol_length and \
+                    packet[-self.ending_symbol_length:] == self.ending_symbol: break
+            if len(packet) < self.ending_symbol_length: break
         return data
 
     def sub(self, event = None):
@@ -58,9 +64,11 @@ class TCPMiddleWare():
         if self.client_socket:
             # data = self.client_socket.recv(self.buffer_size)  # 适当调整缓冲区大小
             data = self.recv(4096)
-            if data:
+            cvt_data = b"".join(data)
+            print(len(cvt_data))
+            if cvt_data:
                 # msg = pickle.loads(data)
-                msg = pickle.loads(b"".join(data))
+                msg = pickle.loads(cvt_data[:-self.ending_symbol_length])
                 return msg
             else:
                 self.connect_flag = False
@@ -76,6 +84,7 @@ class TCPMiddleWare():
         self.shared_dict['data'] = {}
         serialized_data = pickle.dumps(self.shared_dict)
         self.client_socket.send(serialized_data)
+        self.client_socket.send(self.ending_symbol)
 
     def _is_decontrol(self):
         msg = self.sub()
