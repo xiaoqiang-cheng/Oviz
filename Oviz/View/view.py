@@ -469,10 +469,9 @@ class View(QMainWindow):
 
     def get_remote_api_setting(self):
         curr_widget = self.dock_global_control_box_layout_dict['remote_api_setting']
-        ip = curr_widget['linetxt_target_ip'].text()
         port = curr_widget['linetxt_target_port'].text()
 
-        return ip, int(port)
+        return int(port)
 
     def get_pointsetting(self, index = 0):
         topic_type = POINTCLOUD

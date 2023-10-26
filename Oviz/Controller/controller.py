@@ -101,8 +101,7 @@ class Controller():
 
     def enable_remote_api(self, state):
         if state > 0:
-            ip, port = self.view.get_remote_api_setting()
-            print(ip, port)
+            port = self.view.get_remote_api_setting()
             self.model.update_middleware(port)
         else:
             self.model.update_middleware()

@@ -26,9 +26,8 @@ class TCPMiddleWare():
         }
 
     def check_listen_and_connect_tcp(self):
-        print("ready to connect remote machine...")
-
         if (not self.connect_flag):
+            print("ready to connect remote machine...")
             if self.ip is None:
                 self.client_socket, self.client_address = self.tcp_socket.accept()
                 print("监听成功", self.client_address)
@@ -45,12 +44,23 @@ class TCPMiddleWare():
         serialized_data = pickle.dumps(self.shared_dict)
         self.client_socket.send(serialized_data)
 
+
+    def recv(self, buffer):
+        data = []
+        while True:
+            packet = self.client_socket.recv(2048)
+            if not packet: break
+            data.append(packet)
+        return data
+
     def sub(self, event = None):
         self.check_listen_and_connect_tcp()
         if self.client_socket:
-            data = self.client_socket.recv(self.buffer_size)  # 适当调整缓冲区大小
+            # data = self.client_socket.recv(self.buffer_size)  # 适当调整缓冲区大小
+            data = self.recv(4096)
             if data:
-                msg = pickle.loads(data)
+                # msg = pickle.loads(data)
+                msg = pickle.loads(b"".join(data))
                 return msg
             else:
                 self.connect_flag = False

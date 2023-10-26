@@ -41,7 +41,7 @@ class Model(QObject):
         self.oviz_node.close()
 
     def online_callback(self, msg):
-        print(msg)
+        # print(msg)
         self.curr_frame_data = msg['data']
         self.hasNewMsg.emit(msg['timestamp'])
 

@@ -54,6 +54,7 @@ class Oviz:
     @staticmethod
     def waitKey(cnt = -1):
         Oviz._oviz_node.pub(Oviz._data)
+        print("here")
         if cnt < 0:
             Oviz._oviz_node.wait_control()
         else:
