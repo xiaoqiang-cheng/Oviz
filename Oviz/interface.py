@@ -18,7 +18,7 @@ class Oviz:
 
     _data = dict()
     @staticmethod
-    def init_oviz_api(ip, port):
+    def init_oviz_api(ip, port = 12345):
         Oviz._oviz_node.init_oviz_api(ip, port)
 
     @staticmethod
@@ -59,11 +59,3 @@ class Oviz:
         else:
             time.sleep(cnt)
         Oviz._data.clear()
-
-if __name__=="__main__":
-    import numpy as np
-    while True:
-        Oviz.imshow(msg=np.zeros((100000)))
-        Oviz.waitKey()
-        time.sleep(1)
-

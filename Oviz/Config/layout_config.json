@@ -85,15 +85,6 @@
                         "text": "使用远程API功能"
                     }
                 },
-                "linetxt_target_ip":{
-                    "type": "LineTextWithLabelWidget",
-                    "params":{
-                        "widget_titie" : "target_ip",
-                        "default_value": {
-                            "value": "0.0.0.0"
-                        }
-                    }
-                },
                 "linetxt_target_port":{
                     "type": "LineTextWithLabelWidget",
                     "params":{
@@ -101,6 +92,12 @@
                         "default_value": {
                             "value": "12345"
                         }
+                    }
+                },
+                "button_remote_key":{
+                    "type": "QPushButton",
+                    "params":{
+                        "text": "remote key"
                     }
                 }
             }

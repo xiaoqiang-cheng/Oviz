@@ -23,6 +23,9 @@ class UltraMiddleWare():
         self.last_msg_timestamp = -1.0
 
     def __del__(self):
+        self.close()
+
+    def close(self):
         self.shared_dict.unlink()
         self.shared_dict.close()
 
@@ -57,7 +60,9 @@ class UltraMiddleWare():
         self.shared_dict['data'] = msg
 
     def sub(self, event = None):
-        while (not self._has_new_msg()) and (not event.is_set()):
+        while (not self._has_new_msg()):
+            if event.is_set():
+                return None
             event.wait(0.1)
         msg = copy.deepcopy(self.shared_dict)
         return msg

@@ -54,6 +54,8 @@ class Controller():
         self.view.dock_global_control_box_layout_dict['global_setting']['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
 
         self.view.dock_global_control_box_layout_dict['remote_api_setting']['enable_remote_link'].clicked.connect(self.enable_remote_api)
+        self.view.dock_global_control_box_layout_dict['remote_api_setting']['button_remote_key'].clicked.connect(self.model.online_set_control)
+
 
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_mouse_record_screen'].stateChanged.connect(self.change_mouse_record_mode)
@@ -101,9 +103,9 @@ class Controller():
         if state > 0:
             ip, port = self.view.get_remote_api_setting()
             print(ip, port)
-            self.model.update_middleware(ip, port)
+            self.model.update_middleware(port)
         else:
-            self.model.quit()
+            self.model.update_middleware()
 
     def remove_sub_element_control_box(self, ele_key, index):
         curr_group = self.view.get_curr_control_box_name()
@@ -257,7 +259,7 @@ class Controller():
 
     def exec_offical_magic_pipeline(self, data_dict, kargs):
         # execute offical pipeline
-        modules = __import__("pipeline", fromlist=[""])
+        modules = __import__("Oviz.MagicPipe.pipeline", fromlist=[""])
         reload(modules)
         functions = [getattr(modules, func) for func in dir(modules) if callable(getattr(modules, func))]
         for func in functions[::-1]:
@@ -305,14 +307,16 @@ class Controller():
         self.curr_frame_key = self.model.get_curr_frame_data(index)
         self.update_buffer_vis()
         self.view.send_update_vis_flag()
-        self.model.online_set_control()
+        # self.model.online_set_control()
         if self.record_screen_setting.record_screen:
             self.view.grab_form(self.model.data_frame_list[index], ".png")
 
     def run(self):
         self.view.show()
         self.app.exec_()
+        print("Close Windows 退出程序")
         self.model.free()
+
 
 
     def monitor_timer(self):
@@ -321,9 +325,12 @@ class Controller():
             self.view.dock_log_info.display_append_msg_list(get_msg)
 
     def sigint_handler(self, signum = None, frame = None):
+        print("Ctrl + C 退出程序")
         self.Timer.stop()
         self.model.free()
-        sys.exit(self.app.exec_())
+        sys.exit(0)
+        # sys.exit(self.app.exec_())
+
 
     def image_callback(self, msg, topic_type, ele_index, group):
         self.view.set_image(msg, ele_index)

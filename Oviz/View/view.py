@@ -357,6 +357,7 @@ class View(QMainWindow):
         self.dock_range_slide.set_frmae_text(self.layout_config["last_slide_num"])
 
     def closeEvent(self, e):
+        print("ready to close ui")
         e.accept()
         self.save_layout_config()
 
