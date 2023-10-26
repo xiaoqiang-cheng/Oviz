@@ -18,8 +18,8 @@ class Oviz:
 
     _data = dict()
     @staticmethod
-    def set_remote_mode(ip, port):
-        Oviz._oviz_node.set_remote_mode(ip, port)
+    def init_oviz_api(ip, port):
+        Oviz._oviz_node.init_oviz_api(ip, port)
 
     @staticmethod
     def imshow(group = "template", msg = None):

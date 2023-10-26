@@ -8,15 +8,13 @@ class MiddleManager(threading.Thread):
         super().__init__()
         self.event = event
         self.callback_func = callback_func
-        # default use share_memory
-        self.set_default_mode()
 
-    def set_remote_mode(self, target_ip = None, target_port=None):
-        self.default_middleware = UDPMiddleWare(target_ip=target_ip,
-                target_port=target_port)
-
-    def set_default_mode(self):
-        self.default_middleware = UltraMiddleWare()
+    def init_oviz_api(self, target_ip = None, target_port=None):
+        if target_ip  is None:
+            self.default_middleware = UltraMiddleWare()
+        else:
+            self.default_middleware = UDPMiddleWare(target_ip=target_ip,
+                    target_port=target_port)
 
     def set_control(self):
         self.default_middleware.set_control()

@@ -16,7 +16,9 @@ class Model(QObject):
         self.database = {}
         self.curr_frame_data = {}
         self.oviz_node_event = threading.Event()
+
         self.oviz_node = MiddleManager(self.online_callback, self.oviz_node_event)
+        self.oviz_node.init_oviz_api()
         self.oviz_node.start()
 
     def free(self):
@@ -25,8 +27,11 @@ class Model(QObject):
     def online_set_control(self):
         self.oviz_node.set_control()
 
-    def update_middleware(self, ip, port):
-        self.oviz_node.set_remote_mode(ip, port)
+    def update_middleware(self, ip = None, port=None):
+        if ip is None:
+            self.oviz_node.init_oviz_api()
+        else:
+            self.oviz_node.init_oviz_api(ip, port)
 
     def online_callback(self, msg):
         self.curr_frame_data = msg['data']
