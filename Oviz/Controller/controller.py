@@ -306,7 +306,6 @@ class Controller():
         self.curr_frame_key = self.model.get_curr_frame_data(index)
         self.update_buffer_vis()
         self.view.send_update_vis_flag()
-        # self.model.online_set_control()
         if self.record_screen_setting.record_screen:
             self.view.grab_form(self.model.data_frame_list[index], ".png")
 
@@ -315,7 +314,7 @@ class Controller():
         self.app.exec_()
         print("Close Windows 退出程序")
         self.model.free()
-
+        sys.exit(1)
 
 
     def monitor_timer(self):

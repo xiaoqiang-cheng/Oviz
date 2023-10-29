@@ -39,6 +39,7 @@ class Model(QObject):
 
     def free_middleware(self):
         self.oviz_node.close()
+        self.oviz_node.join()
 
     def online_callback(self, msg):
         # print(msg)

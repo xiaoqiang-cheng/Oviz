@@ -2,6 +2,7 @@ from .UltraDict import UltraDict
 import getpass
 import time
 import copy
+import platform
 
 def get_mac_address():
     import uuid
@@ -16,9 +17,13 @@ class UltraMiddleWare():
         if name is None:
             self.name = getpass.getuser() + "_" + get_mac_address()
 
-        self.shared_dict = UltraDict(name=self.name, auto_unlink = False)
-        self.shared_dict.setdefault('data', {})
-        self.shared_dict.setdefault('timestamp', -1.0)
+        if "Windows" in platform.platform():
+            self.shared_dict = UltraDict(name=self.name, auto_unlink = False, shared_lock=True)
+        else:
+            self.shared_dict = UltraDict(name=self.name, auto_unlink = False)
+
+        self.shared_dict['data'] = {}
+        self.shared_dict['timestamp'] = -1.0
         self.shared_dict['control'] = False
         self.last_msg_timestamp = -1.0
 
@@ -30,18 +35,15 @@ class UltraMiddleWare():
         self.shared_dict.close()
 
     def set_control(self):
+        self.shared_dict['timestamp'] = time.time()
         self.shared_dict['control'] = True
 
-    def wait_control(self, event = None):
-        if event is None:
-            while (not self.shared_dict['control']):
-                self._sleep()
-        else:
-            while (not self.shared_dict['control']) and (not event.is_set()):
-                event.wait(0.1)
-        self._set_decontrol()
+    def is_decontrol(self):
+        msg = self.sub()
+        return msg['control']
 
-    def _set_decontrol(self):
+    def reset_decontrol(self):
+        self.shared_dict['timestamp'] = time.time()
         self.shared_dict['control'] = False
 
     def _has_new_msg(self):
@@ -61,19 +63,15 @@ class UltraMiddleWare():
 
     def sub(self, event = None):
         while (not self._has_new_msg()):
-            if event.is_set():
-                return None
-            event.wait(0.1)
+            if event:
+                if event.is_set():
+                    return None
+                event.wait(0.1)
+            else:
+                self._sleep()
         msg = copy.deepcopy(self.shared_dict)
         return msg
 
     def _sleep(self, ms = 10.0):
         time.sleep(ms / 1000.0)
-
-
-
-
-
-
-
 

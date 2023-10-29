@@ -6,7 +6,7 @@ from .dock_view import *
 import cv2
 
 '''
-TODO: 扩展|magic link|filter|在线录
+TODO : 扩展 | magic link | filter | 在线录
 '''
 
 class View(QMainWindow):
@@ -19,7 +19,7 @@ class View(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Oviz")
-        appIcon = QIcon(os.path.join(OVIZ_CONFIG_DIR, "xshow.ico"))
+        appIcon = QIcon(os.path.join(OVIZ_CONFIG_DIR, "oviz.png"))
         self.setWindowIcon(appIcon)
 
         self.load_system_config()

@@ -32,11 +32,17 @@ class MiddleManager(threading.Thread):
         except:
             pass
 
+    def reset_decontrol(self):
+        try:
+            self.default_middleware.reset_decontrol()
+        except:
+            pass
+
     def pub(self, msg):
         self.default_middleware.pub(msg)
 
-    def wait_control(self):
-        self.default_middleware.wait_control(self.event)
+    def is_decontrol(self):
+        return self.default_middleware.is_decontrol()
 
     def run(self):
         while not self.event.is_set():

@@ -16,6 +16,9 @@ class Oviz:
             group2
     '''
 
+    @staticmethod
+    def __del__():
+        Oviz._oviz_node.close()
     _data = dict()
     @staticmethod
     def init_oviz_api(ip, port = 12345):
@@ -54,7 +57,9 @@ class Oviz:
     def waitKey(cnt = -1):
         Oviz._oviz_node.pub(Oviz._data)
         if cnt < 0:
-            Oviz._oviz_node.wait_control()
+            while not Oviz._oviz_node.is_decontrol():
+                time.sleep(0.1)
+            Oviz._oviz_node.reset_decontrol()
         else:
             time.sleep(cnt)
         Oviz._data.clear()
