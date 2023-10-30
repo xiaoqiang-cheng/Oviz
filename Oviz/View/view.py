@@ -310,7 +310,7 @@ class View(QMainWindow):
 
         if len(self.record_screen_image_list) == 0: return
 
-        frame_size = (1280, 720)
+        frame_size = (self.width(), self.height())
         out = cv2.VideoWriter(video_name, fourcc, 10, frame_size)
         plt.figure("Preview")
         for image_path in self.record_screen_image_list:
