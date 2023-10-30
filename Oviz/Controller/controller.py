@@ -314,7 +314,8 @@ class Controller():
         self.app.exec_()
         print("Close Windows 退出程序")
         self.model.free()
-        sys.exit(1)
+        print("进程完全退出！")
+        sys.exit(0)
 
 
     def monitor_timer(self):
@@ -328,6 +329,7 @@ class Controller():
         self.model.free()
         sys.exit(0)
         # sys.exit(self.app.exec_())
+
 
 
     def image_callback(self, msg, topic_type, ele_index, group):

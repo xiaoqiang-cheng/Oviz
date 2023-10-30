@@ -100,19 +100,26 @@ class TCPMiddleWare():
 
     def close(self):
         print("ready to close tcp")
-        try:
+
+        if self.tcp_socket:
+            print(self.tcp_socket)
+            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            host = 'localhost'
+            try:
+                client_socket.connect((host, self.port))
+                client_socket.close()
+            except Exception as e:
+                print("主动连接结束监听！")
+
             self.tcp_socket.close()
-        except:
-            pass
 
-        try:
+        if self.client_socket:
             self.client_socket.close()
-        except:
-            pass
+        print("close done!")
 
 
-    def __del__(self):
-        self.close()
+    # def __del__(self):
+    #     self.close()
 
 if __name__ == "__main__":
     serv = TCPMiddleWare()
