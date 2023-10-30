@@ -76,17 +76,24 @@ class ImageDockWidget(QDockWidget):
         separator_line.setStyleSheet("background-color: rgb(224, 224, 224);")
         title_bar_layout.addWidget(separator_line)
 
+        op = QGraphicsOpacityEffect()
+        op.setOpacity(0)
+
+
         self.close_button = QPushButton("×")
         self.close_button.setMaximumWidth(20)
         self.hide_button = QPushButton("_")
         self.hide_button.setMaximumWidth(20)
+        self.hide_button.setStyleSheet("background: transparent;")  # 设置按钮背景为透明，去除边框
+
         self.add_button = QPushButton("+")
         self.add_button.setMaximumWidth(20)
 
+        self.hide_button.clicked.connect(self.hide)
 
-        title_bar_layout.addWidget(self.close_button)
-        title_bar_layout.addWidget(self.hide_button)
         title_bar_layout.addWidget(self.add_button)
+        title_bar_layout.addWidget(self.hide_button)
+        title_bar_layout.addWidget(self.close_button)
 
 
         # Set the custom title bar widget as the title bar for the dock widget
