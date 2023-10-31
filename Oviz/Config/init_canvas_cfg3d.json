@@ -39,7 +39,10 @@
                 "type": "add_axis_vis"
             },
             "car_model":{
-                "type":"add_veh_model"
+                "type":"add_veh_model",
+                "params":{
+                    "texture_path": "00008.BMP"
+                }
             }
         }
     }

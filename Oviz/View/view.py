@@ -491,7 +491,10 @@ class View(QMainWindow):
         else:
             canvas.create_view(results["type"], group)
         for vis_key, vis_res in results["vis"].items():
-            canvas.creat_vis(vis_res['type'], group + "_" + vis_key, group)
+            if "params" in vis_res.keys():
+                canvas.creat_vis(vis_res['type'], group + "_" + vis_key, group, vis_res['params'])
+            else:
+                canvas.creat_vis(vis_res['type'], group + "_" + vis_key, group)
 
         if self.dock_global_control_box_layout_dict['global_setting']["checkbox_unlink_3dviz"].isChecked():
             return

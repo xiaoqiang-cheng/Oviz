@@ -44,12 +44,12 @@ class Canvas(scene.SceneCanvas):
         else:
             create_method(view_name, camera)
 
-    def creat_vis(self, vis_type, vis_name, parent_view):
+    def creat_vis(self, vis_type, vis_name, parent_view, params = {}):
         create_method = getattr(self, vis_type, None)
         if create_method is None:
             raise RuntimeError('无此类型视图面板')
         else:
-            create_method(vis_name, parent_view)
+            create_method(vis_name, parent_view, **params)
 
     def pop_view(self, view_name):
         self.curr_col_3d_view -= 1
@@ -173,8 +173,9 @@ class Canvas(scene.SceneCanvas):
 
     def add_veh_model(self, vis_name, parent_view,
                         obj_path=os.path.join(OVIZ_CONFIG_DIR, "colorful_car/car.obj"),
-                        texture_path=os.path.join(OVIZ_CONFIG_DIR, 'colorful_car/00008.BMP')
+                        texture_path='00008.BMP'
                     ):
+        texture_path = os.path.join(OVIZ_CONFIG_DIR, 'colorful_car', texture_path)
         mesh_path = load_data_file(obj_path, directory=".")
         texture_path = load_data_file(texture_path,  directory=".")
         vertices, faces, normals, texcoords = read_mesh(mesh_path)
