@@ -494,7 +494,9 @@ class View(QMainWindow):
         xyz_dims = list(map(int, curr_element_dict[topic_type][index]['linetxt_xyz_dim'].text().split(',')))
         wlh_dims = list(map(int, curr_element_dict[topic_type][index]['linetxt_wlh_dim'].text().split(',')))
         color_dims = list(map(int, curr_element_dict[topic_type][index]['linetxt_color_dim'].text().split(',')))
-        show_voxel = self.dock_global_control_box_layout_dict['global_setting']['show_voxel_mode'].isChecked()
+        show_voxel = curr_element_dict[topic_type][index]['show_voxel_mode'].isChecked()
+
+        # show_voxel = self.dock_global_control_box_layout_dict['global_setting']['show_voxel_mode'].isChecked()
         return pt_dim, pt_type, xyz_dims, wlh_dims, color_dims, show_voxel
 
     def get_bbox3dsetting(self, index = 0):

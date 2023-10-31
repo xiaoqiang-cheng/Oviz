@@ -51,7 +51,6 @@ class Controller():
 
         self.view.dock_global_control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
         self.view.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
-        self.view.dock_global_control_box_layout_dict['global_setting']['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
 
         self.view.dock_global_control_box_layout_dict['remote_api_setting']['enable_remote_link'].clicked.connect(self.enable_remote_api)
         self.view.dock_global_control_box_layout_dict['remote_api_setting']['button_remote_key'].clicked.connect(self.model.online_set_control)
@@ -71,6 +70,8 @@ class Controller():
             sub_module['linetxt_xyz_dim'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_wlh_dim'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_color_dim'].textChanged.connect(self.update_pointsetting_dims)
+            sub_module['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
+
         for sub_module in value['bbox3d']:
             sub_module['folder_path'].SelectDone.connect(self.select_bbox3d)
             sub_module['bbox3d_txt_xyzwhlt_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
