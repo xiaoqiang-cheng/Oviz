@@ -90,8 +90,8 @@ class Controller():
     def signal_connect(self):
         self.model.hasNewMsg.connect(self.update_buffer_vis)
         self.view.dock_range_slide.frameChanged.connect(self.update_system_vis)
-        for key in self.view.image_dock.keys():
-            self.view.image_dock[key].SelectDone.connect(self.select_image)
+        for val in self.view.image_dock:
+            val.SelectDone.connect(self.select_image)
         self.global_box_signal_connect()
         self.element_control_box_connect()
         self.view.pointSizeChanged.connect(self.change_point_size)
@@ -99,6 +99,7 @@ class Controller():
         self.view.removeControlTab.connect(self.remove_sub_control_box)
         self.view.addSubControlTab.connect(self.add_sub_element_control_box)
         self.view.removeSubControlTab.connect(self.remove_sub_element_control_box)
+        self.view.removeImageDock.connect(self.remove_image_dock)
 
     def enable_remote_api(self, state):
         if state > 0:
@@ -106,6 +107,13 @@ class Controller():
             self.model.update_middleware(port)
         else:
             self.model.update_middleware()
+
+    def remove_image_dock(self, index):
+        try:
+            self.model.database['template'][IMAGE].pop(index)
+            self.model.curr_frame_data['template'][IMAGE].pop(index)
+        except:
+            pass
 
     def remove_sub_element_control_box(self, ele_key, index):
         curr_group = self.view.get_curr_control_box_name()

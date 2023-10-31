@@ -15,6 +15,7 @@ class View(QMainWindow):
     removeControlTab = Signal(str)
     addSubControlTab = Signal(str, int)
     removeSubControlTab = Signal(str, int)
+    removeImageDock = Signal(int)
 
     def __init__(self) -> None:
         super().__init__()
@@ -65,7 +66,7 @@ class View(QMainWindow):
         self.central_widget.layout().setContentsMargins(0, 0, 0, 0)
 
     def create_dock_widget(self):
-        self.image_dock = dict()
+        self.image_dock = []
         self.setDockNestingEnabled(True)
         self.dock_log_info = LogDockWidget()
         self.dock_range_slide = RangeSlideDockWidget()
@@ -76,7 +77,7 @@ class View(QMainWindow):
         self.dock_element_control_box_layout_dict = self.set_control_box()
         self.dock_element_control_box = ControlTabBoxDockWidget(title="ElementSetting", layout_dict=self.dock_element_control_box_layout_dict)
 
-        self.add_image_dock_widget(self.layout_config["image_dock_path"])
+        self.create_image_dock_widgets(self.layout_config["image_dock_path"])
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_control_box)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_element_control_box)
@@ -141,8 +142,8 @@ class View(QMainWindow):
         for key in self.canvas_cfg.keys():
             if "camera" in self.canvas_cfg[key].keys():
                 self.canvas_cfg[key]['camera'].update(self.canvas.get_canvas_camera("template"))
-        for key in self.layout_config['image_dock_path'].keys():
-            self.layout_config['image_dock_path'][key] = self.image_dock[key].folder_path
+        # for key in self.layout_config['image_dock_path'].keys():
+        #     self.layout_config['image_dock_path'][key] = self.image_dock[key].folder_path
         self.save_last_frame_num()
 
     def save_history_database(self):
@@ -361,8 +362,8 @@ class View(QMainWindow):
                 except:
                     pass
 
-        for key, val in self.layout_config['image_dock_path'].items():
-            self.image_dock[key].set_topic_path(val)
+        for i, val in enumerate(self.layout_config['image_dock_path']):
+            self.image_dock[i].set_topic_path(val['default_value']['value'])
 
         self.load_layout()
         self.dock_range_slide.set_frmae_text(self.layout_config["last_slide_num"])
@@ -397,14 +398,14 @@ class View(QMainWindow):
             self.statusbar.show()
 
     def show_dock_image(self):
-        for k, v in self.image_dock.items():
+        for v in self.image_dock:
             v.toggle_hide()
-        dock_widget_num = len(self.image_dock.values())
-        self.resizeDocks(list(self.image_dock.values()), [self.width() / dock_widget_num] * dock_widget_num, Qt.Horizontal)
-        self.resizeDocks(list(self.image_dock.values()), [list(self.image_dock.values())[0].height()] * dock_widget_num, Qt.Vertical)
+        dock_widget_num = len(self.image_dock)
+        self.resizeDocks(list(self.image_dock), [self.width() / dock_widget_num] * dock_widget_num, Qt.Horizontal)
+        self.resizeDocks(list(self.image_dock), [list(self.image_dock)[0].height()] * dock_widget_num, Qt.Vertical)
 
     def show_dock_image_title(self):
-        for k, v in self.image_dock.items():
+        for v in self.image_dock:
             v.set_image_title_bar()
 
     def eventFilter(self, obj, event):
@@ -418,13 +419,13 @@ class View(QMainWindow):
                     self.point_size = 1
                 self.pointSizeChanged.emit(self.point_size)
             elif event.key() == Qt.Key_R:
-                dock_widget_num = len(self.image_dock.values())
+                dock_widget_num = len(self.image_dock)
                 print("Target Size:", [self.width() / dock_widget_num] * dock_widget_num)
-                self.resizeDocks(list(self.image_dock.values()), [self.width() / dock_widget_num] * dock_widget_num, Qt.Horizontal)
-                self.resizeDocks(list(self.image_dock.values()), [list(self.image_dock.values())[0].height()] * dock_widget_num, Qt.Vertical)
+                self.resizeDocks(list(self.image_dock), [self.width() / dock_widget_num] * dock_widget_num, Qt.Horizontal)
+                self.resizeDocks(list(self.image_dock), [list(self.image_dock)[0].height()] * dock_widget_num, Qt.Vertical)
                 print("main widnows width:", self.width())
-                for key, value in self.image_dock.items():
-                    print(key, value.width())
+                for i, value in enumerate(self.image_dock):
+                    print(i, value.width())
 
             return True
 
@@ -438,10 +439,39 @@ class View(QMainWindow):
     def update_color_map(self, name, color):
         self.color_map[name] = color
 
-    def add_image_dock_widget(self, wimage:dict):
-        for n, v in wimage.items():
-            self.image_dock[n] = ImageDockWidget(dock_title=n)
-            self.addDockWidget(Qt.TopDockWidgetArea,  self.image_dock[n])
+    def create_image_dock_widgets(self, wimage:dict):
+        for n, v in enumerate(wimage):
+            self.add_single_image_dock(v)
+
+    def add_single_image_dock(self, params = {}):
+        curr_cnt = len(self.image_dock)
+        self.image_dock.append(ImageDockWidget(dock_title=str(curr_cnt), **params))
+        self.addDockWidget(Qt.TopDockWidgetArea,  self.image_dock[-1])
+        self.image_dock[-1].addNewImageDock.connect(self.dynamic_add_image_dock)
+        self.image_dock[-1].removeCurrImageDock.connect(self.dynamic_remove_image_dock)
+
+
+
+
+        # for i, val in enumerate(self.image_dock):
+        #     val.set_title(str(i))
+
+    def dynamic_add_image_dock(self, index):
+        # image_dock_config =
+        self.layout_config['image_dock_path'].append(self.layout_config['image_dock_path'][index])
+        self.add_single_image_dock(self.layout_config['image_dock_path'][-1])
+
+    def dynamic_remove_image_dock(self, index):
+        if index == 0: return
+        del_widget = self.image_dock.pop(index)
+        del_widget.deleteLater()
+        self.layout_config['image_dock_path'].pop(index)
+
+        for i, val in enumerate(self.image_dock):
+            val.set_title(str(i))
+
+        self.removeImageDock.emit(index)
+
 
     def link_camera(self, canvas, group):
         key = list(self.canvas_cfg_set.keys())
@@ -624,7 +654,7 @@ class View(QMainWindow):
         self.canvas.draw_voxel_line(group + "_" + "voxel_line", points, w, l, h)
 
     def set_image(self, img, meta_form):
-        self.image_dock[str(meta_form)].set_image(img)
+        self.image_dock[meta_form].set_image(img)
 
     def set_bbox3d(self, bboxes3d, color, arrow, text_info, show_format, group="template"):
         self.canvas.draw_box3d_line(group + "_" + "bbox3d_line", bboxes3d, color)

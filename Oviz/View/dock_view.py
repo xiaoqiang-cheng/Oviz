@@ -42,15 +42,15 @@ class ImageViewer(QWidget):
 
 class ImageDockWidget(QDockWidget):
     SelectDone = Signal(str, str)
-    addNewImageDock = Signal()
-    removeCurrImageDock=Signal(str)
-    def __init__(self, parent=None, dock_title = "dockview", default_path=""):
+    addNewImageDock = Signal(int)
+    removeCurrImageDock=Signal(int)
+    def __init__(self, parent=None, dock_title = "dockview", default_value={}):
         super().__init__(dock_title, parent)
         # self.setStyleSheet("QDockWidget::separator{ width: 0px; height: 0px; }")
         # self.setStyleSheet("QDockWidget:separator {width: 1px; height: 1px; }")
         self.setObjectName(dock_title)
         self.dock_title = dock_title
-        self.folder_path = default_path
+        self.folder_path = default_value
         # Create the custom title bar widget
         self.title_bar_widget = QWidget(self)
         self.show_title = True
@@ -58,8 +58,8 @@ class ImageDockWidget(QDockWidget):
         title_bar_layout.setContentsMargins(0, 0, 0, 0)
 
         # Add the title label to the title bar
-        title_label = QLabel(dock_title)
-        title_bar_layout.addWidget(title_label)
+        self.title_label = QLabel(dock_title)
+        title_bar_layout.addWidget(self.title_label)
 
         # Add the line edit to the title bar
         self.linetxt = QLineEdit()
@@ -118,11 +118,17 @@ class ImageDockWidget(QDockWidget):
         self.image_viewer.doubleClicked.connect(self.select_image)
         self.linetxt.returnPressed.connect(self.select_topic_path)
 
+
+    def set_title(self, title):
+        self.setObjectName(title)
+        self.dock_title = title
+        self.title_label.setText(title)
+
     def add_image_dock(self):
-        self.addNewImageDock.emit()
+        self.addNewImageDock.emit(int(self.dock_title))
 
     def remove_image_dock(self):
-        self.removeCurrImageDock.emit(self.dock_title)
+        self.removeCurrImageDock.emit(int(self.dock_title))
 
 
     def set_image_title_bar(self):
@@ -133,8 +139,8 @@ class ImageDockWidget(QDockWidget):
         self.show_title = not self.show_title
 
     def select_topic_path(self):
-        self.folder_path = self.linetxt.text()
-        self.SelectDone.emit(self.folder_path, self.dock_title)
+        self.folder_path['value'] = self.linetxt.text()
+        self.SelectDone.emit(self.folder_path['value'], self.dock_title)
 
     def set_topic_path(self, txt_path):
         if not os.path.exists(txt_path):
@@ -143,11 +149,11 @@ class ImageDockWidget(QDockWidget):
         self.select_topic_path()
 
     def select_image(self):
-        self.folder_path = choose_folder(self, self.dock_title, self.folder_path)
-        if not self.folder_path:
+        self.folder_path['value'] = choose_folder(self, self.dock_title, self.folder_path['value'])
+        if not self.folder_path['value']:
             return
-        self.linetxt.setText(self.folder_path)
-        self.SelectDone.emit(self.folder_path, self.dock_title)
+        self.linetxt.setText(self.folder_path['value'])
+        self.SelectDone.emit(self.folder_path['value'], self.dock_title)
 
     def set_image(self, image_path):
         self.image_viewer.set_image(image_path)
