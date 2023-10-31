@@ -87,13 +87,18 @@ class Controller():
     def add_sub_element_control_box(self, ele_key, index):
         self.element_control_box_connect()
 
+    def dynamic_add_image_dock(self, index):
+        self.view.image_dock[index].SelectDone.connect(self.select_image)
+
     def signal_connect(self):
         self.model.hasNewMsg.connect(self.update_buffer_vis)
         self.view.dock_range_slide.frameChanged.connect(self.update_system_vis)
         for val in self.view.image_dock:
             val.SelectDone.connect(self.select_image)
+
         self.global_box_signal_connect()
         self.element_control_box_connect()
+        self.view.addImageDock.connect(self.dynamic_add_image_dock)
         self.view.pointSizeChanged.connect(self.change_point_size)
         self.view.addNewControlTab.connect(self.sub_element_control_box_connect)
         self.view.removeControlTab.connect(self.remove_sub_control_box)

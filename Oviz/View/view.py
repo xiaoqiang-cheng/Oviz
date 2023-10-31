@@ -16,6 +16,7 @@ class View(QMainWindow):
     addSubControlTab = Signal(str, int)
     removeSubControlTab = Signal(str, int)
     removeImageDock = Signal(int)
+    addImageDock = Signal(int)
 
     def __init__(self) -> None:
         super().__init__()
@@ -460,6 +461,7 @@ class View(QMainWindow):
         # image_dock_config =
         self.layout_config['image_dock_path'].append(self.layout_config['image_dock_path'][index])
         self.add_single_image_dock(self.layout_config['image_dock_path'][-1])
+        self.addImageDock.emit(len(self.image_dock) - 1)
 
     def dynamic_remove_image_dock(self, index):
         if index == 0: return
