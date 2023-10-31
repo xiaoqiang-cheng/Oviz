@@ -121,6 +121,7 @@ class View(QMainWindow):
         self.statusbar = self.statusBar()
         for key, value in self.status_bar_config.items():
             tmp_widget = eval(value['type'])(**value['params'])
+            tmp_widget.setOpenExternalLinks(True)
             self.statusbar.addWidget(tmp_widget, value['stretch'])
 
     def menu_bar_trigger_view(self, q):

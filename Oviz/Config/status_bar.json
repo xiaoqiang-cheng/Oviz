@@ -15,6 +15,14 @@
         }
     },
 
+    "feedback" : {
+        "type" : "QLabel",
+        "stretch" : 1,
+        "params":{
+            "text": "<a style='color: green; text-decoration: none' href = https:\/\/u8epibgufc.feishu.cn/share/base/form/shrcnSt4wnF90Hb52F9dhI35phf>问题反馈"
+        }
+    },
+
     "version" : {
         "type" : "QLabel",
         "stretch" : -1,

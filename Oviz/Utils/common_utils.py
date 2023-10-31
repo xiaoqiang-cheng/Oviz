@@ -70,6 +70,8 @@ comment_re = re.compile(
     '(^)?[^\S\n]*/(?:\*(.*?)\*/[^\S\n]*|/[^\n]*)($)?',
     re.DOTALL | re.MULTILINE
 )
+
+
 def parse_json(filename):
     # start = time.time()
     """ Parse a JSON file
@@ -92,6 +94,8 @@ def parse_json(filename):
         # Return json file
     # print(filename, time.time()-start)
     return json.loads(content)
+
+
 
 
 def check_setting_dims(val, dims):
