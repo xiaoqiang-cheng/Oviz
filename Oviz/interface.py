@@ -25,7 +25,7 @@ class Oviz:
         Oviz._oviz_node.init_oviz_api(ip, port)
 
     @staticmethod
-    def imshow(group = "template", msg = None):
+    def imshow(msg = None, group = "template"):
         group_data = Oviz._data.setdefault(group, {})
         topic_data = group_data.setdefault(IMAGE, [])
         if isinstance(msg, str):
@@ -35,7 +35,7 @@ class Oviz:
             topic_data.append(msg)
 
     @staticmethod
-    def pcshow(group = "template", msg = None):
+    def pcshow(msg = None, group = "template"):
         group_data = Oviz._data.setdefault(group, {})
         topic_data = group_data.setdefault(POINTCLOUD, [])
         if isinstance(msg, str):
@@ -48,7 +48,7 @@ class Oviz:
             topic_data.append(msg)
 
     @staticmethod
-    def bb3dshow(group = "template", msg = None):
+    def bbox3dshow(msg = None, group = "template"):
         group_data = Oviz._data.setdefault(group, {})
         topic_data = group_data.setdefault(BBOX3D, [])
         topic_data.append(msg)
