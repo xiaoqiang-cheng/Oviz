@@ -19,6 +19,7 @@ class View(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Oviz")
+
         appIcon = QIcon(os.path.join(OVIZ_CONFIG_DIR, "oviz.png"))
         self.setWindowIcon(appIcon)
 
@@ -91,6 +92,7 @@ class View(QMainWindow):
 
     def create_menu_bar(self):
         self.menubar = self.menuBar()
+
         for key, value in self.menu_bar_config.items():
             _menu = self.menubar.addMenu(key)
             for e, s in value[0].items():
@@ -107,6 +109,13 @@ class View(QMainWindow):
             self.load_history_menu.addAction("[empty]")
         self.load_history_menu_triggered = self.load_history_menu.triggered[QAction]
         self.load_history_menu_triggered.connect(self.reload_database)
+        self.menubar.setMaximumHeight(1)
+
+    def show_menu_bar(self):
+        if self.menubar.height() < 10:
+            self.menubar.setMaximumHeight(50)
+        else:
+            self.menubar.setMaximumHeight(1)
 
     def create_status_bar(self):
         self.statusbar = self.statusBar()
@@ -122,7 +131,8 @@ class View(QMainWindow):
             "显示元素控制台" : self.dock_element_control_box.toggle_hide,
             "显示全局控制台" : self.dock_global_control_box.toggle_hide,
             "显示图片标题栏" : self.show_dock_image_title,
-            "显示状态栏"    : self.show_status_bar
+            "显示状态栏"    : self.show_status_bar,
+            "显示菜单栏"    : self.show_menu_bar
         }
         trigger_map[q.text()]()
 

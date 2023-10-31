@@ -42,6 +42,8 @@ class ImageViewer(QWidget):
 
 class ImageDockWidget(QDockWidget):
     SelectDone = Signal(str, str)
+    addNewImageDock = Signal()
+    removeCurrImageDock=Signal(str)
     def __init__(self, parent=None, dock_title = "dockview", default_path=""):
         super().__init__(dock_title, parent)
         # self.setStyleSheet("QDockWidget::separator{ width: 0px; height: 0px; }")
@@ -88,6 +90,8 @@ class ImageDockWidget(QDockWidget):
 
         self.add_button = QPushButton("+")
         self.add_button.setMaximumWidth(20)
+        self.add_button.clicked.connect(self.add_image_dock)
+        self.close_button.clicked.connect(self.remove_image_dock)
 
         self.hide_button.clicked.connect(self.hide)
 
@@ -113,6 +117,12 @@ class ImageDockWidget(QDockWidget):
         self.setMinimumSize(100, 100)
         self.image_viewer.doubleClicked.connect(self.select_image)
         self.linetxt.returnPressed.connect(self.select_topic_path)
+
+    def add_image_dock(self):
+        self.addNewImageDock.emit()
+
+    def remove_image_dock(self):
+        self.removeCurrImageDock.emit(self.dock_title)
 
 
     def set_image_title_bar(self):
