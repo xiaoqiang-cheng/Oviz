@@ -292,10 +292,10 @@ class Controller():
 
     def update_buffer_vis(self, timestamp = None):
 
+        data_dict = self.model.curr_frame_data
         if timestamp:
             print("msg delay [%.2f] ms"%((time.time() - timestamp) * 1000))
 
-        data_dict = self.model.curr_frame_data
         if self.magicpipe_setting.enable:
             data_dict = self.exec_magic_pipeline(data_dict)
         for group, value in data_dict.items():

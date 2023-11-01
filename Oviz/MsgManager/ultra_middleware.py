@@ -35,15 +35,13 @@ class UltraMiddleWare():
         self.shared_dict.close()
 
     def set_control(self):
-        self.shared_dict['timestamp'] = time.time()
         self.shared_dict['control'] = True
 
     def is_decontrol(self):
-        msg = self.sub()
-        return msg['control']
+        # msg = self.sub()
+        return self.shared_dict['control']
 
     def reset_decontrol(self):
-        self.shared_dict['timestamp'] = time.time()
         self.shared_dict['control'] = False
 
     def _has_new_msg(self):
@@ -58,8 +56,9 @@ class UltraMiddleWare():
             return False
 
     def pub(self, msg):
-        self.shared_dict['timestamp'] = time.time()
         self.shared_dict['data'] = msg
+        self.shared_dict['timestamp'] = time.time()
+        self.last_msg_timestamp = self.shared_dict['timestamp']
 
     def sub(self, event = None):
         while (not self._has_new_msg()):
