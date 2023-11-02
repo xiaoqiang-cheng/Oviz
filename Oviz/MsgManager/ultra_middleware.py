@@ -31,8 +31,11 @@ class UltraMiddleWare():
         self.close()
 
     def close(self):
-        self.shared_dict.unlink()
-        self.shared_dict.close()
+        try:
+            self.shared_dict.unlink()
+            self.shared_dict.close()
+        except:
+            pass
 
     def set_control(self):
         self.shared_dict['control'] = True
