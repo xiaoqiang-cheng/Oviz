@@ -642,6 +642,9 @@ class View(QMainWindow):
     def set_bbox3d_text_visible(self, mode, group="template"):
         self.canvas.set_visible(group + "_" + "text", mode)
 
+    def set_bbox3d_arrow_visible(self, mode, group="template"):
+        self.canvas.set_visible(group + "_" + "obj_arrow", mode)
+
     def set_point_cloud_visible(self, mode, group="template"):
         self.canvas.set_visible(group + "_" + "point_cloud", mode)
 
@@ -666,7 +669,7 @@ class View(QMainWindow):
         # show arrow
         if len(arrow) !=  0:
             self.canvas.set_visible(group + "_" + "obj_arrow", True)
-            self.set_bbox3d_arrow(bboxes3d, arrow, color)
+            self.set_bbox3d_arrow(bboxes3d, arrow, color, group)
         else:
             self.canvas.set_visible(group + "_" + "obj_arrow", False)
 
@@ -678,7 +681,7 @@ class View(QMainWindow):
             text = []
             for i, txt in enumerate(text_info):
                 text.append(show_format[i]%tuple(txt))
-            self.set_bbox3d_text(text_pos, text, (0.5, 0.5, 0.5, 1))
+            self.set_bbox3d_text(text_pos, text, (0.5, 0.5, 0.5, 1), group)
         else:
             self.canvas.set_visible(group + "_" + "text", False)
 

@@ -444,9 +444,13 @@ class Controller():
 
     def clear_buffer_vis(self, group):
         self.view.set_bbox3d_visible(False, group)
+        self.view.set_bbox3d_text_visible(False, group)
+        self.view.set_bbox3d_arrow_visible(False, group)
+
         self.view.set_point_cloud_visible(False, group)
         self.view.set_point_voxel_visible(False, group)
         self.view.set_voxel_line_visible(False, group)
+
 
     def update_pointcloud_vis(self, data, group):
         points = []
@@ -512,6 +516,9 @@ class Controller():
             real_color = np.concatenate(real_color)
         arrow = np.concatenate(arrow)
 
-        self.view.set_bbox3d_visible(True)
+        # self.view.set_bbox3d_visible(True)
         self.view.set_bbox3d(bboxes, real_color, arrow, text_info, text_format, group)
         self.view.set_bbox3d_visible(True, group)
+        self.view.set_bbox3d_text_visible(True, group)
+        self.view.set_bbox3d_arrow_visible(True, group)
+
