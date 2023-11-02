@@ -52,8 +52,8 @@ class Controller():
         self.view.dock_global_control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
         self.view.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
 
-        self.view.dock_global_control_box_layout_dict['remote_api_setting']['enable_remote_link'].clicked.connect(self.enable_remote_api)
-        self.view.dock_global_control_box_layout_dict['remote_api_setting']['button_remote_key'].clicked.connect(self.model.online_set_control)
+        self.view.dock_global_control_box_layout_dict['oviz_api_setting']['enable_remote_link'].clicked.connect(self.enable_remote_api)
+        self.view.dock_global_control_box_layout_dict['oviz_api_setting']['button_remote_key'].clicked.connect(self.model.online_set_control)
 
 
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
@@ -108,7 +108,7 @@ class Controller():
 
     def enable_remote_api(self, state):
         if state > 0:
-            port = self.view.get_remote_api_setting()
+            port = self.view.get_oviz_api_setting()
             self.model.update_middleware(port)
         else:
             self.model.update_middleware()

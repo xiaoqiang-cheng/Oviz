@@ -67,7 +67,7 @@
             }
         },
 
-        "remote_api_setting":
+        "oviz_api_setting":
         {
             "type": "QVBoxLayout",
             "widget" : {
@@ -89,7 +89,7 @@
                 "button_remote_key":{
                     "type": "QPushButton",
                     "params":{
-                        "text": "remote key"
+                        "text": "oviz api key"
                     }
                 }
             }

@@ -513,8 +513,8 @@ class View(QMainWindow):
     def get_curr_sub_element_count(self,  group, key):
         return self.dock_element_control_box.boxes[group][key].tab_widget.count()
 
-    def get_remote_api_setting(self):
-        curr_widget = self.dock_global_control_box_layout_dict['remote_api_setting']
+    def get_oviz_api_setting(self):
+        curr_widget = self.dock_global_control_box_layout_dict['oviz_api_setting']
         port = curr_widget['linetxt_target_port'].text()
 
         return int(port)
