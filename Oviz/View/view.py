@@ -665,6 +665,7 @@ class View(QMainWindow):
         self.image_dock[meta_form].set_image(img)
 
     def set_bbox3d(self, bboxes3d, color, arrow, text_info, show_format, group="template"):
+        # bboxes3d[:, -1] = np.pi * 0.5 - bboxes3d[:, -1]
         self.canvas.draw_box3d_line(group + "_" + "bbox3d_line", bboxes3d, color)
         # show arrow
         if len(arrow) !=  0:
