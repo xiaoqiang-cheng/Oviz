@@ -3,8 +3,8 @@ requires = ['hatchling']
 build-backend = 'hatchling.build'
 
 [project]
-name = "Oviz"
-version = "0.1.4"
+name = "Oviz-Lite"
+version = "0.1.5"
 authors = [
     { name = 'xiaoqiang cheng', email = 'xiaoqiang.cheng@foxmail.com' }
 ]
@@ -19,18 +19,10 @@ classifiers = [
 ]
 
 dependencies = [
-        'matplotlib>=3.4.3',
         'numpy>=1.20.3',
         'opencv_python>=4.7.0',
-        'PySide2>=5.15.2.1',
         'python_lzf>=0.2.4',
-        'QDarkStyle>=3.0.2',
-        'scipy>=1.7.0',
-        'vispy>=0.12.0'
     ]
-
-[project.scripts]
-oviz = 'Oviz.main:main'
 
 [project.urls]
 'Homepage' = 'https://github.com/xiaoqiang-cheng/Oviz'
