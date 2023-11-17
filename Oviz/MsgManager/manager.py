@@ -1,5 +1,10 @@
 import threading
-from .ultra_middleware import UltraMiddleWare
+try:
+    from .ultra_middleware import UltraMiddleWare
+    UltraMiddleWareStatus = True
+except:
+    UltraMiddleWareStatus = False
+
 # from .udp_middleware import UDPMiddleWare
 from .tcp_middleware import TCPMiddleWare
 import threading
@@ -13,7 +18,12 @@ class MiddleManager(threading.Thread):
 
     def init_oviz_api(self, ip = None, target_port=None):
         if target_port  is None:
-            self.default_middleware = UltraMiddleWare()
+            if UltraMiddleWareStatus:
+                self.default_middleware = UltraMiddleWare()
+                print("Note: oviz api default use UltraMiddleWare, you must eable same python version in other process")
+
+            else:
+                print("your UltraMiddleWare can not work, please enbale TCPMiddleWare")
         else:
             self.default_middleware = TCPMiddleWare(ip, target_port)
 
