@@ -9,6 +9,7 @@ note:
 
 import os
 import numpy as np
+from Oviz.MagicPipe.core import magic_pipeline_iterate
 
 def magic_debug(self, key, data_dict, **kargs):
     '''
@@ -21,16 +22,35 @@ def magic_debug(self, key, data_dict, **kargs):
         print(kargs)
     return data_dict
 
-def point_cloud_reshape(self, key, data_dict, **kargs):
-    for group, subdata in data_dict.items():
-        if 'pointcloud' in subdata.keys():
-            for i, single_pc in enumerate(subdata['pointcloud']):
-                if len(single_pc.shape) == 1:
-                    single_pc = np.frombuffer(single_pc.data,
-                            dtype = np.dtype(self.pointcloud_setting_dict[group][i].points_type)).reshape(-1,
-                                        self.pointcloud_setting_dict[group][i].points_dim)
-                    subdata['pointcloud'][i] = single_pc
-    return data_dict
+
+@magic_pipeline_iterate(element_keys=['pointcloud'])
+def point_cloud_reshape(self, key, group, ele, index, data, **kwargs):
+    if len(data.shape) == 1:
+        data = np.frombuffer(data.data,
+            dtype = np.dtype(self.pointcloud_setting_dict[group][index].points_type)).reshape(-1,
+                        self.pointcloud_setting_dict[group][index].points_dim)
+    return data
+
+@magic_pipeline_iterate(element_keys=['bbox3d'], switch_key="fix_nus_bbox3d")
+def fix_nus_bbox3d(self, key, group, ele, index, data, **kwargs):
+    if len(data.shape) == 1:
+        data = data.reshape(-1, data.shape[0])
+    score_mask = data[:, -1] > 0.3
+    data = data[score_mask]
+
+    data[:, 3] = data[:, 3] + data[:, 6] / 2.0
+    return data
+
+@magic_pipeline_iterate(element_keys=['bbox3d'], switch_key="filter_bbox3d_vel")
+def filter_bbox3d_vel(self, key, group, ele, index, data, **kwargs):
+    if len(data.shape) == 1:
+        data = data.reshape(-1, data.shape[0])
+
+    vel_mask = (data[:, -2]**2 + data[:, -3] ** 2) > 0.1
+    data[vel_mask, 0] = 0
+    data[~vel_mask, 0] = 1
+
+    return data
 
 def append_seg_dim_for_pcd(self, key, data_dict, **kargs):
     '''

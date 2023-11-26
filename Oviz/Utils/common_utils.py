@@ -285,10 +285,18 @@ if_not_exist_create(MAGIC_USER_PIPELINE_DIR)
 
 magic_pipe_demo_script = \
 '''
+from Oviz.MagicPipe.core import magic_pipeline_iterate
+
 def test(self, key, data_dict, **kargs):
     print("user_pipeline working")
     return data_dict
+
+@magic_pipeline_iterate(group_keys = [], element_keys=[], switch_key="test")
+def decorator_test(self, key, group, ele, index, data, **kwargs):
+    return data
 '''
 
 if not os.path.exists(MAGIC_USER_PIPELINE_SCRIPT):
-    os.system("echo '%s' > %s"%(magic_pipe_demo_script, MAGIC_USER_PIPELINE_SCRIPT))
+    # os.system("echo '%s' > %s"%(magic_pipe_demo_script, MAGIC_USER_PIPELINE_SCRIPT))
+    with open(MAGIC_USER_PIPELINE_SCRIPT, 'w') as file:
+        file.write(magic_pipe_demo_script)
