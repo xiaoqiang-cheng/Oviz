@@ -176,8 +176,10 @@ class View(QMainWindow):
         elif q.text() == "自动播放":
             self.dock_range_slide.toggle_state()
         elif q.text() == "上一帧":
+            self.dock_range_slide.stop_auto_play()
             self.dock_range_slide.last_frame()
         elif q.text() == "下一帧":
+            self.dock_range_slide.stop_auto_play()
             self.dock_range_slide.next_frame()
 
     def create_color_map_widget(self):
@@ -333,7 +335,8 @@ class View(QMainWindow):
         if len(self.record_screen_image_list) == 0: return
 
         frame_size = (self.width(), self.height())
-        out = cv2.VideoWriter(video_name, fourcc, 10, frame_size)
+        frame_hz = int(self.dock_range_slide.fps.text())
+        out = cv2.VideoWriter(video_name, fourcc, frame_hz, frame_size)
         plt.figure("Preview")
         for image_path in self.record_screen_image_list:
             img = cv2.imread(image_path)
@@ -674,6 +677,7 @@ class View(QMainWindow):
         self.image_dock[meta_form].set_image(img)
 
     def set_bbox3d(self, bboxes3d, color, arrow, text_info, show_format, group="template"):
+        if len(bboxes3d) == 0: return
         bboxes3d[:, -1] =  - bboxes3d[:, -1] - np.pi * 0.5
         self.canvas.draw_box3d_line(group + "_" + "bbox3d_line", bboxes3d, color)
         # show arrow

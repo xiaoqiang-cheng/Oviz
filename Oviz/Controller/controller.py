@@ -262,7 +262,8 @@ class Controller():
         # execute user pipeline
         modules = __import__("user_pipeline", fromlist=[""])
         reload(modules)
-        functions = [getattr(modules, func) for func in dir(modules) if callable(getattr(modules, func))]
+        # functions = [getattr(modules, func) for func in dir(modules) if callable(getattr(modules, func))]
+        functions = [getattr(modules, func) for func in dir(modules) if (func!='magic_pipeline_iterate' and callable(getattr(modules, func)))]
         for func in functions[::-1]:
             try:
                 data_dict = func(self, self.curr_frame_key, data_dict, **kargs)
@@ -274,7 +275,7 @@ class Controller():
         # execute offical pipeline
         modules = __import__("Oviz.MagicPipe.pipeline", fromlist=[""])
         reload(modules)
-        functions = [getattr(modules, func) for func in dir(modules) if callable(getattr(modules, func))]
+        functions = [getattr(modules, func) for func in dir(modules) if (func!='magic_pipeline_iterate' and callable(getattr(modules, func)))]
         for func in functions[::-1]:
             try:
                 data_dict = func(self, self.curr_frame_key, data_dict, **kargs)
@@ -517,8 +518,9 @@ class Controller():
         arrow = np.concatenate(arrow)
 
         # self.view.set_bbox3d_visible(True)
-        self.view.set_bbox3d(bboxes, real_color, arrow, text_info, text_format, group)
         self.view.set_bbox3d_visible(True, group)
         self.view.set_bbox3d_text_visible(True, group)
         self.view.set_bbox3d_arrow_visible(True, group)
+        self.view.set_bbox3d(bboxes, real_color, arrow, text_info, text_format, group)
+
 

@@ -262,6 +262,9 @@ class RangeSlideDockWidget(QDockWidget):
         self.range_slider.valueChanged.connect(self.change_bar)
         self.auto.stateChanged.connect(self.auto_ctrl)
 
+    def stop_auto_play(self):
+        self.auto.setCheckState(Qt.Unchecked)
+
     def toggle_state(self):
         if self.auto.isChecked():
             self.auto.setCheckState(Qt.Unchecked)
