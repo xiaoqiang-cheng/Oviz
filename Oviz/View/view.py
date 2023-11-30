@@ -303,14 +303,23 @@ class View(QMainWindow):
         write_json(self.canvas_cfg, "%s/init_canvas_cfg3d.json"%USER_CONFIG_DIR)
         self.save_layout()
 
-    def grab_form(self, frame_name, ext):
+    mouse_buffer = {}
+    def grab_form(self, frame_name, ext, from_mouse = False):
         self.record_screen_save_dir = \
             os.path.join(self.dock_global_control_box_layout_dict['record_screen_setting']['folder_path'].folder_path, self.record_image_start_time)
         if not os.path.exists(self.record_screen_save_dir ):
             os.makedirs(self.record_screen_save_dir)
-        image_name = frame_name + "_" + str(time.time()) + ext
+        # image_name = frame_name + "_" + str(time.time()) + ext
+        image_name = frame_name + "_" + str(time.time()).ljust(18, '0') + ext
         output_path = os.path.join(self.record_screen_save_dir, image_name)
-        self.grab().save(output_path, "PNG", quality=100)
+        if from_mouse:
+            View.mouse_buffer[output_path] = self.grab()
+        else:
+            print("ready to clear buffer: [%d] "%len(View.mouse_buffer))
+            for key, value in View.mouse_buffer.items():
+                value.save(key, "PNG", quality=100)
+            View.mouse_buffer.clear()
+            self.grab().save(output_path, "PNG", quality=100)
         self.record_screen_image_list.append(output_path)
 
     def export_grab_video(self):
@@ -433,7 +442,7 @@ class View(QMainWindow):
         if self.mouse_record_screen:
             if (event.type() == QEvent.UpdateRequest) and \
                 (self.last_event_type in [QEvent.HoverMove, QEvent.Wheel]):
-                self.grab_form(self.dock_range_slide.curr_filename.text(), ".png")
+                self.grab_form(self.dock_range_slide.curr_filename.text(), ".png", from_mouse=True)
         self.last_event_type = event.type()
         return False
 
