@@ -75,6 +75,7 @@ class Controller():
         for sub_module in value['bbox3d']:
             sub_module['folder_path'].SelectDone.connect(self.select_bbox3d)
             sub_module['bbox3d_txt_xyzwhlt_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+            sub_module['bbox3d_txt_theta_trans_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
             sub_module['bbox3d_txt_color_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
             sub_module['bbox3d_txt_format_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
             sub_module['bbox3d_txt_text_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
@@ -292,7 +293,6 @@ class Controller():
         return data_dict
 
     def update_buffer_vis(self, timestamp = None):
-
         data_dict = self.model.curr_frame_data
         if timestamp:
             print("msg delay [%.2f] ms"%((time.time() - timestamp) * 1000))
@@ -364,7 +364,9 @@ class Controller():
             send_log_msg(ERROR, "bbox_dims维度无效:%s,最大维度为%d"%(str(bbox3d_setting.bbox_dims), max_dim))
             return
 
-        bboxes = msg[..., bbox3d_setting.bbox_dims]
+        bboxes = msg[..., bbox3d_setting.bbox_dims].astype(np.float32)
+        bboxes[:, -1] = bbox3d_setting.clock_offset[0] * bboxes[:, -1] + bbox3d_setting.clock_offset[1] * np.pi
+
 
         if max(bbox3d_setting.arrow_dims) >= max_dim:
             send_log_msg(ERROR, "arrow_dims维度无效:%s,最大维度为%d"%(str(bbox3d_setting.arrow_dims, max_dim)))
@@ -373,7 +375,7 @@ class Controller():
         if max(bbox3d_setting.arrow_dims) == -1:
             arrow = []
         else:
-            arrow = msg[..., bbox3d_setting.arrow_dims]
+            arrow = msg[..., bbox3d_setting.arrow_dims].astype(np.float32)
 
         if max(bbox3d_setting.text_dims) >= max_dim:
             send_log_msg(ERROR, "text_dims维度无效:%s,最大维度为%d"%(str(bbox3d_setting.text_dims), max_dim))
@@ -382,14 +384,14 @@ class Controller():
         if max(bbox3d_setting.text_dims) == -1:
             text_info = np.array([]).reshape(-1, len(bbox3d_setting.text_dims))
         else:
-            text_info = msg[..., bbox3d_setting.text_dims]
+            text_info = msg[..., bbox3d_setting.text_dims].astype(np.float32)
 
 
         if len(bbox3d_setting.color_dims) <= 0 or min(bbox3d_setting.color_dims) < 0 or max(bbox3d_setting.color_dims) >= max_dim:
             # send_log_msg(ERROR, "color维度无效:%s,最大维度为%d"%(str(self.bbox3d_setting.color_dims), max_dim))
             color_id_list = -1
         else:
-            color_id_list = msg[..., bbox3d_setting.color_dims]
+            color_id_list = msg[..., bbox3d_setting.color_dims].astype(np.float32)
 
         real_color, state = self.view.color_id_to_color_list(color_id_list)
 
@@ -504,6 +506,7 @@ class Controller():
             arrow.append(sub_data[2])
             text_info += sub_data[3].tolist()
             text_format += [sub_data[4]] * len(sub_data[3])
+
         bboxes = np.concatenate(bboxes)
 
         if len(data) > 1:
@@ -521,6 +524,6 @@ class Controller():
         self.view.set_bbox3d_visible(True, group)
         self.view.set_bbox3d_text_visible(True, group)
         self.view.set_bbox3d_arrow_visible(True, group)
-        self.view.set_bbox3d(bboxes, real_color, arrow, text_info, text_format, group)
+        self.view.set_bbox3d(bboxes, real_color, arrow, text_info, text_format, group=group)
 
 

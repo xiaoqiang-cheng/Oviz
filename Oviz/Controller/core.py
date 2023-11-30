@@ -24,12 +24,14 @@ class Bbox3DSetting:
             arrow_dims = -1,
             text_dims = -1,
             text_format = "",
+            clock_offset = -1
         ):
         self.bbox_dims = bbox_dims
         self.color_dims = color_dims
         self.arrow_dims = arrow_dims
         self.text_dims = text_dims
         self.text_format = text_format
+        self.clock_offset = clock_offset
 
 
 class GlobalSetting:

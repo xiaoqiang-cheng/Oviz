@@ -226,6 +226,16 @@
                         }
                     },
 
+                    "bbox3d_txt_theta_trans_dim":{
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "θ=[clockwise]*θ + [offset]*np.pi",
+                            "default_value": {
+                                "value": "1.0,0.0"
+                            }
+                        }
+                    },
+
                     "bbox3d_txt_color_dim":{
                         "type": "LineTextWithLabelWidget",
                         "params":{

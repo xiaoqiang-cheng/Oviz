@@ -33,6 +33,7 @@ def point_cloud_reshape(self, key, group, ele, index, data, **kwargs):
 
 @magic_pipeline_iterate(element_keys=['bbox3d'], switch_key="fix_nus_bbox3d")
 def fix_nus_bbox3d(self, key, group, ele, index, data, **kwargs):
+    data = data.astype(np.float32)
     if len(data.shape) == 1:
         data = data.reshape(-1, data.shape[0])
     score_mask = data[:, -1] > 0.3
@@ -43,6 +44,7 @@ def fix_nus_bbox3d(self, key, group, ele, index, data, **kwargs):
 
 @magic_pipeline_iterate(element_keys=['bbox3d'], switch_key="filter_bbox3d_vel")
 def filter_bbox3d_vel(self, key, group, ele, index, data, **kwargs):
+    data = data.astype(np.float32)
     if len(data.shape) == 1:
         data = data.reshape(-1, data.shape[0])
 

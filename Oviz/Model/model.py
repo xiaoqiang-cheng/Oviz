@@ -78,7 +78,7 @@ class Model(QObject):
             pass
 
     def smart_read_bbox3d(self, bbox_path):
-        return np.loadtxt(bbox_path, dtype=np.float32)
+        return np.loadtxt(bbox_path, dtype=str)
 
     def smart_read_pointcloud(self, pc_path):
         if pc_path.endswith(".pcd"):

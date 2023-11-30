@@ -556,8 +556,9 @@ class View(QMainWindow):
         arrow_dims = list(map(int, curr_element_dict[topic_type][index]['bbox3d_txt_arrow_dim'].text().split(',')))
         text_dims = list(map(int, curr_element_dict[topic_type][index]['bbox3d_txt_text_dim'].text().split(',')))
         format_dims = curr_element_dict[topic_type][index]['bbox3d_txt_format_dim'].text()
+        clockwise_offset = list(map(float, curr_element_dict[topic_type][index]['bbox3d_txt_theta_trans_dim'].text().split(',')))
 
-        return size_dims, color_dims, arrow_dims, text_dims, format_dims
+        return size_dims, color_dims, arrow_dims, text_dims, format_dims, clockwise_offset
 
     def rgb_to_hex_numpy(self, rgb_list):
         rgb_array = np.array(rgb_list)
@@ -676,9 +677,10 @@ class View(QMainWindow):
     def set_image(self, img, meta_form):
         self.image_dock[meta_form].set_image(img)
 
-    def set_bbox3d(self, bboxes3d, color, arrow, text_info, show_format, group="template"):
+    def set_bbox3d(self, bboxes3d, color, arrow, text_info, show_format,
+                            clockwise = 1, theta_offset = 0.0, group="template"):
         if len(bboxes3d) == 0: return
-        bboxes3d[:, -1] =  - bboxes3d[:, -1] - np.pi * 0.5
+        bboxes3d[:, -1] =  clockwise * bboxes3d[:, -1] + theta_offset * np.pi
         self.canvas.draw_box3d_line(group + "_" + "bbox3d_line", bboxes3d, color)
         # show arrow
         if len(arrow) !=  0:
