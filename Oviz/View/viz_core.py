@@ -219,14 +219,19 @@ class Canvas(scene.SceneCanvas):
 
 
     def draw_point_cloud(self, vis_name, point_clouds, point_color="#f3f3f3", size = 1):
+
+        mask = point_color[:, -1] != 0.0
+        points = point_clouds[mask]
+        p_color = point_color[mask]
+
         # face_color = edge_color = Color(point_color)
-        self.vis_module[vis_name].set_data(np.array(point_clouds),
+        self.vis_module[vis_name].set_data(np.array(points),
                                             # edge_width=5,
-                                            edge_color=point_color,
-                                            face_color=point_color,
+                                            edge_color=p_color,
+                                            face_color=p_color,
                                             size=size,
                                             symbol = 'o')
-        self.vis_module[vis_name].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
+        # self.vis_module[vis_name].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
 
 
     def draw_point_voxel(self, vis_name, pos, w, l, h, face, edge):

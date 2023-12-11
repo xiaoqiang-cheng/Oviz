@@ -3,7 +3,6 @@ from Oviz.Utils.point_cloud_utils import read_pcd, read_bin
 from Oviz.log_sys import send_log_msg
 import os
 import cv2
-from Oviz.MsgManager.manager import MiddleManager
 import threading
 
 class Model(QObject):
@@ -15,31 +14,6 @@ class Model(QObject):
         self.data_frame_list = []
         self.database = {}
         self.curr_frame_data = {}
-        self.oviz_node_event = threading.Event()
-
-        self.oviz_node = MiddleManager(self.online_callback, event=self.oviz_node_event)
-        self.oviz_node.start()
-
-    def free(self):
-        self.oviz_node_event.set()
-        self.free_middleware()
-        self.oviz_node_event.clear()
-
-    def online_set_control(self):
-        self.oviz_node.set_control()
-
-    def update_middleware(self, port=None):
-        try:
-            self.free()
-        except:
-            pass
-
-        self.oviz_node = MiddleManager(self.online_callback, target_port = port, event=self.oviz_node_event)
-        self.oviz_node.start()
-
-    def free_middleware(self):
-        self.oviz_node.close()
-        self.oviz_node.join()
 
     def online_callback(self, msg):
         # print(msg)
@@ -77,9 +51,6 @@ class Model(QObject):
         except:
             pass
 
-    def smart_read_bbox3d(self, bbox_path):
-        return np.loadtxt(bbox_path, dtype=str)
-
     def smart_read_pointcloud(self, pc_path):
         if pc_path.endswith(".pcd"):
             pc = read_pcd(pc_path)
@@ -97,10 +68,6 @@ class Model(QObject):
 
     def deal_pointcloud_folder(self, group, folder_path, ele_index):
         cnt = self.deal_folder(group, folder_path, ele_index, POINTCLOUD, [".pcd", ".bin"])
-        return cnt
-
-    def deal_bbox3d_folder(self, group, folder_path, ele_index):
-        cnt = self.deal_folder(group, folder_path, ele_index, BBOX3D, [".txt"])
         return cnt
 
     def deal_folder(self, group, folder_path, ele_index, topic_type, allowed_extensions):

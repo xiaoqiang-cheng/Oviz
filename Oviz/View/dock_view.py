@@ -117,6 +117,7 @@ class ImageDockWidget(QDockWidget):
         self.setMinimumSize(100, 100)
         self.image_viewer.doubleClicked.connect(self.select_image)
         self.linetxt.returnPressed.connect(self.select_topic_path)
+        self.hide()
 
 
     def set_title(self, title):
@@ -158,10 +159,6 @@ class ImageDockWidget(QDockWidget):
     def set_image(self, image_path):
         self.image_viewer.set_image(image_path)
 
-    # def resizeEvent(self, event):
-    #     super().resizeEvent(event)
-    #     # 强制进行重新绘制
-    #     self.update()
 
     def toggle_hide(self):
         if self.isVisible():

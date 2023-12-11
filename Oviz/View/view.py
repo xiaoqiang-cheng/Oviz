@@ -51,15 +51,26 @@ class View(QMainWindow):
 
     def load_system_config(self):
         self.canvas_cfg = self.get_user_config("init_canvas_cfg3d.json")
-        self.color_map = self.get_user_config("color_map.json")
+        self.color_map_cfg = self.get_user_config("color_map.json")
         self.layout_config = self.get_user_config("layout_config.json")
         self.menu_bar_config = self.get_user_config("menu_bar.json")
         self.status_bar_config = self.get_user_config("status_bar.json")
+        self.struct_color_map()
+
+    def struct_color_map(self):
+        self.color_map = {
+            }
+        self.color_map_label = {
+        }
+        for index, setting in enumerate(self.color_map_cfg['objects']):
+            self.color_map[str(index)] = setting['color']
+            self.color_map_label[str(index)] = setting['label']
+
 
 
     def create_central_widget(self):
         self.canvas_cfg_set = {}
-        self.canvas = Canvas(self.color_map["-2"])
+        self.canvas = Canvas(self.color_map_cfg["background"])
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.central_widget.setLayout(QHBoxLayout())
@@ -74,23 +85,17 @@ class View(QMainWindow):
         self.dock_global_control_box_layout_dict = self.set_global_control_box()
         self.dock_global_control_box = ControlBoxDockWidget(title="GlobalSetting", layout_dict=self.dock_global_control_box_layout_dict)
 
-        # need add some layout
-        self.dock_element_control_box_layout_dict = self.set_control_box()
-        self.dock_element_control_box = ControlTabBoxDockWidget(title="ElementSetting", layout_dict=self.dock_element_control_box_layout_dict)
-
         self.create_image_dock_widgets(self.layout_config["image_dock_path"])
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_control_box)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_element_control_box)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_global_control_box)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
+        self.dock_log_info.hide()
 
-        self.dock_element_control_box.unfold()
+
         self.dock_global_control_box.unfold()
 
-        self.dock_element_control_box.addSubControlBox.connect(self.add_sub_control_box_tab)
-        self.dock_element_control_box.removeSubControlBox.connect(self.remove_sub_control_box_tab)
-        self.dock_element_control_box.add_control_tab_button.clicked.connect(self.add_control_box_tab)
-        self.dock_element_control_box.tabwidget.tabCloseRequested.connect(self.remove_control_box_tab)
+        self.canvas_cfg_set["template"] = self.canvas_cfg['view3d']
+        self.struct_single_canvas(self.canvas, self.canvas_cfg['view3d'])
 
     def create_menu_bar(self):
         self.menubar = self.menuBar()
@@ -111,7 +116,8 @@ class View(QMainWindow):
             self.load_history_menu.addAction("[empty]")
         self.load_history_menu_triggered = self.load_history_menu.triggered[QAction]
         self.load_history_menu_triggered.connect(self.reload_database)
-        self.menubar.setMaximumHeight(1)
+        # self.menubar.setMaximumHeight(1)
+
 
     def show_menu_bar(self):
         if self.menubar.height() < 10:
@@ -131,7 +137,6 @@ class View(QMainWindow):
             "显示图片"      : self.show_dock_image,
             "显示日志"      : self.dock_log_info.toggle_hide,
             "显示进度条"     : self.dock_range_slide.toggle_hide,
-            "显示元素控制台" : self.dock_element_control_box.toggle_hide,
             "显示全局控制台" : self.dock_global_control_box.toggle_hide,
             "显示图片标题栏" : self.show_dock_image_title,
             "显示状态栏"    : self.show_status_bar,
@@ -182,7 +187,7 @@ class View(QMainWindow):
             self.dock_range_slide.stop_auto_play()
             self.dock_range_slide.next_frame()
 
-    def create_color_map_widget(self):
+    def create_color_map_widget2(self):
         color_id_map_list = QListWidget()
         style_sheet = '''
                 QListView::item:selected {
@@ -196,9 +201,35 @@ class View(QMainWindow):
         color_id_map_list.clear()
         for c, val in self.color_map.items():
             lw = QListWidgetItem(c)
+            #lw = QPushButton(c + " " + self.color_map_label[c])
             lw.setBackground(QColor(val))
             color_id_map_list.addItem(lw)
         return color_id_map_list
+
+    def create_color_map_widget(self):
+        color_list_widget = QWidget()
+        color_id_map_list = QVBoxLayout()
+
+        self.color_checkbox_dict = {}
+        for c, val in self.color_map.items():
+            local_widget = QWidget()
+            local_layout = QHBoxLayout()
+            local_widget.setLayout(local_layout)
+            lw = QPushButton(self.color_map_label[c])
+            lw.setMinimumWidth(200)
+            lw.setStyleSheet("color:black")
+            lw.setStyleSheet("background-color:%s"%val)
+            self.color_checkbox_dict[c] = QCheckBox(c)
+            self.color_checkbox_dict[c].setChecked(True)
+            local_widget.layout().addWidget(lw)
+            local_widget.layout().addWidget(self.color_checkbox_dict[c])
+            local_layout.setSpacing(5)
+            local_layout.setContentsMargins(0, 0, 0, 0)
+            color_id_map_list.addWidget(local_widget)
+        color_id_map_list.setSpacing(1)
+        color_id_map_list.setContentsMargins(0, 0, 0, 0)
+        color_list_widget.setLayout(color_id_map_list)
+        return color_list_widget
 
     def set_control_box(self):
         ret = dict()
@@ -301,7 +332,7 @@ class View(QMainWindow):
         if not os.path.exists(USER_CONFIG_DIR):
             os.mkdir(USER_CONFIG_DIR)
         write_json(self.layout_config, "%s/layout_config.json"%USER_CONFIG_DIR)
-        write_json(self.color_map, "%s/color_map.json"%USER_CONFIG_DIR)
+        write_json(self.color_map_cfg, "%s/color_map.json"%USER_CONFIG_DIR)
         write_json(self.canvas_cfg, "%s/init_canvas_cfg3d.json"%USER_CONFIG_DIR)
         self.save_layout()
 
@@ -356,18 +387,6 @@ class View(QMainWindow):
 
     def revet_layout_config(self):
         group_index = 0
-        for module, value in self.dock_element_control_box_layout_dict.items():
-            self.dock_element_control_box.tabwidget.setCurrentIndex(group_index)
-            group_index += 1
-            for tk, tws in value.items():
-                for ele_index, tw in enumerate(tws):
-                    self.dock_element_control_box.boxes[module][tk].tab_widget.setCurrentIndex(ele_index)
-                    for wk, wv in tw.items():
-                        try:
-                            wv.revert()
-                        except Exception as e:
-                            pass
-
         for tk, tw in self.dock_global_control_box_layout_dict.items():
             for wk, wv in tw.items():
                 try:
@@ -497,7 +516,7 @@ class View(QMainWindow):
         for key, results in cfg_dict.items():
             self.struct_single_canvas(canvas, results, key)
 
-    def struct_single_canvas(self, canvas, results, group):
+    def struct_single_canvas(self, canvas, results, group="template"):
         if "camera" in results.keys():
             canvas.create_view(results["type"], group, results['camera'])
         else:
@@ -508,43 +527,37 @@ class View(QMainWindow):
             else:
                 canvas.creat_vis(vis_res['type'], group + "_" + vis_key, group)
 
-        if self.dock_global_control_box_layout_dict['global_setting']["checkbox_unlink_3dviz"].isChecked():
-            return
-        self.link_camera(canvas, group)
+        # if self.dock_global_control_box_layout_dict['global_setting']["checkbox_unlink_3dviz"].isChecked():
+        #     return
+        # self.link_camera(canvas, group)
 
     def send_update_vis_flag(self):
         self.dock_range_slide.update_handled = True
 
     def get_curr_control_box_name(self):
-        curr_index = self.dock_element_control_box.tabwidget.currentIndex()
-        return self.dock_element_control_box.tabwidget.tabText(curr_index)
+        return "template"
 
     def get_curr_sub_element_index(self, group, key):
-        return self.dock_element_control_box.boxes[group][key].tab_widget.currentIndex()
+        return 0
 
     def get_curr_sub_element_count(self,  group, key):
-        return self.dock_element_control_box.boxes[group][key].tab_widget.count()
+        return 1
 
-    def get_oviz_api_setting(self):
-        curr_widget = self.dock_global_control_box_layout_dict['oviz_api_setting']
-        port = curr_widget['linetxt_target_port'].text()
-
-        return int(port)
 
     def get_pointsetting(self, index = 0):
         topic_type = POINTCLOUD
         curr_widget_key = self.get_curr_control_box_name()
-        curr_element_dict = self.dock_element_control_box_layout_dict[curr_widget_key]
+        curr_element_dict = self.dock_global_control_box_layout_dict['pointcloud']
 
-        pt_dim = int(curr_element_dict[topic_type][index]['linetxt_point_dim'].text())
-        pt_type = curr_element_dict[topic_type][index]['linetxt_point_type'].text()
-        xyz_dims = list(map(int, curr_element_dict[topic_type][index]['linetxt_xyz_dim'].text().split(',')))
-        wlh_dims = list(map(int, curr_element_dict[topic_type][index]['linetxt_wlh_dim'].text().split(',')))
-        color_dims = list(map(int, curr_element_dict[topic_type][index]['linetxt_color_dim'].text().split(',')))
-        show_voxel = curr_element_dict[topic_type][index]['show_voxel_mode'].isChecked()
+        pt_dim = int(curr_element_dict['linetxt_point_dim'].text())
+        pt_type = curr_element_dict['linetxt_point_type'].text()
+        xyz_dims = list(map(int, curr_element_dict['linetxt_xyz_dim'].text().split(',')))
+        wlh_dims = list(map(int, curr_element_dict['linetxt_wlh_dim'].text().split(',')))
+        color_dims = list(map(int, curr_element_dict['linetxt_color_dim'].text().split(',')))
+        # show_voxel = curr_element_dict['show_voxel_mode'].isChecked()
 
         # show_voxel = self.dock_global_control_box_layout_dict['global_setting']['show_voxel_mode'].isChecked()
-        return pt_dim, pt_type, xyz_dims, wlh_dims, color_dims, show_voxel
+        return pt_dim, pt_type, xyz_dims, wlh_dims, color_dims, False
 
     def get_bbox3dsetting(self, index = 0):
         topic_type = BBOX3D
@@ -582,7 +595,13 @@ class View(QMainWindow):
                 for key, value in rgb_color_map.items():
                     # TODO bug if key is not int str
                     mask = id_list == int(key)
-                    ret_color[mask] = value
+
+                    if self.color_checkbox_dict[key].isChecked():
+                        ret_color[mask] = value
+                    else:
+                        remove_color = color_str_to_rgb(self.color_map_cfg['background'])
+                        remove_color[-1] = 0.0
+                        ret_color[mask] = remove_color
                 return ret_color, True
             elif (id_list.shape[-1] == 2):
                 color_dim = 3
@@ -604,9 +623,9 @@ class View(QMainWindow):
                 # you must supply normal rgb|a array
                 return np.clip(id_list, 0.0, 1.0), True
             else:
-                return self.color_map["-1"], True
+                return self.color_map_cfg["default"], True
         except:
-            return self.color_map["-1"], False
+            return self.color_map_cfg["default"], False
 
 
     def set_color_map_list(self):
@@ -646,7 +665,11 @@ class View(QMainWindow):
 
     def set_reference_line_visible(self, mode):
         for group in self.canvas_cfg_set.keys():
-            self.set_reference_line(group)
+            x_range = list(map(float, self.dock_global_control_box_layout_dict["global_setting"]['grid_line_x_range'].text().split(',')))
+            y_range = list(map(float, self.dock_global_control_box_layout_dict["global_setting"]['grid_line_y_range'].text().split(',')))
+            xy_step = list(map(float, self.dock_global_control_box_layout_dict["global_setting"]['grid_line_step'].text().split(',')))
+
+            self.set_reference_line(group, x_range, y_range, xy_step)
             self.canvas.set_visible(group + "_" + "reference_line", mode)
 
     def set_bbox3d_visible(self, mode, group="template"):
@@ -707,8 +730,9 @@ class View(QMainWindow):
     def set_bbox3d_arrow(self, bboxes, vel_list, color, group="template"):
         self.canvas.draw_bbox3d_arrow(group + "_" + "obj_arrow", bboxes, vel_list, color)
 
-    def set_reference_line(self, group="template"):
-        self.canvas.draw_reference_line(group + "_" + "reference_line")
+    def set_reference_line(self, group="template", x_range = [], y_range = [], step = []):
+        self.canvas.draw_reference_line(group + "_" + "reference_line", x_range, y_range,
+                        x_step=step[0], y_step=step[1])
 
     def set_canvas_bgcolor(self):
-        self.canvas.set_vis_bgcolor(value=self.color_map["-2"])
+        self.canvas.set_vis_bgcolor(value=self.color_map_cfg["background"])

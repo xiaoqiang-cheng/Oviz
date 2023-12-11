@@ -24,10 +24,98 @@
                         "text": "显示grid"
                     }
                 },
-                "checkbox_unlink_3dviz" : {
-                    "type" : "QCheckBox",
+                "grid_line_x_range":{
+                    "type": "LineTextWithLabelWidget",
                     "params":{
-                        "text": "不联动3D视角"
+                        "widget_titie" : "x_range",
+                        "default_value": {
+                            "value": "-70, 70"
+                        }
+                    }
+                },
+
+                "grid_line_y_range":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "y_range",
+                        "default_value": {
+                            "value": "-70, 70"
+                        }
+                    }
+                },
+
+                "grid_line_step":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "xy_step",
+                        "default_value": {
+                            "value": "10, 10"
+                        }
+                    }
+                }
+            }
+        },
+
+        "pointcloud":{
+            "type": "QVBoxLayout",
+            "widget":{
+                "folder_path" : {
+                    "type": "FolderSelectWidget",
+                    "params":{
+                        "widget_titie" : "pointcloud",
+                        "default_value": {
+                            "value": ""
+                        }
+                    }
+                },
+
+                "linetxt_point_dim":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "dim",
+                        "default_value": {
+                            "value": "4"
+                        }
+                    }
+                },
+
+                "linetxt_point_type":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "type",
+                        "default_value": {
+                            "value": "float32"
+                        }
+                    }
+                },
+
+                "linetxt_xyz_dim" : {
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "x,y,z",
+                        "default_value": {
+                            "value": "0,1,2"
+                        }
+                    }
+                },
+
+                "linetxt_wlh_dim" : {
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "w,l,h",
+                        "default_value": {
+                            "value": "-1"
+                        }
+                    }
+                },
+
+                "linetxt_color_dim" : {
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "color",
+                        "default_value": {
+                            "value": "3"
+                        }
                     }
                 }
             }
@@ -67,34 +155,6 @@
             }
         },
 
-        "oviz_api_setting":
-        {
-            "type": "QVBoxLayout",
-            "widget" : {
-                "enable_remote_link":{
-                    "type" : "QCheckBox",
-                    "params":{
-                        "text": "使用远程API功能"
-                    }
-                },
-                "linetxt_target_port":{
-                    "type": "LineTextWithLabelWidget",
-                    "params":{
-                        "widget_titie" : "target_port",
-                        "default_value": {
-                            "value": "12345"
-                        }
-                    }
-                },
-                "button_remote_key":{
-                    "type": "QPushButton",
-                    "params":{
-                        "text": "oviz api key"
-                    }
-                }
-            }
-        },
-
         "car_model_setting":
         {
             "type": "QVBoxLayout",
@@ -106,187 +166,6 @@
                     }
                 }
             }
-        },
-
-        "magic_pipeline_setting":
-        {
-            "type": "QVBoxLayout",
-            "widget" : {
-                "checkbox_enable_magic":{
-                    "type" : "QCheckBox",
-                    "params":{
-                        "text": "使用魔法pipeline"
-                    }
-                },
-                "text_magic_pipe_paramters":{
-                    "type" : "JSONWidgetEditor",
-                    "params":{
-                        "widget_titie" : "json",
-                        "default_value": [{
-                            "magic_debug" : 1
-                        }]
-                    }
-                },
-                "button_open_magic_pipe_editor":{
-                    "type" : "QPushButton",
-                    "params":{
-                        "text": "打开编辑器"
-                    }
-                }
-            }
-        }
-    },
-
-    "element_control_box":
-    {
-        "template":
-        {
-            "pointcloud":[{
-                "type": "QVBoxLayout",
-                "widget":{
-                    "linetxt_point_dim":{
-                        "type": "LineTextWithLabelWidget",
-                        "params":{
-                            "widget_titie" : "dim",
-                            "default_value": {
-                                "value": "4"
-                            }
-                        }
-                    },
-
-                    "linetxt_point_type":{
-                        "type": "LineTextWithLabelWidget",
-                        "params":{
-                            "widget_titie" : "type",
-                            "default_value": {
-                                "value": "float32"
-                            }
-                        }
-                    },
-
-                    "linetxt_xyz_dim" : {
-                        "type": "LineTextWithLabelWidget",
-                        "params":{
-                            "widget_titie" : "x,y,z",
-                            "default_value": {
-                                "value": "0,1,2"
-                            }
-                        }
-                    },
-
-                    "linetxt_wlh_dim" : {
-                        "type": "LineTextWithLabelWidget",
-                        "params":{
-                            "widget_titie" : "w,l,h",
-                            "default_value": {
-                                "value": "-1"
-                            }
-                        }
-                    },
-
-                    "linetxt_color_dim" : {
-                        "type": "LineTextWithLabelWidget",
-                        "params":{
-                            "widget_titie" : "color",
-                            "default_value": {
-                                "value": "5"
-                            }
-                        }
-                    },
-
-                    "folder_path" : {
-                        "type": "FolderSelectWidget",
-                        "params":{
-                            "widget_titie" : "pointcloud",
-                            "default_value": {
-                                "value": ""
-                            }
-                        }
-                    },
-
-                    "show_voxel_mode" : {
-                        "type": "QCheckBox",
-                        "params":{
-                            "text": "voxel模式"
-                        }
-                    }
-                }
-            }],
-
-            "bbox3d":[{
-                "type": "QVBoxLayout",
-                "widget":{
-                    "bbox3d_txt_xyzwhlt_dim":{
-                        "type": "LineTextWithLabelWidget",
-                        "params":{
-                            "widget_titie" : "x,y,z,w,l,h,θ",
-                            "default_value": {
-                                "value": "1,2,3,4,5,6,7"
-                            }
-                        }
-                    },
-
-                    "bbox3d_txt_theta_trans_dim":{
-                        "type": "LineTextWithLabelWidget",
-                        "params":{
-                            "widget_titie" : "θ=[clockwise]*θ + [offset]*np.pi",
-                            "default_value": {
-                                "value": "1.0,0.0"
-                            }
-                        }
-                    },
-
-                    "bbox3d_txt_color_dim":{
-                        "type": "LineTextWithLabelWidget",
-                        "params":{
-                            "widget_titie" : "color (cls/id)",
-                            "default_value": {
-                                "value": "0"
-                            }
-                        }
-                    },
-
-                    "bbox3d_txt_arrow_dim":{
-                        "type": "LineTextWithLabelWidget",
-                        "params":{
-                            "widget_titie" : "arrow",
-                            "default_value": {
-                                "value": "-1"
-                            }
-                        }
-                    },
-
-                    "bbox3d_txt_text_dim":{
-                        "type": "LineTextWithLabelWidget",
-                        "params":{
-                            "widget_titie" : "text_dim",
-                            "default_value": {
-                                "value": "-1"
-                            }
-                        }
-                    },
-
-                    "bbox3d_txt_format_dim":{
-                        "type": "LineTextWithLabelWidget",
-                        "params":{
-                            "widget_titie" : "show_format",
-                            "default_value": {
-                                "value": "[ID: %d]"
-                            }
-                        }
-                    },
-
-                    "folder_path" : {
-                        "type": "FolderSelectWidget",
-                        "params":{
-                            "widget_titie" : "bbox3d",
-                            "default_value": {
-                                "value": ""
-                            }
-                        }
-                    }
-                }
-            }]
         }
     }
 }

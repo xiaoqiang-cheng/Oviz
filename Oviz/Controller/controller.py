@@ -45,21 +45,20 @@ class Controller():
 
     def global_box_signal_connect(self):
         self.view.dock_global_control_box_layout_dict['car_model_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
-        self.view.dock_global_control_box_layout_dict['magic_pipeline_setting']['checkbox_enable_magic'].stateChanged.connect(self.check_magic_pipeline)
-        self.view.dock_global_control_box_layout_dict['magic_pipeline_setting']['button_open_magic_pipe_editor'].clicked.connect(self.open_magic_pipeline)
-        self.magicpipe_setting.magic_params = self.view.dock_global_control_box_layout_dict['magic_pipeline_setting']['text_magic_pipe_paramters'].get_json_data
-
-        self.view.dock_global_control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
+        # self.view.dock_global_control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
         self.view.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
-
-        self.view.dock_global_control_box_layout_dict['oviz_api_setting']['enable_remote_link'].clicked.connect(self.enable_remote_api)
-        self.view.dock_global_control_box_layout_dict['oviz_api_setting']['button_remote_key'].clicked.connect(self.model.online_set_control)
-
 
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_mouse_record_screen'].stateChanged.connect(self.change_mouse_record_mode)
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['button_export_record_video'].clicked.connect(self.export_grab_video)
 
+        self.view.dock_global_control_box_layout_dict['pointcloud']['folder_path'].SelectDone.connect(self.select_pointcloud)
+        self.view.dock_global_control_box_layout_dict['pointcloud']['linetxt_point_dim'].textChanged.connect(self.update_pointsetting_dims)
+        self.view.dock_global_control_box_layout_dict['pointcloud']['linetxt_point_type'].textChanged.connect(self.update_pointsetting_dims)
+        self.view.dock_global_control_box_layout_dict['pointcloud']['linetxt_xyz_dim'].textChanged.connect(self.update_pointsetting_dims)
+        self.view.dock_global_control_box_layout_dict['pointcloud']['linetxt_wlh_dim'].textChanged.connect(self.update_pointsetting_dims)
+        self.view.dock_global_control_box_layout_dict['pointcloud']['linetxt_color_dim'].textChanged.connect(self.update_pointsetting_dims)
+        # self.view.dock_global_control_box_layout_dict['pointcloud']['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
 
     def sub_element_control_box_connect(self, key_str):
         value = self.view.dock_element_control_box_layout_dict[key_str]
@@ -70,16 +69,8 @@ class Controller():
             sub_module['linetxt_xyz_dim'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_wlh_dim'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_color_dim'].textChanged.connect(self.update_pointsetting_dims)
-            sub_module['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
+            # sub_module['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
 
-        for sub_module in value['bbox3d']:
-            sub_module['folder_path'].SelectDone.connect(self.select_bbox3d)
-            sub_module['bbox3d_txt_xyzwhlt_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
-            sub_module['bbox3d_txt_theta_trans_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
-            sub_module['bbox3d_txt_color_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
-            sub_module['bbox3d_txt_format_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
-            sub_module['bbox3d_txt_text_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
-            sub_module['bbox3d_txt_arrow_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
 
     def element_control_box_connect(self):
         for key in self.view.dock_element_control_box_layout_dict.keys():
@@ -98,21 +89,18 @@ class Controller():
             val.SelectDone.connect(self.select_image)
 
         self.global_box_signal_connect()
-        self.element_control_box_connect()
+        # self.element_control_box_connect()
         self.view.addImageDock.connect(self.dynamic_add_image_dock)
         self.view.pointSizeChanged.connect(self.change_point_size)
-        self.view.addNewControlTab.connect(self.sub_element_control_box_connect)
-        self.view.removeControlTab.connect(self.remove_sub_control_box)
-        self.view.addSubControlTab.connect(self.add_sub_element_control_box)
-        self.view.removeSubControlTab.connect(self.remove_sub_element_control_box)
+        # self.view.addNewControlTab.connect(self.sub_element_control_box_connect)
+        # self.view.removeControlTab.connect(self.remove_sub_control_box)
+        # self.view.addSubControlTab.connect(self.add_sub_element_control_box)
+        # self.view.removeSubControlTab.connect(self.remove_sub_element_control_box)
         self.view.removeImageDock.connect(self.remove_image_dock)
 
-    def enable_remote_api(self, state):
-        if state > 0:
-            port = self.view.get_oviz_api_setting()
-            self.model.update_middleware(port)
-        else:
-            self.model.update_middleware()
+        for key, val in self.view.color_checkbox_dict.items():
+            val.stateChanged.connect(self.update_buffer_vis)
+
 
     def remove_image_dock(self, index):
         try:
@@ -140,7 +128,6 @@ class Controller():
     def revert_user_config(self):
         try:
             self.update_pointsetting_dims()
-            self.update_bbox3dsetting_dims()
             self.view.revet_layout_config()
             self.update_system_vis(self.view.layout_config["last_slide_num"])
         except:
@@ -206,16 +193,10 @@ class Controller():
 
     def select_pointcloud(self, topic_path, topic_type):
         self.update_pointsetting_dims()
-        curr_group = self.view.get_curr_control_box_name()
-        ele_index = self.view.get_curr_sub_element_index(curr_group, topic_type)
+        curr_group = "template"
+        ele_index = 0
         self.select_format(curr_group, topic_type, topic_path, ele_index)
 
-
-    def select_bbox3d(self, topic_path, topic_type):
-        self.update_bbox3dsetting_dims()
-        curr_group = self.view.get_curr_control_box_name()
-        ele_index = self.view.get_curr_sub_element_index(curr_group, topic_type)
-        self.select_format(curr_group, topic_type, topic_path, ele_index)
 
     def select_done_update_range_and_vis(self):
         self.view.set_data_range(self.model.data_frame_list)
@@ -239,25 +220,6 @@ class Controller():
             self.update_buffer_vis()
         except:
             print(self.pointcloud_setting.__dict__)
-
-
-    def update_bbox3dsetting_dims(self):
-        try:
-            curr_tab_key = self.view.get_curr_control_box_name()
-            count = self.view.get_curr_sub_element_count(curr_tab_key, BBOX3D)
-            curr_sub_ele_index = self.view.get_curr_sub_element_index(curr_tab_key, BBOX3D)
-            if curr_tab_key not in self.bbox3d_setting_dict.keys():
-                self.bbox3d_setting_dict[curr_tab_key] = {}
-            for ele_index in range(count):
-                self.bbox3d_setting_dict[curr_tab_key].update(
-                    {ele_index: Bbox3DSetting(*self.view.get_bbox3dsetting(index=ele_index))}
-                )
-            self.bbox3d_setting = self.bbox3d_setting_dict[curr_tab_key][curr_sub_ele_index]
-            if not check_setting_dims(self.bbox3d_setting.bbox_dims, 7): return
-            self.update_buffer_vis()
-        except:
-            print(self.bbox3d_setting.__dict__)
-
 
     def exec_user_magic_pipeline(self, data_dict, kargs):
         # execute user pipeline
@@ -294,9 +256,6 @@ class Controller():
 
     def update_buffer_vis(self, timestamp = None):
         data_dict = self.model.curr_frame_data
-        if timestamp:
-            print("msg delay [%.2f] ms"%((time.time() - timestamp) * 1000))
-
         if self.magicpipe_setting.enable:
             data_dict = self.exec_magic_pipeline(data_dict)
         for group, value in data_dict.items():
@@ -328,7 +287,6 @@ class Controller():
         self.view.show()
         self.app.exec_()
         print("Close Windows 退出程序")
-        self.model.free()
         print("进程完全退出！")
         sys.exit(0)
 
@@ -341,7 +299,6 @@ class Controller():
     def sigint_handler(self, signum = None, frame = None):
         print("Ctrl + C 退出程序")
         self.Timer.stop()
-        self.model.free()
         sys.exit(0)
         # sys.exit(self.app.exec_())
 
@@ -446,10 +403,6 @@ class Controller():
         return points, real_color, w, l, h, pointcloud_setting.show_voxel, group
 
     def clear_buffer_vis(self, group):
-        self.view.set_bbox3d_visible(False, group)
-        self.view.set_bbox3d_text_visible(False, group)
-        self.view.set_bbox3d_arrow_visible(False, group)
-
         self.view.set_point_cloud_visible(False, group)
         self.view.set_point_voxel_visible(False, group)
         self.view.set_voxel_line_visible(False, group)
@@ -493,37 +446,3 @@ class Controller():
         else:
             self.view.set_point_cloud(points, color = real_color, group=group)
         self.view.set_voxel_mode(show_voxel, group)
-
-    def update_bbox3d_vis(self, data, group):
-        bboxes = []
-        real_color = []
-        arrow = []
-        text_info = []
-        text_format = []
-        for sub_data in data.values():
-            bboxes.append(sub_data[0])
-            real_color.append(sub_data[1])
-            arrow.append(sub_data[2])
-            text_info += sub_data[3].tolist()
-            text_format += [sub_data[4]] * len(sub_data[3])
-
-        bboxes = np.concatenate(bboxes)
-
-        if len(data) > 1:
-            tmp_color = []
-            for i, curr_color in enumerate(real_color):
-                color_mask = np.array([i] * len(curr_color)).reshape(-1, 1)
-                tmp_color.append(self.view.color_id_to_color_list(color_mask)[0])
-            real_color = np.concatenate(tmp_color)
-
-        else:
-            real_color = np.concatenate(real_color)
-        arrow = np.concatenate(arrow)
-
-        # self.view.set_bbox3d_visible(True)
-        self.view.set_bbox3d_visible(True, group)
-        self.view.set_bbox3d_text_visible(True, group)
-        self.view.set_bbox3d_arrow_visible(True, group)
-        self.view.set_bbox3d(bboxes, real_color, arrow, text_info, text_format, group=group)
-
-
