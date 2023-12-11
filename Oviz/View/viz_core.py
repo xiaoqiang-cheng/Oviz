@@ -3,6 +3,7 @@ import math
 
 import vispy.scene
 import vispy.app
+vispy.app.use_app('pyside2')
 
 from vispy import scene
 from vispy.scene import visuals
