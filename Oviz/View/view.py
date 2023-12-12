@@ -483,11 +483,6 @@ class View(QMainWindow):
         self.image_dock[-1].removeCurrImageDock.connect(self.dynamic_remove_image_dock)
 
 
-
-
-        # for i, val in enumerate(self.image_dock):
-        #     val.set_title(str(i))
-
     def dynamic_add_image_dock(self, index):
         # image_dock_config =
         self.layout_config['image_dock_path'].append(self.layout_config['image_dock_path'][index])

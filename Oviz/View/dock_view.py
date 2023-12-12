@@ -117,8 +117,6 @@ class ImageDockWidget(QDockWidget):
         self.setMinimumSize(100, 100)
         self.image_viewer.doubleClicked.connect(self.select_image)
         self.linetxt.returnPressed.connect(self.select_topic_path)
-        self.hide()
-
 
     def set_title(self, title):
         self.setObjectName(title)
