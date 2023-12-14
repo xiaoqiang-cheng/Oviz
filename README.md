@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="Resources/homepage.png" width="600"/>
+  <img src="Oviz/Resources/homepage.png" width="600"/>
   <div>&nbsp;</div>
   <div align="center">
     <b><font size="6">Xiaoqiang Studio</font></b>
@@ -75,7 +75,7 @@ python main.py
 
 4）点击voxel模式，以体素显示点云
 
-![选择点云](Resources/show_pointcloud.png)
+![选择点云](Oviz/Resources/show_pointcloud.png)
 
 ### 2. 图像可视化
 1）点击工具上方 “视图”，选择 显示图片
@@ -84,7 +84,7 @@ python main.py
 
 2）鼠标选中图片标题栏，右键 任意控制显示/取消显示某一图片窗体
 
-![](Resources/show_image.jpg)
+![](Oviz/Resources/show_image.jpg)
 
 ### 3. 录屏
 1）显示滑块
