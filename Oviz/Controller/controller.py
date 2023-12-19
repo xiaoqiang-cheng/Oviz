@@ -10,7 +10,7 @@ import qdarkstyle
 from qdarkstyle.dark.palette import DarkPalette
 from Oviz.Controller.core import *
 from importlib import reload
-
+from Oviz.PointPuzzle.uos_pcd import UosPCD
 
 class Controller():
     def __init__(self) -> None:
@@ -98,8 +98,43 @@ class Controller():
         # self.view.removeSubControlTab.connect(self.remove_sub_element_control_box)
         self.view.removeImageDock.connect(self.remove_image_dock)
 
+        self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_build_multi_frame"].clicked.connect(self.build_multi_frame_cloudmap)
+        self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_revert_single"].clicked.connect(self.revert_multi_frame_cloudmap)
+
         for key, val in self.view.color_checkbox_dict.items():
             val.stateChanged.connect(self.update_buffer_vis)
+
+    def revert_multi_frame_cloudmap(self):
+        cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())
+        cloudmap_controller = UosPCD(
+            pcd_path=cloudmap_setting.pcd_path,
+            sample_frame_step=cloudmap_setting.sample_frame_step,
+            scene_frame_step=cloudmap_setting.scene_frame_step,
+            roi_range=cloudmap_setting.roi_range,
+            pc_range=cloudmap_setting.pc_range,
+            veh_range=cloudmap_setting.veh_range
+        )
+
+        if os.path.exists(cloudmap_setting.cloudedmap_labeled_path):
+            os.system("cp -r %s/* %s/"%(cloudmap_setting.cloudedmap_labeled_path,
+                    cloudmap_controller.labeled_ground_truth_dir))
+        cloudmap_controller.revert()
+        os.system("xdg-open %s"%cloudmap_setting.pcd_path)
+
+
+    def build_multi_frame_cloudmap(self):
+        cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())
+        cloudmap_controller = UosPCD(
+            pcd_path=cloudmap_setting.pcd_path,
+            sample_frame_step=cloudmap_setting.sample_frame_step,
+            scene_frame_step=cloudmap_setting.scene_frame_step,
+            roi_range=cloudmap_setting.roi_range,
+            pc_range=cloudmap_setting.pc_range,
+            veh_range=cloudmap_setting.veh_range
+        )
+
+        cloudmap_controller.run(bbox_root_path=cloudmap_setting.bbox3d_path, seg_root_path=cloudmap_setting.seg_path)
+        os.system("xdg-open %s"%cloudmap_setting.pcd_path)
 
 
     def remove_image_dock(self, index):

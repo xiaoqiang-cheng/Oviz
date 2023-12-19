@@ -85,14 +85,21 @@ class View(QMainWindow):
         self.dock_global_control_box_layout_dict = self.set_global_control_box()
         self.dock_global_control_box = ControlBoxDockWidget(title="GlobalSetting", layout_dict=self.dock_global_control_box_layout_dict)
 
+        self.dock_mapping_control_box_layout_dict = self.set_mapping_control_box()
+        self.dock_mapping_control_box = ControlBoxDockWidget(title="MappingSetting", layout_dict=self.dock_mapping_control_box_layout_dict)
+
+
         self.create_image_dock_widgets(self.layout_config["image_dock_path"])
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_global_control_box)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_control_box)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_mapping_control_box)
+
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
         self.dock_log_info.hide()
 
 
         self.dock_global_control_box.unfold()
+        self.dock_mapping_control_box.unfold()
 
         self.canvas_cfg_set["template"] = self.canvas_cfg['view3d']
         self.struct_single_canvas(self.canvas, self.canvas_cfg['view3d'])
@@ -305,6 +312,18 @@ class View(QMainWindow):
         ret = dict()
 
         for key, value in self.layout_config['global_control_box'].items():
+            ret[key] = {}
+            ret[key]["layout"] = eval(value['type'])()
+            for wk, wv in value["widget"].items():
+                ret[key][wk] = eval(wv['type'])(**wv['params'])
+                ret[key]["layout"].addWidget(ret[key][wk])
+
+        return ret
+
+    def set_mapping_control_box(self):
+        ret = dict()
+
+        for key, value in self.layout_config['mapping_control_box'].items():
             ret[key] = {}
             ret[key]["layout"] = eval(value['type'])()
             for wk, wv in value["widget"].items():
@@ -553,6 +572,23 @@ class View(QMainWindow):
 
         # show_voxel = self.dock_global_control_box_layout_dict['global_setting']['show_voxel_mode'].isChecked()
         return pt_dim, pt_type, xyz_dims, wlh_dims, color_dims, False
+
+    def get_cloudmap_setting(self):
+        curr_element_dict = self.dock_mapping_control_box_layout_dict["uos_pcd_setting"]
+        pcd_path = curr_element_dict['pcd_path'].folder_path
+        bbox3d_path = curr_element_dict['bbox3d_path'].folder_path
+        seg_path = curr_element_dict['seg_path'].folder_path
+        cloudedmap_labeled_path = curr_element_dict['cloudedmap_labeled_path'].folder_path
+        sample_frame_step = int(curr_element_dict['linetxt_sample_frame_step'].text())
+        scene_frame_step = int(curr_element_dict['linetxt_scene_frame_step'].text())
+        roi_range = list(map(float, curr_element_dict['linetxt_roi_range'].text().split(',')))
+        pc_range = list(map(float, curr_element_dict['linetxt_pc_range'].text().split(',')))
+        veh_range = list(map(float, curr_element_dict['linetxt_veh_range'].text().split(',')))
+
+        return pcd_path, bbox3d_path, seg_path, cloudedmap_labeled_path, sample_frame_step, scene_frame_step, roi_range, pc_range, veh_range
+
+
+
 
     def get_bbox3dsetting(self, index = 0):
         topic_type = BBOX3D
