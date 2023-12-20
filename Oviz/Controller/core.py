@@ -1,5 +1,28 @@
 
 
+class CloudmapSetting:
+    def __init__(self,
+        pcd_path = "",
+        bbox3d_path = "",
+        seg_path = "",
+        cloudedmap_labeled_path = "",
+        sample_frame_step = 5,
+        scene_frame_step = 20,
+        roi_range = [],
+        pc_range = [],
+        veh_range = []
+        ) -> None:
+        self.pcd_path = pcd_path
+        self.bbox3d_path = bbox3d_path
+        self.seg_path = seg_path
+        self.cloudedmap_labeled_path = cloudedmap_labeled_path
+        self.sample_frame_step = sample_frame_step
+        self.scene_frame_step = scene_frame_step
+        self.roi_range = roi_range
+        self.pc_range = pc_range
+        self.veh_range = veh_range
+
+
 class PointCloudSetting:
     def __init__(self,
         points_dim = -1,
