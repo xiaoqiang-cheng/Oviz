@@ -213,11 +213,15 @@ class View(QMainWindow):
             color_id_map_list.addItem(lw)
         return color_id_map_list
 
+    def set_show_grid_checkbox(self, flag):
+        self.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].setChecked(flag)
+
     def create_color_map_widget(self):
         color_list_widget = QWidget()
         color_id_map_list = QVBoxLayout()
 
         self.color_checkbox_dict = {}
+        self.color_pts_num_dict = {}
         for c, val in self.color_map.items():
             local_widget = QWidget()
             local_layout = QHBoxLayout()
@@ -226,8 +230,10 @@ class View(QMainWindow):
             lw.setMinimumWidth(200)
             lw.setStyleSheet("color:black")
             lw.setStyleSheet("background-color:%s"%val)
+            self.color_pts_num_dict[c] = QLabel("0")
             self.color_checkbox_dict[c] = QCheckBox(c)
             self.color_checkbox_dict[c].setChecked(True)
+            local_widget.layout().addWidget(self.color_pts_num_dict[c])
             local_widget.layout().addWidget(lw)
             local_widget.layout().addWidget(self.color_checkbox_dict[c])
             local_layout.setSpacing(5)
@@ -626,6 +632,7 @@ class View(QMainWindow):
                 for key, value in rgb_color_map.items():
                     # TODO bug if key is not int str
                     mask = id_list == int(key)
+                    self.color_pts_num_dict[key].setText(str(len(ret_color[mask])))
 
                     if self.color_checkbox_dict[key].isChecked():
                         ret_color[mask] = value

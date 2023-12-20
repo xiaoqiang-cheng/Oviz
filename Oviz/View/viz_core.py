@@ -131,7 +131,7 @@ class Canvas(scene.SceneCanvas):
     def add_pointcloud_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = visuals.Markers(parent=self.view_panel[parent_view].scene,
                             scaling=False,
-                            antialias=0.1,
+                            antialias=0,
                             size=0.1,
                             light_color='black', light_position=(0, 0, 0), light_ambient=0.3,)
         self.vis_module[vis_name].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})

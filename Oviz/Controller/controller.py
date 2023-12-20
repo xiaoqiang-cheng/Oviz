@@ -168,6 +168,7 @@ class Controller():
         except:
             print("ERROR REVERT")
             pass
+        self.view.set_show_grid_checkbox(True)
         send_log_msg(NORMAL, "加载配置结束，如果未能显示上一次数据，请检查文件路径或本地资源是否正常")
 
     def show_car_mode(self, state):
