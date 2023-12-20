@@ -581,7 +581,7 @@ class View(QMainWindow):
         cloudedmap_labeled_path = curr_element_dict['cloudedmap_labeled_path'].folder_path
         sample_frame_step = int(curr_element_dict['linetxt_sample_frame_step'].text())
         scene_frame_step = int(curr_element_dict['linetxt_scene_frame_step'].text())
-        roi_range = list(map(float, curr_element_dict['linetxt_roi_range'].text().split(',')))
+        roi_range = list(map(int, curr_element_dict['linetxt_roi_range'].text().split(',')))
         pc_range = list(map(float, curr_element_dict['linetxt_pc_range'].text().split(',')))
         veh_range = list(map(float, curr_element_dict['linetxt_veh_range'].text().split(',')))
 
