@@ -130,6 +130,9 @@ class Canvas(scene.SceneCanvas):
 
     def add_pointcloud_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = visuals.Markers(parent=self.view_panel[parent_view].scene,
+                            scaling=False,
+                            antialias=0.1,
+                            size=0.1,
                             light_color='black', light_position=(0, 0, 0), light_ambient=0.3,)
         self.vis_module[vis_name].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
         self.view_panel[parent_view].add(self.vis_module[vis_name])
@@ -227,7 +230,8 @@ class Canvas(scene.SceneCanvas):
 
         # face_color = edge_color = Color(point_color)
         self.vis_module[vis_name].set_data(np.array(points),
-                                            # edge_width=5,
+                                            edge_width=0,
+                                            edge_width_rel = None,
                                             edge_color=p_color,
                                             face_color=p_color,
                                             size=size,
