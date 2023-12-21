@@ -1,5 +1,6 @@
 from .utils import *
 from tqdm import tqdm
+import math
 
 class UosPCD:
     def __init__(self, pcd_path,
@@ -35,6 +36,7 @@ class UosPCD:
     def ready_labeling_workspace(self, save_dir):
         self.labeling_cloudmap_dir = os.path.join(save_dir, "cloudmap")
         self.labeling_cloudmap_fidx_dir = os.path.join(save_dir, "cloudmap_fidx")
+        self.labeling_cloudmap_patch_dir = os.path.join(save_dir, "cloudmap_patch")
         # self.labeling_cloud_filter = os.path.join(save_dir, "cloud_filter")
         self.labeling_key_frame_sample = os.path.join(save_dir, "sample")
         self.labeling_sweep_frame_sample = os.path.join(save_dir, "sweep")
@@ -49,12 +51,15 @@ class UosPCD:
 
         if_not_exist_create(self.labeling_cloudmap_dir)
         if_not_exist_create(self.labeling_cloudmap_fidx_dir)
+        if_not_exist_create(self.labeling_cloudmap_patch_dir)
+
         if_not_exist_create(self.labeling_key_frame_sample)
         if_not_exist_create(self.labeling_sweep_frame_sample)
         if_not_exist_create(self.labeling_info_dir)
         if_not_exist_create(self.labeled_ground_truth_dir)
 
         if_not_exist_create(self.revert_seg_ins_label_dir)
+
 
 
     def get_pcd_filepath(self, sensor_id, frame_id):
@@ -132,11 +137,11 @@ class UosPCD:
 
         return points
 
-    def mark(self, points, bboxes_path = "", seg_path = ""):
+    def mark(self, points, bboxes_path = "", seg_path = "", height_range=[-0.6, 0.2]):
         if os.path.exists(seg_path):
             points = self.mark_points_by_seg(points)
         else:
-            points = self.mark_points_by_height(points)
+            points = self.mark_points_by_height(points, height_range)
 
         if os.path.exists(bboxes_path):
             points = self.mark_points_by_bboxes(points, bboxes_path)
@@ -157,7 +162,7 @@ class UosPCD:
         return points[uni_index]
 
 
-    def mapping(self, frame_range = [0, 200], bbox_root_path = "", seg_root_path = ""):
+    def mapping(self, frame_range = [0, 200], bbox_root_path = "", seg_root_path = "", height_range=[-0.6, 0.2]):
         world_pcd_list = []
         world_pcd_frame_list = []
         init_navi = self.navi_list[frame_range[0]].copy()
@@ -200,9 +205,7 @@ class UosPCD:
                                             np.ones((ego_pcd.shape[0], 1), dtype=np.float32) * -1))
                 bboxes_path = os.path.join(bbox_root_path, str(i).zfill(6) + ".txt")
                 # mark ego pcd
-                ego_pcd_for_label = self.mark(ego_pcd_for_label, bboxes_path=bboxes_path)
-
-
+                ego_pcd_for_label = self.mark(ego_pcd_for_label, bboxes_path=bboxes_path, height_range=height_range)
 
                 curr_navi_state[[1,2,3]] -= init_navi[[1,2,3]]
                 world_pcd = self.trans_coord(NaviState(*curr_navi_state).mat, ego_pcd_for_label)
@@ -214,17 +217,59 @@ class UosPCD:
                 ego_pcd.tofile(sweep_frame_fname)
         mapping_pcd = np.concatenate(world_pcd_list)
         frame_idx_bin = np.concatenate(world_pcd_frame_list)
-        # mapping_pcd = self.voxelize(mapping_pcd)
+
         return mapping_pcd, frame_idx_bin
 
+    def calc_eular_dist(self, pos):
+        return math.sqrt((pos[1] ** 2 + pos[2] ** 2))
+
+    def split_cloud_map(self, cloud_map, scene_name = "", split_dist = 70,):
+
+        curr_dist_max = int(cloud_map[:, 1].max()) + 1
+
+        patch_mask_metadata_fname = os.path.join(self.labeling_cloudmap_patch_dir, "cloud_mask_metadata.pkl")
+        patch_mask = {}
+        mask_any = np.ones(len(cloud_map), dtype=bool)
+
+        for i, d in enumerate(range(0, curr_dist_max, split_dist)):
+            mask = (cloud_map[:, 1] < d) & mask_any
+            mask_any = ~mask & mask_any
+            cloud = cloud_map[mask]
+            cloud[:, 1] -= d
+            scene_patch_name = scene_name + "_" + str(i).zfill(4)
+            patch_pcd_fname = os.path.join(self.labeling_cloudmap_patch_dir, scene_patch_name + ".pcd")
+            if scene_name not in patch_mask.keys():
+                patch_mask[scene_name] = {}
+
+            patch_mask[scene_name][scene_patch_name] = mask
+
+            write_pcd(patch_pcd_fname, cloud,
+                            filed = [('x', np.float32) ,
+                            ('y', np.float32),
+                            ('z', np.float32),
+                            ('label', np.int32),
+                            ('object', np.int32)])
+        serialize_data(patch_mask, patch_mask_metadata_fname)
+
+
     def revert(self):
-        labeled_cloudmaps = os.listdir(self.labeled_ground_truth_dir)
-        for gts_cloudmap in tqdm(labeled_cloudmaps):
-            gts_cloudmap_path = os.path.join(self.labeled_ground_truth_dir, gts_cloudmap)
+        patch_mask_metadata_fname = os.path.join(self.labeling_cloudmap_patch_dir, "cloud_mask_metadata.pkl")
+        patch_mask_metadata = deserialize_data(patch_mask_metadata_fname)
+
+        for scene_name in tqdm(patch_mask_metadata.keys()):
+            gts_cloudmap = scene_name + ".pcd"
+            gts_cloudmap_path = os.path.join(self.labeling_cloudmap_dir, gts_cloudmap)
             gts_cloudmap_frame_idx_path = os.path.join(self.labeling_cloudmap_fidx_dir,
                         gts_cloudmap.replace(".pcd", ".bin"))
 
             ground_truth_pcd = read_pcd(gts_cloudmap_path)
+
+            for gt_patch_name in tqdm(patch_mask_metadata[scene_name].keys()):
+                mask = patch_mask_metadata[scene_name][gt_patch_name]
+                gt_patch_pcd_fname = os.path.join(self.labeled_ground_truth_dir, gt_patch_name + ".pcd")
+                ground_truth_patch_pcd = read_pcd(gt_patch_pcd_fname)
+                ground_truth_pcd[mask] = ground_truth_patch_pcd
+
             frame_idx_array = np.fromfile(gts_cloudmap_frame_idx_path, dtype=np.int32)
 
             frame_list = np.unique(frame_idx_array)
@@ -238,7 +283,7 @@ class UosPCD:
                 mask = (frame_idx_array == f)
 
                 seg_temp = ground_truth_pcd[:, -2][mask].astype(np.int32)
-                ins_temp = ground_truth_pcd[:, -2][mask].astype(np.int32)
+                ins_temp = ground_truth_pcd[:, -1][mask].astype(np.int32)
 
                 seg_label[:len(seg_temp)] = seg_temp
                 ins_label[:len(ins_temp)] = ins_temp
@@ -254,7 +299,9 @@ class UosPCD:
                             ('label', np.int32),
                             ('object', np.int32)])
 
-    def run(self, bbox_root_path = "", seg_root_path = ""):
+
+
+    def run(self, bbox_root_path = "", seg_root_path = "", height_range=[-0.6, 0.2], split_dist = 70):
         scene_frame_num = self.scene_step * self.key_frame_step
         roi_frame_range = [
             min(self.framecnt, max(0, self.roi_frame_range[0])),
@@ -264,16 +311,16 @@ class UosPCD:
         for frame in range(*roi_frame_range, scene_frame_num):
             end_frame = frame + scene_frame_num
             # when scene frame < scene_frame_num break
-            if end_frame > roi_frame_range[-1]: break
+            if end_frame > roi_frame_range[-1]: end_frame = roi_frame_range[-1]
 
             scene_frame_range = [frame, end_frame]
-            scene_range_name = "_".join(map(str, scene_frame_range))
+            scene_range_name = str(scene_frame_range[0]).zfill(6) + "_" + str(scene_frame_range[1]).zfill(6)
             cloudmap_fname = os.path.join(self.labeling_cloudmap_dir,
                         scene_range_name + ".pcd")
             cloudmap_idx_fname = os.path.join(self.labeling_cloudmap_fidx_dir,
                         scene_range_name + ".bin")
 
-            cloudmap, cloudmap_frame = self.mapping(scene_frame_range)
+            cloudmap, cloudmap_frame = self.mapping(scene_frame_range, bbox_root_path, height_range=height_range)
 
             write_pcd(cloudmap_fname, cloudmap,
                     filed = [('x', np.float32) ,
@@ -283,6 +330,7 @@ class UosPCD:
                             ('object', np.int32)])
 
             cloudmap_frame.tofile(cloudmap_idx_fname)
+            self.split_cloud_map(cloudmap, scene_range_name, split_dist)
 
         write_json(self.info_ego_pos_list, self.ego_pos_list_fname)
         write_json(self.info_sample_list, self.sample_fname)

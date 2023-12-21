@@ -10,7 +10,8 @@ class CloudmapSetting:
         scene_frame_step = 20,
         roi_range = [],
         pc_range = [],
-        veh_range = []
+        veh_range = [],
+        ground_range = []
         ) -> None:
         self.pcd_path = pcd_path
         self.bbox3d_path = bbox3d_path
@@ -21,6 +22,7 @@ class CloudmapSetting:
         self.roi_range = roi_range
         self.pc_range = pc_range
         self.veh_range = veh_range
+        self.ground_range = ground_range
 
 
 class PointCloudSetting:

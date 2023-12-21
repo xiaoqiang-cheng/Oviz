@@ -133,7 +133,9 @@ class Controller():
             veh_range=cloudmap_setting.veh_range
         )
 
-        cloudmap_controller.run(bbox_root_path=cloudmap_setting.bbox3d_path, seg_root_path=cloudmap_setting.seg_path)
+        cloudmap_controller.run(bbox_root_path=cloudmap_setting.bbox3d_path,
+                            seg_root_path=cloudmap_setting.seg_path,
+                            height_range=cloudmap_setting.ground_range)
         os.system("xdg-open %s"%cloudmap_setting.pcd_path)
 
 

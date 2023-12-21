@@ -264,6 +264,16 @@
                     }
                 },
 
+                "linetxt_ground_range":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "地面范围",
+                        "default_value": {
+                            "value": "-0.5, 0.3"
+                        }
+                    }
+                },
+
                 "button_build_multi_frame":{
                     "type": "QPushButton",
                     "params":{

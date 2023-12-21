@@ -2,6 +2,7 @@ import numpy as np
 import os
 from .pypcd import PointCloud, save_point_cloud_bin
 import json
+import pickle
 
 class NaviState:
     def __init__(self, t, x, y, z, theta, conf) -> None:
@@ -48,6 +49,16 @@ LABEL_NAME_MAPPING = {
     'other'         : 'ignore',
 }
 
+def serialize_data(data:dict, file_path):
+    with open(file_path, 'wb') as file:
+        pickle.dump(data, file)
+
+def deserialize_data(file_path):
+    with open(file_path, 'rb') as file:
+        data = pickle.load(file)
+    return data
+
+
 def point_in_rbbox(pts, bbox, eps=1e-2):
     pts_xyz = pts[:, :3].copy()
 
@@ -62,10 +73,12 @@ def point_in_rbbox(pts, bbox, eps=1e-2):
     local_xyz[:, :2] = np.dot(local_xyz[:, :2], rot_m.T)
 
     w, l, h = bbox[3:6] + eps
+    w += 0.1
+    l += 0.1
 
     in_flag = (local_xyz[:, 0] > -w / 2.) & (local_xyz[:, 0] < w / 2.) &         \
                     (local_xyz[:, 1] > -l / 2.) & (local_xyz[:, 1] < l / 2.) &    \
-                        (local_xyz[:, 2] > -h / 2.) & (local_xyz[:, 2] < h / 2.)
+                        (local_xyz[:, 2] > -h / 2.) & (local_xyz[:, 2] < (h / 2. + 0.15))
     return in_flag
 
 
