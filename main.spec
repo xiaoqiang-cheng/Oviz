@@ -45,17 +45,18 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='main',
+    name='useg_anno',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon="C:\\Users\\cheng\\Downloads\\Oviz\\Oviz\\Config\\oviz.png"
 )
 coll = COLLECT(
     exe,
