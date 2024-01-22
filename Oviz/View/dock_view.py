@@ -261,6 +261,7 @@ class RangeSlideDockWidget(QDockWidget):
         self.frame.textChanged.connect(self.set_bar)
         self.range_slider.valueChanged.connect(self.change_bar)
         self.auto.stateChanged.connect(self.auto_ctrl)
+        self.setMaximumHeight(80)
 
     def stop_auto_play(self):
         self.auto.setCheckState(Qt.Unchecked)

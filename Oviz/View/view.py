@@ -66,6 +66,13 @@ class View(QMainWindow):
         self.central_widget.layout().addWidget(self.canvas.native)
         self.central_widget.layout().setContentsMargins(0, 0, 0, 0)
 
+    def central_widget_toggle_hide(self):
+        if self.central_widget.isVisible():
+            self.central_widget.hide()
+        else:
+            self.central_widget.show()
+            self.central_widget.setMinimumHeight(10)
+
     def create_dock_widget(self):
         self.image_dock = []
         self.setDockNestingEnabled(True)
@@ -129,6 +136,7 @@ class View(QMainWindow):
     def menu_bar_trigger_view(self, q):
         trigger_map = {
             "显示图片"      : self.show_dock_image,
+            "显示3D窗口"    : self.central_widget_toggle_hide,
             "显示日志"      : self.dock_log_info.toggle_hide,
             "显示进度条"     : self.dock_range_slide.toggle_hide,
             "显示元素控制台" : self.dock_element_control_box.toggle_hide,
