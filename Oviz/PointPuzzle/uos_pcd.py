@@ -88,6 +88,13 @@ class UosPCD:
         curr_frame_ego_pcd = np.concatenate(multi_pcd_list)
         return curr_frame_ego_pcd.astype(np.float32)
 
+    def only_pcd2bin(self):
+        for i in tqdm(range(self.framecnt)):
+            ego_pcd = self.get_frame_pcd(i)
+            ego_pcd_fname = os.path.join(self.labeling_key_frame_sample, str(i).zfill(6) + ".bin")
+            ego_pcd.tofile(ego_pcd_fname)
+
+
     def filter_points_by_range(self, points,
                 veh_range = [-2, -2, -1, 2, 5, 3],
                 pc_range = [-50.0, -50.0, -3.0, 50.0, 50.0, 5.0]):

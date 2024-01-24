@@ -286,6 +286,13 @@
                     "params":{
                         "text": "恢复PCD"
                     }
+                },
+
+                "button_pcd2bin":{
+                    "type": "QPushButton",
+                    "params":{
+                        "text": "仅pcd2bin"
+                    }
                 }
             }
         }
