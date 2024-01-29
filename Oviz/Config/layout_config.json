@@ -177,7 +177,17 @@
                 "pcd_path" : {
                     "type": "FolderSelectWidget",
                     "params":{
-                        "widget_titie" : "pcd  路径",
+                        "widget_titie" : "pointcloud",
+                        "default_value": {
+                            "value": ""
+                        }
+                    }
+                },
+
+                "image_path" : {
+                    "type": "FolderSelectWidget",
+                    "params":{
+                        "widget_titie" : "image",
                         "default_value": {
                             "value": ""
                         }
@@ -187,7 +197,7 @@
                 "bbox3d_path" : {
                     "type": "FolderSelectWidget",
                     "params":{
-                        "widget_titie" : "bbox3d路径",
+                        "widget_titie" : "bbox3d",
                         "default_value": {
                             "value": ""
                         }
@@ -197,7 +207,7 @@
                 "seg_path" : {
                     "type": "FolderSelectWidget",
                     "params":{
-                        "widget_titie" : "seg  路径",
+                        "widget_titie" : "semantic",
                         "default_value": {
                             "value": ""
                         }
@@ -207,7 +217,7 @@
                 "cloudedmap_labeled_path" : {
                     "type": "FolderSelectWidget",
                     "params":{
-                        "widget_titie" : "labeled路径",
+                        "widget_titie" : "labeled",
                         "default_value": {
                             "value": ""
                         }
@@ -292,6 +302,13 @@
                     "type": "QPushButton",
                     "params":{
                         "text": "仅pcd2bin"
+                    }
+                },
+
+                "button_show_3d_trajectory":{
+                    "type": "QPushButton",
+                    "params":{
+                        "text": "显示3D轨迹"
                     }
                 }
             }

@@ -48,6 +48,8 @@ class FolderSelectWidget(QWidget):
 
         layout.addWidget(self.button)
         layout.addWidget(self.linetxt)
+        layout.setStretch(0, 1)
+        layout.setStretch(1, 2)
         self.setLayout(layout)
 
         self.button.clicked.connect(self.select_folder)
@@ -95,6 +97,8 @@ class LineTextWithLabelWidget(QWidget):
         self.linetxt = QLineEdit(default_value['value'])
         layout.addWidget(self.label)
         layout.addWidget(self.linetxt)
+        layout.setStretch(0, 1)
+        layout.setStretch(1, 2)
         self.setLayout(layout)
         self.linetxt.textChanged.connect(self.txtchange)
         self.default_value = default_value

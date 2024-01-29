@@ -172,9 +172,10 @@ def get_sensor2ego_mat(metadata):
 def get_navi_state(pcd_path):
     lidar_state_path = os.path.join(pcd_path, "ml_lidar_state")
     ret = []
+    low_percision_frame = []
     with open(lidar_state_path, 'r') as ml:
         lines = ml.readlines()
-        for line in lines:
+        for i, line in enumerate(lines):
             segments = line.split()
             if len(segments) < 12: continue
             state = int(segments[12])
@@ -182,7 +183,10 @@ def get_navi_state(pcd_path):
                 conf = 1.0
             else:
                 conf = 0.1
+                low_percision_frame.append(i)
+            # timestamp x y z yaw conf
             ret.append([float(segments[0]), float(segments[8]), float(segments[9]), float(segments[14]), float(segments[10]), conf])
+    print(low_percision_frame)
     return np.array(ret).astype(np.float64)
 
 

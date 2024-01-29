@@ -3,6 +3,7 @@ from Oviz.Utils.point_cloud_utils import read_pcd, read_bin
 from Oviz.log_sys import send_log_msg
 import os
 import cv2
+from Oviz.PointPuzzle.uos_pcd import UOSLidarData
 import threading
 
 class Model(QObject):
@@ -14,6 +15,7 @@ class Model(QObject):
         self.data_frame_list = []
         self.database = {}
         self.curr_frame_data = {}
+        self.uos_lidar_type = False
 
     def online_callback(self, msg):
         # print(msg)
@@ -31,7 +33,10 @@ class Model(QObject):
                 self.curr_frame_data[group][topic_type] = []
                 for value in values:
                     if key in value.keys():
-                        data_path = value[key]
+                        if topic_type == POINTCLOUD and self.uos_lidar_type:
+                            data_path = index
+                        else:
+                            data_path = value[key]
                         parse_data = eval("self.smart_read_%s"%topic_type)(data_path)
                         self.curr_frame_data[group][topic_type].append(parse_data)
 
@@ -52,6 +57,9 @@ class Model(QObject):
             pass
 
     def smart_read_pointcloud(self, pc_path):
+        if self.uos_lidar_type:
+            pc = self.uos_lidar_data.get_frame_pcd(pc_path)
+            return pc
         if pc_path.endswith(".pcd"):
             pc = read_pcd(pc_path)
         elif pc_path.endswith(".bin"):
@@ -67,7 +75,33 @@ class Model(QObject):
         return cnt
 
     def deal_pointcloud_folder(self, group, folder_path, ele_index):
-        cnt = self.deal_folder(group, folder_path, ele_index, POINTCLOUD, [".pcd", ".bin"])
+        ml_lidar_state_path = os.path.join(folder_path, "ml_lidar_state")
+        if os.path.exists(ml_lidar_state_path):
+            self.uos_lidar_type = True
+            self.uos_lidar_data = UOSLidarData(folder_path)
+            cnt = self.uos_lidar_data.framecnt
+
+            latest_database = {}
+
+            for i in range(cnt):
+                key = os.path.splitext(str(i).zfill(6))
+                latest_database[key] = i
+
+            if cnt > 0:
+                self.data_frame_list = sorted(latest_database.keys())
+                self.offline_frame_cnt = cnt
+
+                group_data = self.database.setdefault(group, {})
+                topic_data = group_data.setdefault(POINTCLOUD, [])
+
+                if ele_index < len(topic_data):
+                    topic_data[ele_index] = latest_database
+                else:
+                    topic_data.append(latest_database)
+
+        else:
+            self.uos_lidar_type = False
+            cnt = self.deal_folder(group, folder_path, ele_index, POINTCLOUD, [".pcd", ".bin"])
         return cnt
 
     def deal_folder(self, group, folder_path, ele_index, topic_type, allowed_extensions):

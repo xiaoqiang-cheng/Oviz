@@ -1,6 +1,47 @@
 from .utils import *
 from tqdm import tqdm
 import math
+import PySimpleGUI as sg
+import matplotlib.pyplot as plt
+
+
+class UOSLidarData:
+    def __init__(self, pcd_path):
+
+        self.pcd_path = pcd_path
+        self.veh_name, self.lidar_metadata = get_metadata(pcd_path)
+        self.sensor2ego_mat = get_sensor2ego_mat(self.lidar_metadata)
+        self.navi_list = get_navi_state(pcd_path)
+        self.framecnt = len(self.navi_list)
+        self.sensor_cnt = len(self.lidar_metadata.keys())
+
+
+    def get_pcd_filepath(self, sensor_id, frame_id):
+        fname = "ml_lidar_raw_%d_%s.pcd"%(sensor_id + 1, str(frame_id).zfill(6))
+
+        return os.path.join(self.pcd_path, fname)
+
+    def trans_coord(self, mat, points, dim=[0, 1, 2]):
+        pts_length, pts_dims= points.shape
+        pc_xyz = np.hstack((points[:, dim], np.ones((pts_length, 1), dtype=np.float32)))
+        pc_trans_xyz = np.dot(mat, pc_xyz.T).T[:, :3]
+        points[:, dim] = pc_trans_xyz
+
+        return points
+
+    def get_frame_pcd(self, frame_id):
+        multi_pcd_list = []
+        for i, sensor_key in enumerate(self.sensor2ego_mat.keys()):
+            pcd_file = self.get_pcd_filepath(i, frame_id)
+            sensor_pcd = read_pcd(pcd_file)
+            sensor2ego = self.sensor2ego_mat[sensor_key]
+            ego_pcd = self.trans_coord(sensor2ego, sensor_pcd)
+            multi_pcd_list.append(ego_pcd)
+
+        curr_frame_ego_pcd = np.concatenate(multi_pcd_list)
+        return curr_frame_ego_pcd.astype(np.float32)
+
+
 
 class UosPCD:
     def __init__(self, pcd_path,
@@ -13,11 +54,11 @@ class UosPCD:
         if not os.path.exists(pcd_path):
             print("ERROR PCD path not exist!")
             return
-        self.veh_name, self.lidar_metadata = get_metadata(pcd_path)
-        self.sensor2ego_mat = get_sensor2ego_mat(self.lidar_metadata)
-        self.navi_list = get_navi_state(pcd_path)
-        self.framecnt = len(self.navi_list)
-        self.sensor_cnt = len(self.lidar_metadata.keys())
+
+        self.uos_lidar_data = UOSLidarData(self.pcd_path)
+        self.navi_list = self.uos_lidar_data.navi_list
+        self.framecnt = self.uos_lidar_data.framecnt
+        self.sensor_cnt = self.uos_lidar_data.sensor_cnt
 
         self.info_ego_pos_list = []
         self.info_sample_list = []
@@ -28,7 +69,7 @@ class UosPCD:
         self.scene_step = scene_frame_step
         self.roi_frame_range = roi_range
 
-        self.ready_labeling_workspace(pcd_path)
+        self.ready_labeling_workspace(os.path.join(pcd_path, "useg_labeling"))
 
         print("find sensor:", self.sensor_cnt, "find pcd:", self.framecnt, "step:", self.key_frame_step)
         # maybe add a pipeline meta to record per step
@@ -60,39 +101,15 @@ class UosPCD:
 
         if_not_exist_create(self.revert_seg_ins_label_dir)
 
-
-
-    def get_pcd_filepath(self, sensor_id, frame_id):
-        fname = "ml_lidar_raw_%d_%s.pcd"%(sensor_id + 1, str(frame_id).zfill(6))
-
-        return os.path.join(self.pcd_path, fname)
-
-    def trans_coord(self, mat, points, dim=[0, 1, 2]):
-        pts_length, pts_dims= points.shape
-        pc_xyz = np.hstack((points[:, dim], np.ones((pts_length, 1), dtype=np.float32)))
-        pc_trans_xyz = np.dot(mat, pc_xyz.T).T[:, :3]
-        points[:, dim] = pc_trans_xyz
-
-        return points
-
-
     def get_frame_pcd(self, frame_id):
-        multi_pcd_list = []
-        for i, sensor_key in enumerate(self.sensor2ego_mat.keys()):
-            pcd_file = self.get_pcd_filepath(i, frame_id)
-            sensor_pcd = read_pcd(pcd_file)
-            sensor2ego = self.sensor2ego_mat[sensor_key]
-            ego_pcd = self.trans_coord(sensor2ego, sensor_pcd)
-            multi_pcd_list.append(ego_pcd)
-
-        curr_frame_ego_pcd = np.concatenate(multi_pcd_list)
-        return curr_frame_ego_pcd.astype(np.float32)
+        return self.uos_lidar_data.get_frame_pcd(frame_id=frame_id)
 
     def only_pcd2bin(self):
         for i in tqdm(range(self.framecnt)):
             ego_pcd = self.get_frame_pcd(i)
             ego_pcd_fname = os.path.join(self.labeling_key_frame_sample, str(i).zfill(6) + ".bin")
             ego_pcd.tofile(ego_pcd_fname)
+            self.update_progress("pcd2bin", i, self.framecnt)
 
 
     def filter_points_by_range(self, points,
@@ -168,12 +185,18 @@ class UosPCD:
 
         return points[uni_index]
 
+    def update_progress(self, title, idx, length):
+        return sg.one_line_progress_meter(title , idx + 1, length, orientation='h')
 
-    def mapping(self, frame_range = [0, 200], bbox_root_path = "", seg_root_path = "", height_range=[-0.6, 0.2]):
+    def trans_coord(self, mat, points, dim=[0, 1, 2]):
+        return self.uos_lidar_data.trans_coord(mat, points, dim)
+
+
+    def mapping(self, frame_range = [0, 200], max_frame = -1, bbox_root_path = "", seg_root_path = "", height_range=[-0.6, 0.2]):
         world_pcd_list = []
         world_pcd_frame_list = []
         init_navi = self.navi_list[frame_range[0]].copy()
-
+        roi_navi_state = []
         for i in tqdm(range(*frame_range)):
             ego_pcd = self.get_frame_pcd(i)
             curr_navi_state = self.navi_list[i].copy()
@@ -198,10 +221,10 @@ class UosPCD:
 
                 self.info_sample_list.append(
                     {
-                        "token": i,
-                        "timestamp": curr_navi_state[0],
-                        "format": "bin",
-                        "filename": os.path.basename(key_frame_sample_fname),
+                        "token"         : i,
+                        "timestamp"     : curr_navi_state[0],
+                        "format"        : "bin",
+                        "filename"      : os.path.basename(key_frame_sample_fname),
                         "ego_pose_token": i
                     },
                 )
@@ -214,35 +237,39 @@ class UosPCD:
                 # mark ego pcd
                 ego_pcd_for_label = self.mark(ego_pcd_for_label, bboxes_path=bboxes_path, height_range=height_range)
 
-                curr_navi_state[[1,2,3]] -= init_navi[[1,2,3]]
+                curr_navi_state[[1, 2, 3]] -= init_navi[[1, 2, 3]]
                 world_pcd = self.trans_coord(NaviState(*curr_navi_state).mat, ego_pcd_for_label)
+                roi_navi_state.append(curr_navi_state)
                 world_pcd_list.append(world_pcd)
                 world_pcd_frame_list.append(np.ones(len(world_pcd), dtype=np.int32) * i)
             else:
                 sweep_frame_fname = os.path.join(self.labeling_sweep_frame_sample,
                                             str(i).zfill(6) + ".bin")
                 ego_pcd.tofile(sweep_frame_fname)
+            self.update_progress("build", i, max_frame)
         mapping_pcd = np.concatenate(world_pcd_list)
         frame_idx_bin = np.concatenate(world_pcd_frame_list)
 
-        return mapping_pcd, frame_idx_bin
+        return mapping_pcd, frame_idx_bin, roi_navi_state
 
     def calc_eular_dist(self, pos):
         return math.sqrt((pos[1] ** 2 + pos[2] ** 2))
 
-    def split_cloud_map(self, cloud_map, scene_name = "", split_dist = 70,):
+    def split_cloud_map(self, cloud_map, scene_name = "", roi_navi_state = None, split_dist = 50, axis = 0):
 
-        curr_dist_max = int(cloud_map[:, 1].max()) + 1
+        curr_dist_max = int(cloud_map[:, axis].max()) + 1
 
         patch_mask_metadata_fname = os.path.join(self.labeling_cloudmap_patch_dir, "cloud_mask_metadata.pkl")
         patch_mask = {}
         mask_any = np.ones(len(cloud_map), dtype=bool)
 
         for i, d in enumerate(range(0, curr_dist_max, split_dist)):
-            mask = (cloud_map[:, 1] < d) & mask_any
+            if (d + split_dist) > curr_dist_max:
+                d = curr_dist_max
+            mask = (cloud_map[:, axis] < d) & mask_any
             mask_any = ~mask & mask_any
             cloud = cloud_map[mask]
-            cloud[:, 1] -= d
+            cloud[:, axis] -= d
             scene_patch_name = scene_name + "_" + str(i).zfill(4)
             patch_pcd_fname = os.path.join(self.labeling_cloudmap_patch_dir, scene_patch_name + ".pcd")
             if scene_name not in patch_mask.keys():
@@ -256,6 +283,7 @@ class UosPCD:
                             ('z', np.float32),
                             ('label', np.int32),
                             ('object', np.int32)])
+            # self.update_progress("split", i,  int(curr_dist_max / split_dist) + 1)
         serialize_data(patch_mask, patch_mask_metadata_fname)
 
 
@@ -310,6 +338,8 @@ class UosPCD:
 
     def run(self, bbox_root_path = "", seg_root_path = "", height_range=[-0.6, 0.2], split_dist = 70):
         scene_frame_num = self.scene_step * self.key_frame_step
+        if self.roi_frame_range[0] == -1 and self.roi_frame_range[1] == -1:
+            self.roi_frame_range = [0, self.framecnt]
         roi_frame_range = [
             min(self.framecnt, max(0, self.roi_frame_range[0])),
             max(0, min(self.framecnt, self.roi_frame_range[1])),
@@ -327,7 +357,8 @@ class UosPCD:
             cloudmap_idx_fname = os.path.join(self.labeling_cloudmap_fidx_dir,
                         scene_range_name + ".bin")
 
-            cloudmap, cloudmap_frame = self.mapping(scene_frame_range, bbox_root_path, height_range=height_range)
+            cloudmap, cloudmap_frame, roi_navi_state = self.mapping(scene_frame_range, roi_frame_range[-1],
+                        bbox_root_path, height_range=height_range)
 
             write_pcd(cloudmap_fname, cloudmap,
                     filed = [('x', np.float32) ,
@@ -337,12 +368,23 @@ class UosPCD:
                             ('object', np.int32)])
 
             cloudmap_frame.tofile(cloudmap_idx_fname)
-            self.split_cloud_map(cloudmap, scene_range_name, split_dist)
+            self.split_cloud_map(cloudmap, scene_range_name, roi_navi_state, split_dist)
 
         write_json(self.info_ego_pos_list, self.ego_pos_list_fname)
         write_json(self.info_sample_list, self.sample_fname)
 
+    def show_3d_trajectory(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(projection = '3d')
 
+
+        ax.set_title("3D_navi")
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.set_zlabel("z")
+        ax.plot(self.navi_list[:, 1], self.navi_list[:, 2], self.navi_list[:, 3],
+                c='b',marker='^',linestyle='-')
+        plt.show()
 
 
 if __name__=="__main__":

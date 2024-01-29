@@ -101,10 +101,24 @@ class Controller():
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_build_multi_frame"].clicked.connect(self.build_multi_frame_cloudmap)
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_revert_single"].clicked.connect(self.revert_multi_frame_cloudmap)
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_pcd2bin"].clicked.connect(self.uos_pcd2bin)
+        self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_show_3d_trajectory"].clicked.connect(self.show_uos_3d_trajectory)
+        self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["pcd_path"].SelectDone.connect(self.select_pointcloud)
 
 
         for key, val in self.view.color_checkbox_dict.items():
             val.stateChanged.connect(self.update_buffer_vis)
+
+    def show_uos_3d_trajectory(self):
+        cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())
+        cloudmap_controller = UosPCD(
+            pcd_path=cloudmap_setting.pcd_path,
+            sample_frame_step=cloudmap_setting.sample_frame_step,
+            scene_frame_step=cloudmap_setting.scene_frame_step,
+            roi_range=cloudmap_setting.roi_range,
+            pc_range=cloudmap_setting.pc_range,
+            veh_range=cloudmap_setting.veh_range
+        )
+        cloudmap_controller.show_3d_trajectory()
 
     def uos_pcd2bin(self):
         cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())
