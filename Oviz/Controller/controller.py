@@ -103,6 +103,8 @@ class Controller():
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_pcd2bin"].clicked.connect(self.uos_pcd2bin)
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_show_3d_trajectory"].clicked.connect(self.show_uos_3d_trajectory)
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["pcd_path"].SelectDone.connect(self.select_pointcloud)
+        self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["image_path"].SelectDone.connect(self.select_image)
+
 
 
         for key, val in self.view.color_checkbox_dict.items():
@@ -254,6 +256,11 @@ class Controller():
         self.select_done_update_range_and_vis()
 
     def select_image(self, topic_path, meta_form):
+        try:
+            meta_form = int(meta_form)
+        except:
+            meta_form = 0
+
         self.select_format("template", IMAGE, topic_path, int(meta_form))
 
 

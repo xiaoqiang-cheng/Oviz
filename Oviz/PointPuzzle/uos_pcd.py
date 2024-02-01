@@ -77,7 +77,8 @@ class UosPCD:
     def ready_labeling_workspace(self, save_dir):
         self.labeling_cloudmap_dir = os.path.join(save_dir, "cloudmap")
         self.labeling_cloudmap_fidx_dir = os.path.join(save_dir, "cloudmap_fidx")
-        self.labeling_cloudmap_patch_dir = os.path.join(save_dir, "cloudmap_patch")
+        self.labeling_cloudmap_patch_dir = os.path.join(save_dir, "patch_for_anno", "cloudmap")
+        self.labeling_image_patch_dir = os.path.join(save_dir, "patch_for_anno", "image_align")
         # self.labeling_cloud_filter = os.path.join(save_dir, "cloud_filter")
         self.labeling_key_frame_sample = os.path.join(save_dir, "sample")
         self.labeling_sweep_frame_sample = os.path.join(save_dir, "sweep")
@@ -93,6 +94,7 @@ class UosPCD:
         if_not_exist_create(self.labeling_cloudmap_dir)
         if_not_exist_create(self.labeling_cloudmap_fidx_dir)
         if_not_exist_create(self.labeling_cloudmap_patch_dir)
+        if_not_exist_create(self.labeling_image_patch_dir)
 
         if_not_exist_create(self.labeling_key_frame_sample)
         if_not_exist_create(self.labeling_sweep_frame_sample)

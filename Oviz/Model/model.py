@@ -71,7 +71,36 @@ class Model(QObject):
         return img
 
     def deal_image_folder(self, group, folder_path, ele_index):
-        cnt = self.deal_folder(group, folder_path, ele_index, IMAGE, [".jpg", ".png", ".tiff"])
+        if self.uos_lidar_type:
+            if self.offline_frame_cnt > 0:
+                cnt = self.offline_frame_cnt
+                image_list, timestamp_list = find_files_with_extension(folder_path)
+                target_timestamp_list = self.uos_lidar_data.navi_list[:, 0]
+                latest_database = {}
+
+                for i, lidar_t in enumerate(target_timestamp_list):
+                    min_time_difference = float('inf')
+                    for j, img_t in enumerate(timestamp_list):
+                        time_difference = abs(img_t - lidar_t)
+                        if time_difference > 1.0: continue
+                        if time_difference < min_time_difference:
+                            min_time_difference = time_difference
+                            key = str(i).zfill(6)
+                            latest_database[key] = image_list[j]
+                            if time_difference < 0.5:
+                                break
+
+                group_data = self.database.setdefault(group, {})
+                topic_data = group_data.setdefault(IMAGE, [])
+
+                if ele_index < len(topic_data):
+                    topic_data[ele_index] = latest_database
+                else:
+                    topic_data.append(latest_database)
+                # import ipdb
+                # ipdb.set_trace()
+        else:
+            cnt = self.deal_folder(group, folder_path, ele_index, IMAGE, [".jpg", ".png", ".tiff"])
         return cnt
 
     def deal_pointcloud_folder(self, group, folder_path, ele_index):
@@ -84,7 +113,7 @@ class Model(QObject):
             latest_database = {}
 
             for i in range(cnt):
-                key = os.path.splitext(str(i).zfill(6))
+                key = str(i).zfill(6)
                 latest_database[key] = i
 
             if cnt > 0:
@@ -106,7 +135,6 @@ class Model(QObject):
 
     def deal_folder(self, group, folder_path, ele_index, topic_type, allowed_extensions):
         latest_database = {}
-
         datanames = os.listdir(folder_path)
 
         for f in datanames:

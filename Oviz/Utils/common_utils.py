@@ -71,6 +71,19 @@ comment_re = re.compile(
     re.DOTALL | re.MULTILINE
 )
 
+def find_files_with_extension(directory, extension = [".jpg", ".png"]):
+    file_list = []
+    timestamp = []
+
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            key, ext = os.path.splitext(file)
+            if ext in extension:
+                file_list.append(os.path.join(root, file))
+                timestamp.append(float(file[:17]))
+
+    return file_list, timestamp
+
 
 def parse_json(filename):
     # start = time.time()
