@@ -591,8 +591,9 @@ class View(QMainWindow):
         pc_range = list(map(float, curr_element_dict['linetxt_pc_range'].text().split(',')))
         veh_range = list(map(float, curr_element_dict['linetxt_veh_range'].text().split(',')))
         ground_range = list(map(float, curr_element_dict['linetxt_ground_range'].text().split(',')))
+        split_dist = int(curr_element_dict['linetxt_split_dist'].text())
 
-        return pcd_path, bbox3d_path, seg_path, cloudedmap_labeled_path, sample_frame_step, scene_frame_step, roi_range, pc_range, veh_range, ground_range
+        return pcd_path, bbox3d_path, seg_path, cloudedmap_labeled_path, sample_frame_step, scene_frame_step, roi_range, pc_range, veh_range, ground_range, split_dist
 
 
 

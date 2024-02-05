@@ -1,3 +1,4 @@
+from Oviz.Utils.common_utils import *
 from .utils import *
 from tqdm import tqdm
 import math
@@ -6,9 +7,18 @@ import matplotlib.pyplot as plt
 
 
 class UOSLidarData:
-    def __init__(self, pcd_path):
+    def __init__(self, pcd_path, image_path = []):
 
         self.pcd_path = pcd_path
+        self.image_path = image_path
+        self.image_fname_list = []
+        self.image_timestamp_list = []
+
+        for f in self.image_path:
+            image_list, timestamp_list = find_files_with_extension(f)
+            self.image_fname_list.append(image_list)
+            self.image_timestamp_list.append(timestamp_list)
+
         self.veh_name, self.lidar_metadata = get_metadata(pcd_path)
         self.sensor2ego_mat = get_sensor2ego_mat(self.lidar_metadata)
         self.navi_list = get_navi_state(pcd_path)
@@ -21,6 +31,23 @@ class UOSLidarData:
 
         return os.path.join(self.pcd_path, fname)
 
+    def get_image_filepath(self, camera_id = 0, frame_id = 0):
+        if len(self.image_path) <= camera_id:
+            return None
+        lidar_t = self.navi_list[frame_id][0]
+        best_image_path = None
+        curr_camera_timestamp_list = self.image_timestamp_list[camera_id]
+        min_time_difference = float('inf')
+
+        for j, img_t in enumerate(curr_camera_timestamp_list):
+            time_difference = abs(img_t - lidar_t)
+            if time_difference < min_time_difference:
+                min_time_difference = time_difference
+                best_image_path = self.image_fname_list[camera_id][j]
+                if time_difference < 0.005:
+                    break
+        return best_image_path
+
     def trans_coord(self, mat, points, dim=[0, 1, 2]):
         pts_length, pts_dims= points.shape
         pc_xyz = np.hstack((points[:, dim], np.ones((pts_length, 1), dtype=np.float32)))
@@ -28,6 +55,14 @@ class UOSLidarData:
         points[:, dim] = pc_trans_xyz
 
         return points
+
+    def get_frame_image(self, frame_id, camera_id = [0]):
+        image_fpath = []
+        for i in camera_id:
+            fpath = self.get_image_filepath(i, frame_id)
+            image_fpath.append(fpath)
+        return image_fpath
+
 
     def get_frame_pcd(self, frame_id):
         multi_pcd_list = []
@@ -45,6 +80,7 @@ class UOSLidarData:
 
 class UosPCD:
     def __init__(self, pcd_path,
+            image_path = [],
             sample_frame_step = 5,
             scene_frame_step = 20,
             roi_range = [-1, -1],
@@ -55,7 +91,7 @@ class UosPCD:
             print("ERROR PCD path not exist!")
             return
 
-        self.uos_lidar_data = UOSLidarData(self.pcd_path)
+        self.uos_lidar_data = UOSLidarData(self.pcd_path, image_path)
         self.navi_list = self.uos_lidar_data.navi_list
         self.framecnt = self.uos_lidar_data.framecnt
         self.sensor_cnt = self.uos_lidar_data.sensor_cnt
@@ -68,7 +104,6 @@ class UosPCD:
         self.key_frame_step = sample_frame_step
         self.scene_step = scene_frame_step
         self.roi_frame_range = roi_range
-
         self.ready_labeling_workspace(os.path.join(pcd_path, "useg_labeling"))
 
         print("find sensor:", self.sensor_cnt, "find pcd:", self.framecnt, "step:", self.key_frame_step)
@@ -105,6 +140,9 @@ class UosPCD:
 
     def get_frame_pcd(self, frame_id):
         return self.uos_lidar_data.get_frame_pcd(frame_id=frame_id)
+
+    def get_frame_image(self, frame_id, camera_id = [0]):
+        return self.uos_lidar_data.get_frame_image(frame_id=frame_id, camera_id=camera_id)
 
     def only_pcd2bin(self):
         for i in tqdm(range(self.framecnt)):
@@ -194,11 +232,19 @@ class UosPCD:
         return self.uos_lidar_data.trans_coord(mat, points, dim)
 
 
-    def mapping(self, frame_range = [0, 200], max_frame = -1, bbox_root_path = "", seg_root_path = "", height_range=[-0.6, 0.2]):
+    def mapping(self, frame_range = [0, 200], max_frame = -1,
+                bbox_root_path = "", seg_root_path = "", height_range=[-0.6, 0.2],
+                split_dist = 10):
         world_pcd_list = []
         world_pcd_frame_list = []
         init_navi = self.navi_list[frame_range[0]].copy()
-        roi_navi_state = []
+
+        first_navi = init_navi.copy()
+        first_navi[[1,2,3]] = 0
+        roi_navi_state = [first_navi]
+        camera_id_list = list(range(len(self.uos_lidar_data.image_path)))
+        roi_image_state = [self.get_frame_image(frame_range[0], camera_id_list)]
+        last_split_navi = first_navi.copy()
         for i in tqdm(range(*frame_range)):
             ego_pcd = self.get_frame_pcd(i)
             curr_navi_state = self.navi_list[i].copy()
@@ -241,9 +287,14 @@ class UosPCD:
 
                 curr_navi_state[[1, 2, 3]] -= init_navi[[1, 2, 3]]
                 world_pcd = self.trans_coord(NaviState(*curr_navi_state).mat, ego_pcd_for_label)
-                roi_navi_state.append(curr_navi_state)
+
                 world_pcd_list.append(world_pcd)
                 world_pcd_frame_list.append(np.ones(len(world_pcd), dtype=np.int32) * i)
+
+                if self.calc_eular_dist(last_split_navi - curr_navi_state) >= split_dist:
+                    roi_navi_state.append(curr_navi_state)
+                    roi_image_state.append(self.get_frame_image(i, camera_id=camera_id_list))
+                    last_split_navi = curr_navi_state.copy()
             else:
                 sweep_frame_fname = os.path.join(self.labeling_sweep_frame_sample,
                                             str(i).zfill(6) + ".bin")
@@ -252,27 +303,34 @@ class UosPCD:
         mapping_pcd = np.concatenate(world_pcd_list)
         frame_idx_bin = np.concatenate(world_pcd_frame_list)
 
-        return mapping_pcd, frame_idx_bin, roi_navi_state
+        return mapping_pcd, frame_idx_bin, roi_navi_state, roi_image_state
 
     def calc_eular_dist(self, pos):
         return math.sqrt((pos[1] ** 2 + pos[2] ** 2))
 
-    def split_cloud_map(self, cloud_map, scene_name = "", roi_navi_state = None, split_dist = 50, axis = 0):
-
-        curr_dist_max = int(cloud_map[:, axis].max()) + 1
-
+    def split_cloud_map(self, cloud_map, scene_name = "",
+                        roi_navi_state = None, roi_image_state = None,
+                        split_dist = None):
         patch_mask_metadata_fname = os.path.join(self.labeling_cloudmap_patch_dir, "cloud_mask_metadata.pkl")
         patch_mask = {}
         mask_any = np.ones(len(cloud_map), dtype=bool)
 
-        for i, d in enumerate(range(0, curr_dist_max, split_dist)):
-            if (d + split_dist) > curr_dist_max:
-                d = curr_dist_max
-            mask = (cloud_map[:, axis] < d) & mask_any
-            mask_any = ~mask & mask_any
-            cloud = cloud_map[mask]
-            cloud[:, axis] -= d
+        for i, navi in enumerate(roi_navi_state):
+            inv_mat = np.linalg.inv(NaviState(*navi).mat)
+            local_pcd = self.trans_coord(inv_mat, cloud_map.copy())
+            if i == len(roi_navi_state) - 1:
+                mask = mask_any
+            else:
+                # inv_mat = np.linalg.inv(NaviState(*navi).mat)
+                # local_pcd = self.trans_coord(inv_mat, cloud_map.copy())
+                mask = (local_pcd[:, 1] < (split_dist / 2.0)) & mask_any
+                mask_any = ~mask & mask_any
+                # cloud = local_pcd[mask]
+
+            cloud = local_pcd[mask]
+            # cloud[:, [0,1,2]] -= navi[[1,2,3]]
             scene_patch_name = scene_name + "_" + str(i).zfill(4)
+
             patch_pcd_fname = os.path.join(self.labeling_cloudmap_patch_dir, scene_patch_name + ".pcd")
             if scene_name not in patch_mask.keys():
                 patch_mask[scene_name] = {}
@@ -285,6 +343,14 @@ class UosPCD:
                             ('z', np.float32),
                             ('label', np.int32),
                             ('object', np.int32)])
+            # copy img
+            image_list = roi_image_state[i]
+            for ix, fi in enumerate(image_list):
+                if fi is not None:
+                    target_img_dir = os.path.join(self.labeling_image_patch_dir, str(ix))
+                    if_not_exist_create(target_img_dir)
+                    dst_img_name = os.path.join(target_img_dir, scene_patch_name + fi[-4:])
+                    os.system("cp -r %s %s"%(fi, dst_img_name))
             # self.update_progress("split", i,  int(curr_dist_max / split_dist) + 1)
         serialize_data(patch_mask, patch_mask_metadata_fname)
 
@@ -338,7 +404,7 @@ class UosPCD:
 
 
 
-    def run(self, bbox_root_path = "", seg_root_path = "", height_range=[-0.6, 0.2], split_dist = 70):
+    def run(self, bbox_root_path = "", seg_root_path = "", height_range=[-0.6, 0.2], split_dist = 30):
         scene_frame_num = self.scene_step * self.key_frame_step
         if self.roi_frame_range[0] == -1 and self.roi_frame_range[1] == -1:
             self.roi_frame_range = [0, self.framecnt]
@@ -359,8 +425,8 @@ class UosPCD:
             cloudmap_idx_fname = os.path.join(self.labeling_cloudmap_fidx_dir,
                         scene_range_name + ".bin")
 
-            cloudmap, cloudmap_frame, roi_navi_state = self.mapping(scene_frame_range, roi_frame_range[-1],
-                        bbox_root_path, height_range=height_range)
+            cloudmap, cloudmap_frame, roi_navi_state, roi_image_state = self.mapping(scene_frame_range, roi_frame_range[-1],
+                        bbox_root_path, height_range=height_range, split_dist = split_dist)
 
             write_pcd(cloudmap_fname, cloudmap,
                     filed = [('x', np.float32) ,
@@ -370,7 +436,7 @@ class UosPCD:
                             ('object', np.int32)])
 
             cloudmap_frame.tofile(cloudmap_idx_fname)
-            self.split_cloud_map(cloudmap, scene_range_name, roi_navi_state, split_dist)
+            self.split_cloud_map(cloudmap, scene_range_name, roi_navi_state, roi_image_state, split_dist)
 
         write_json(self.info_ego_pos_list, self.ego_pos_list_fname)
         write_json(self.info_sample_list, self.sample_fname)

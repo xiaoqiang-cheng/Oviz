@@ -184,16 +184,6 @@
                     }
                 },
 
-                "image_path" : {
-                    "type": "FolderSelectWidget",
-                    "params":{
-                        "widget_titie" : "image",
-                        "default_value": {
-                            "value": ""
-                        }
-                    }
-                },
-
                 "bbox3d_path" : {
                     "type": "FolderSelectWidget",
                     "params":{
@@ -280,6 +270,16 @@
                         "widget_titie" : "地面范围",
                         "default_value": {
                             "value": "-0.5, 0.3"
+                        }
+                    }
+                },
+
+                "linetxt_split_dist":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "切片范围",
+                        "default_value": {
+                            "value": "70"
                         }
                     }
                 },

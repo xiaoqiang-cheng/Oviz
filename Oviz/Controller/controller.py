@@ -33,7 +33,7 @@ class Controller():
 
         self.pointcloud_setting = PointCloudSetting()
         self.bbox3d_setting = Bbox3DSetting()
-
+        self.image_root_dirs = []
         self.signal_connect()
 
         self.curr_frame_index = 0
@@ -103,9 +103,6 @@ class Controller():
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_pcd2bin"].clicked.connect(self.uos_pcd2bin)
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_show_3d_trajectory"].clicked.connect(self.show_uos_3d_trajectory)
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["pcd_path"].SelectDone.connect(self.select_pointcloud)
-        self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["image_path"].SelectDone.connect(self.select_image)
-
-
 
         for key, val in self.view.color_checkbox_dict.items():
             val.stateChanged.connect(self.update_buffer_vis)
@@ -114,11 +111,12 @@ class Controller():
         cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())
         cloudmap_controller = UosPCD(
             pcd_path=cloudmap_setting.pcd_path,
+            image_path=self.image_root_dirs,
             sample_frame_step=cloudmap_setting.sample_frame_step,
             scene_frame_step=cloudmap_setting.scene_frame_step,
             roi_range=cloudmap_setting.roi_range,
             pc_range=cloudmap_setting.pc_range,
-            veh_range=cloudmap_setting.veh_range
+            veh_range=cloudmap_setting.veh_range,
         )
         cloudmap_controller.show_3d_trajectory()
 
@@ -126,11 +124,12 @@ class Controller():
         cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())
         cloudmap_controller = UosPCD(
             pcd_path=cloudmap_setting.pcd_path,
+            image_path=self.image_root_dirs,
             sample_frame_step=cloudmap_setting.sample_frame_step,
             scene_frame_step=cloudmap_setting.scene_frame_step,
             roi_range=cloudmap_setting.roi_range,
             pc_range=cloudmap_setting.pc_range,
-            veh_range=cloudmap_setting.veh_range
+            veh_range=cloudmap_setting.veh_range,
         )
         cloudmap_controller.only_pcd2bin()
 
@@ -138,11 +137,12 @@ class Controller():
         cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())
         cloudmap_controller = UosPCD(
             pcd_path=cloudmap_setting.pcd_path,
+            image_path=self.image_root_dirs,
             sample_frame_step=cloudmap_setting.sample_frame_step,
             scene_frame_step=cloudmap_setting.scene_frame_step,
             roi_range=cloudmap_setting.roi_range,
             pc_range=cloudmap_setting.pc_range,
-            veh_range=cloudmap_setting.veh_range
+            veh_range=cloudmap_setting.veh_range,
         )
 
         if os.path.exists(cloudmap_setting.cloudedmap_labeled_path):
@@ -156,16 +156,18 @@ class Controller():
         cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())
         cloudmap_controller = UosPCD(
             pcd_path=cloudmap_setting.pcd_path,
+            image_path=self.image_root_dirs,
             sample_frame_step=cloudmap_setting.sample_frame_step,
             scene_frame_step=cloudmap_setting.scene_frame_step,
             roi_range=cloudmap_setting.roi_range,
             pc_range=cloudmap_setting.pc_range,
-            veh_range=cloudmap_setting.veh_range
+            veh_range=cloudmap_setting.veh_range,
         )
 
         cloudmap_controller.run(bbox_root_path=cloudmap_setting.bbox3d_path,
                             seg_root_path=cloudmap_setting.seg_path,
-                            height_range=cloudmap_setting.ground_range)
+                            height_range=cloudmap_setting.ground_range,
+                            split_dist=cloudmap_setting.split_dist)
         os.system("xdg-open %s"%cloudmap_setting.pcd_path)
 
 
@@ -256,12 +258,12 @@ class Controller():
         self.select_done_update_range_and_vis()
 
     def select_image(self, topic_path, meta_form):
-        try:
-            meta_form = int(meta_form)
-        except:
-            meta_form = 0
-
-        self.select_format("template", IMAGE, topic_path, int(meta_form))
+        meta_form_idx = int(meta_form)
+        if len(self.image_root_dirs) > meta_form_idx:
+            self.image_root_dirs[meta_form_idx] = topic_path
+        else:
+            self.image_root_dirs.append(topic_path)
+        self.select_format("template", IMAGE, topic_path, meta_form_idx)
 
 
     def select_pointcloud(self, topic_path, topic_type):
