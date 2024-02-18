@@ -11,6 +11,7 @@ from qdarkstyle.dark.palette import DarkPalette
 from Oviz.Controller.core import *
 from importlib import reload
 from Oviz.PointPuzzle.uos_pcd import UosPCD
+from functools import partial
 
 class Controller():
     def __init__(self) -> None:
@@ -92,10 +93,6 @@ class Controller():
         # self.element_control_box_connect()
         self.view.addImageDock.connect(self.dynamic_add_image_dock)
         self.view.pointSizeChanged.connect(self.change_point_size)
-        # self.view.addNewControlTab.connect(self.sub_element_control_box_connect)
-        # self.view.removeControlTab.connect(self.remove_sub_control_box)
-        # self.view.addSubControlTab.connect(self.add_sub_element_control_box)
-        # self.view.removeSubControlTab.connect(self.remove_sub_element_control_box)
         self.view.removeImageDock.connect(self.remove_image_dock)
 
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_build_multi_frame"].clicked.connect(self.build_multi_frame_cloudmap)
@@ -106,6 +103,15 @@ class Controller():
 
         for key, val in self.view.color_checkbox_dict.items():
             val.stateChanged.connect(self.update_buffer_vis)
+
+
+        for key, val in self.view.color_id_button_dict.items():
+            val.clicked.connect(partial(self.trigger_labeled_button, key))
+
+    def trigger_labeled_button(self, button_id):
+        self.view.reset_all_color_button()
+        self.view.color_id_button_dict[button_id].setEnabled(False)
+        self.view.label_mode_enable = True
 
     def show_uos_3d_trajectory(self):
         cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())

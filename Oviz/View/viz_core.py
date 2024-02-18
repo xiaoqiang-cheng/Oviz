@@ -26,7 +26,7 @@ class Canvas(QObject, scene.SceneCanvas):
     # 设计api
 
     capturerKey = Signal(str)
-    MouseMotionEvent = Signal(CanvasMouseEvent)
+    MouseMotionEvent = Signal(list)
 
 
     def __init__(self, background=(1,1,1,1)):
@@ -34,7 +34,8 @@ class Canvas(QObject, scene.SceneCanvas):
         scene.SceneCanvas.__init__(self, keys='interactive')
 
         self.unfreeze()
-        self.grid = self.central_widget.add_grid(spacing=1, bgcolor=background, border_color='w')
+        self.grid = self.central_widget
+        # .add_grid(spacing=1, bgcolor=background, border_color='w')
         # Bind the escape key to a custom function
         # vispy.app.use_app().bind_key("Escape", self.on_escape)
         self.view_panel = {}
@@ -69,9 +70,10 @@ class Canvas(QObject, scene.SceneCanvas):
     def add_3dview(self, view_name = "3d", camera = None):
         row_idx = int(self.curr_col_3d_view / VIEW3D_COL_MAX_NUM)
         col_idx = int(self.curr_col_3d_view % VIEW3D_COL_MAX_NUM)
-        self.view_panel[view_name] = self.grid.add_view(row=row_idx,
-                                    col=col_idx,
-                                    border_color=(69/255.0, 83/255.0, 100/255.0))
+        # row=row_idx,
+        # col=col_idx,
+        # border_color=(69/255.0, 83/255.0, 100/255.0)
+        self.view_panel[view_name] = self.grid.add_view()
         self.curr_col_3d_view += 1
         # self.view_panel[view_name].camera = 'turntable' # arcball
         # self.view_panel[view_name].camera.fov = 30
@@ -89,6 +91,18 @@ class Canvas(QObject, scene.SceneCanvas):
             self.view_panel[view_name].camera  = scene.TurntableCamera(
                     **camera,
                 )
+    def unfreeze_camera(self, view_name):
+        self.view_panel[view_name].camera._resetting = False
+        self.view_panel[view_name].camera._fov = self.freeze_camera_param["fov"]
+        self.view_panel[view_name].camera._elevation = self.freeze_camera_param["elevation"]
+        self.view_panel[view_name].camera._azimuth = self.freeze_camera_param["azimuth"]
+        self.view_panel[view_name].camera._roll = self.freeze_camera_param["roll"]
+        self.view_panel[view_name].camera._distance = self.freeze_camera_param["distance"]
+        self.view_panel[view_name].camera._scale_factor = self.freeze_camera_param["scale_factor"]
+
+    def freeze_camera(self, view_name):
+        self.view_panel[view_name].camera._resetting = True
+        self.freeze_camera_param = self.get_canvas_camera(view_name)
 
     def get_canvas_camera(self, view_name):
         return {
@@ -118,8 +132,8 @@ class Canvas(QObject, scene.SceneCanvas):
         self.view_panel[view_name].camera.set_range() #FIXME: do not work
         self.curr_col_image_view += 1
 
-    def add_lassoview(self, view_name = "lasso"):
-        self.view_panel[view_name] = self.grid.add_view()
+    def add_lassoview(self, view_name = "lasso", camera = None):
+        self.view_panel[view_name] = self.central_widget.add_view()
 
     def add_lasso_pointer_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = scene.visuals.Ellipse(center=(0., 0.),
@@ -245,11 +259,11 @@ class Canvas(QObject, scene.SceneCanvas):
         #     dir = np.concatenate((self.initial_light_dir, [0]))
         #     mesh.shading_filter.light_dir = transform.map(dir)[:3]
         if event.button == 1:
-            self.MouseMotionEvent.emit(CanvasMouseEvent.LeftPressMoveMove)
+            self.MouseMotionEvent.emit([CanvasMouseEvent.LeftPressMove, event])
         elif event.button == 2:
-            self.MouseMotionEvent.emit(CanvasMouseEvent.RightPressMove)
+            self.MouseMotionEvent.emit([CanvasMouseEvent.RightPressMove, event])
         else:
-            self.MouseMotionEvent.emit(CanvasMouseEvent.NormalMove)
+            self.MouseMotionEvent.emit([CanvasMouseEvent.NormalMove, event])
 
     def on_mouse_wheel(self, event):
         self.set_pointcloud_glstate()
@@ -257,15 +271,15 @@ class Canvas(QObject, scene.SceneCanvas):
     def on_mouse_press(self, event):
         self.set_pointcloud_glstate()
         if event.button == 1:
-            self.MouseMotionEvent.emit(CanvasMouseEvent.LeftPress)
+            self.MouseMotionEvent.emit([CanvasMouseEvent.LeftPress, event])
         elif event.button == 2:
-            self.MouseMotionEvent.emit(CanvasMouseEvent.RightPress)
+            self.MouseMotionEvent.emit([CanvasMouseEvent.RightPress, event])
 
     def on_mouse_release(self, event):
         if event.button == 1:
-            self.MouseMotionEvent.emit(CanvasMouseEvent.LeftRelease)
+            self.MouseMotionEvent.emit([CanvasMouseEvent.LeftRelease, event])
         elif event.button == 2:
-            self.MouseMotionEvent.emit(CanvasMouseEvent.RightRelease)
+            self.MouseMotionEvent.emit([CanvasMouseEvent.RightRelease, event])
 
     def set_vis_bgcolor(self, value = (0, 0, 0, 1)):
         self.grid.bgcolor = value

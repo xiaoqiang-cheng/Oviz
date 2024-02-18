@@ -37,6 +37,7 @@ class View(QMainWindow):
         self.record_screen_image_list = []
         self.record_image_start_time = None
         self.record_screen_save_dir = None
+        self.label_mode_enable = False
 
         self.installEventFilter(self)  # 将事件过滤器安装到UI对象上
 
@@ -103,7 +104,9 @@ class View(QMainWindow):
         self.dock_mapping_control_box.unfold()
 
         self.canvas_cfg_set["template"] = self.canvas_cfg['view3d']
+        self.struct_single_canvas(self.canvas, self.canvas_cfg['lasso'])
         self.struct_single_canvas(self.canvas, self.canvas_cfg['view3d'])
+
 
     def create_menu_bar(self):
         self.menubar = self.menuBar()
@@ -153,9 +156,9 @@ class View(QMainWindow):
         trigger_map[q.text()]()
 
     def update_config_buffer(self):
-        for key in self.canvas_cfg.keys():
-            if "camera" in self.canvas_cfg[key].keys():
-                self.canvas_cfg[key]['camera'].update(self.canvas.get_canvas_camera("template"))
+        key = "view3d"
+        if "camera" in self.canvas_cfg[key].keys():
+            self.canvas_cfg[key]['camera'].update(self.canvas.get_canvas_camera("template"))
         # for key in self.layout_config['image_dock_path'].keys():
         #     self.layout_config['image_dock_path'][key] = self.image_dock[key].folder_path
         self.save_last_frame_num()
@@ -214,31 +217,62 @@ class View(QMainWindow):
             color_id_map_list.addItem(lw)
         return color_id_map_list
 
-    def canvas_mouse_trigger(self, event):
-        print(event)
+    def canvas_mouse_trigger(self, infos):
+        # print(event)
+        if not self.label_mode_enable:
+            return
+
+        mouse_type, event = infos
+        self.canvas.set_visible("template_lasso_pointer", True)
+
+        if mouse_type == CanvasMouseEvent.LeftPress:
+            self.set_lasso_traj(np.empty((1, 2)))
+            self.canvas.freeze_camera("template")
+
+        if mouse_type == CanvasMouseEvent.RightRelease:
+            self.reset_all_color_button()
+            self.canvas.set_visible("template_lasso_pointer", False)
+            self.set_lasso_traj(np.empty((1, 2)))
+            self.canvas.unfreeze_camera("template")
+
+
+        if mouse_type == CanvasMouseEvent.NormalMove:
+            self.set_lasso_pos(event.pos)
+
+        if mouse_type == CanvasMouseEvent.LeftPressMove:
+            self.set_lasso_traj(event.trail())
+
 
     def set_show_grid_checkbox(self, flag):
         self.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].setChecked(flag)
 
+    def reset_all_color_button(self):
+        for key, val in self.color_id_button_dict.items():
+            val.setEnabled(True)
+        self.label_mode_enable = False
+
     def create_color_map_widget(self):
         color_list_widget = QWidget()
         color_id_map_list = QVBoxLayout()
-
+        self.color_id_button_dict = {}
         self.color_checkbox_dict = {}
         self.color_pts_num_dict = {}
         for c, val in self.color_map.items():
             local_widget = QWidget()
             local_layout = QHBoxLayout()
             local_widget.setLayout(local_layout)
-            lw = QPushButton(self.color_map_label[c])
-            lw.setMinimumWidth(200)
-            lw.setStyleSheet("color:black")
-            lw.setStyleSheet("background-color:%s"%val)
+            color_label = self.color_map_label[c]
+            self.color_id_button_dict[c] = QPushButton(color_label)
+            self.color_id_button_dict[c].setMinimumWidth(200)
+            self.color_id_button_dict[c].setStyleSheet("color:black")
+            self.color_id_button_dict[c].setStyleSheet("background-color:%s"%val)
+
             self.color_pts_num_dict[c] = QLabel("0")
             self.color_checkbox_dict[c] = QCheckBox(c)
             self.color_checkbox_dict[c].setChecked(True)
+
             local_widget.layout().addWidget(self.color_pts_num_dict[c])
-            local_widget.layout().addWidget(lw)
+            local_widget.layout().addWidget(self.color_id_button_dict[c])
             local_widget.layout().addWidget(self.color_checkbox_dict[c])
             local_layout.setSpacing(5)
             local_layout.setContentsMargins(0, 0, 0, 0)
@@ -739,7 +773,7 @@ class View(QMainWindow):
         self.canvas.set_lasso_pos(group + "_" + "lasso_pointer", pos)
 
     def set_lasso_traj(self, traj, group = "template"):
-        self.canvas.set_lasso_traj(group + "_" + "lasso_pointer", traj)
+        self.canvas.set_lasso_traj(group + "_" + "lasso_line", traj)
 
     def get_lasso_select(self, polygon_vertices, points, group = "template"):
         return self.canvas.lasso_select(group + "_" + "lasso_pointer", polygon_vertices, points)
