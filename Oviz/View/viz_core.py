@@ -20,15 +20,19 @@ from vispy.visuals.filters import TextureFilter
 
 VIEW3D_COL_MAX_NUM = 3
 
-class Canvas(scene.SceneCanvas):
+class Canvas(QObject, scene.SceneCanvas):
     """Class that creates and handles a visualizer for a pointcloud"""
     # view相当于是面板，下面可以有好多vis
     # 设计api
 
     capturerKey = Signal(str)
+    MouseMotionEvent = Signal(CanvasMouseEvent)
+
 
     def __init__(self, background=(1,1,1,1)):
+        super().__init__()
         scene.SceneCanvas.__init__(self, keys='interactive')
+
         self.unfreeze()
         self.grid = self.central_widget.add_grid(spacing=1, bgcolor=background, border_color='w')
         # Bind the escape key to a custom function
@@ -113,6 +117,21 @@ class Canvas(scene.SceneCanvas):
         self.view_panel[view_name].camera.flip = (0, 1, 0)
         self.view_panel[view_name].camera.set_range() #FIXME: do not work
         self.curr_col_image_view += 1
+
+    def add_lassoview(self, view_name = "lasso"):
+        self.view_panel[view_name] = self.grid.add_view()
+
+    def add_lasso_pointer_vis(self, vis_name, parent_view):
+        self.vis_module[vis_name] = scene.visuals.Ellipse(center=(0., 0.),
+                                radius=(2, 2,), color='red',
+                                border_width=0.5, border_color="red",
+                                num_segments=10)
+        self.view_panel[parent_view].add(self.vis_module[vis_name])
+
+    def add_lasso_line_vis(self, vis_name, parent_view):
+        self.vis_module[vis_name] = scene.visuals.Line(pos=np.array([[0, 0], [0, 0]]),
+                    color = (1, .1, .1), width = 2 , antialias=True)
+        self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_image_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = scene.visuals.Image(method = 'auto')
@@ -201,22 +220,52 @@ class Canvas(scene.SceneCanvas):
         self.initial_light_dir = self.view_panel[parent_view].camera.transform.imap((0, 0, 1) )[:3]
         self.set_visible(vis_name, False)
 
+    def lasso_select(self,vis_name, polygon_vertices, points, ):
+        selected_mask = np.zeros(points.shape[0], dtype=bool)
+        if polygon_vertices is not None:
+            points2 = self.vis_module[vis_name].get_transform('visual', 'canvas').map(points)
+            points2 /= points2[:,3:]
+            selected_mask = points_in_polygon(polygon_vertices, points2)
+        return selected_mask
+
+    def set_lasso_pos(self, vis_name, pos):
+        self.vis_module[vis_name].center = pos
+
+    def set_lasso_traj(self, vis_name, polygon_vertices):
+        self.vis_module[vis_name].set_data(pos = np.insert(polygon_vertices, len(polygon_vertices), polygon_vertices[0], axis=0))
+
     def set_pointcloud_glstate(self):
         for key in self.view_panel.keys():
             self.vis_module[key + "_" + "point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
 
     def on_mouse_move(self, event):
-        for key in self.view_panel.keys():
-            mesh = self.vis_module[key + "_" + 'car_model']
-            transform = self.view_panel[key].camera.transform
-            dir = np.concatenate((self.initial_light_dir, [0]))
-            mesh.shading_filter.light_dir = transform.map(dir)[:3]
+        # for key in self.view_panel.keys():
+        #     mesh = self.vis_module[key + "_" + 'car_model']
+        #     transform = self.view_panel[key].camera.transform
+        #     dir = np.concatenate((self.initial_light_dir, [0]))
+        #     mesh.shading_filter.light_dir = transform.map(dir)[:3]
+        if event.button == 1:
+            self.MouseMotionEvent.emit(CanvasMouseEvent.LeftPressMoveMove)
+        elif event.button == 2:
+            self.MouseMotionEvent.emit(CanvasMouseEvent.RightPressMove)
+        else:
+            self.MouseMotionEvent.emit(CanvasMouseEvent.NormalMove)
 
     def on_mouse_wheel(self, event):
         self.set_pointcloud_glstate()
 
     def on_mouse_press(self, event):
         self.set_pointcloud_glstate()
+        if event.button == 1:
+            self.MouseMotionEvent.emit(CanvasMouseEvent.LeftPress)
+        elif event.button == 2:
+            self.MouseMotionEvent.emit(CanvasMouseEvent.RightPress)
+
+    def on_mouse_release(self, event):
+        if event.button == 1:
+            self.MouseMotionEvent.emit(CanvasMouseEvent.LeftRelease)
+        elif event.button == 2:
+            self.MouseMotionEvent.emit(CanvasMouseEvent.RightRelease)
 
     def set_vis_bgcolor(self, value = (0, 0, 0, 1)):
         self.grid.bgcolor = value

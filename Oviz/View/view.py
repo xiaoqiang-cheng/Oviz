@@ -76,6 +76,7 @@ class View(QMainWindow):
         self.central_widget.setLayout(QHBoxLayout())
         self.central_widget.layout().addWidget(self.canvas.native)
         self.central_widget.layout().setContentsMargins(0, 0, 0, 0)
+        self.canvas.MouseMotionEvent.connect(self.canvas_mouse_trigger)
 
     def create_dock_widget(self):
         self.image_dock = []
@@ -212,6 +213,9 @@ class View(QMainWindow):
             lw.setBackground(QColor(val))
             color_id_map_list.addItem(lw)
         return color_id_map_list
+
+    def canvas_mouse_trigger(self, event):
+        print(event)
 
     def set_show_grid_checkbox(self, flag):
         self.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].setChecked(flag)
@@ -464,6 +468,7 @@ class View(QMainWindow):
     def show_dock_image_title(self):
         for v in self.image_dock:
             v.set_image_title_bar()
+
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.ShortcutOverride:
@@ -729,6 +734,15 @@ class View(QMainWindow):
 
     def set_voxel_line_visible(self, mode, group="template"):
         self.canvas.set_visible(group + "_" + "voxel_line", mode)
+
+    def set_lasso_pos(self, pos, group = "template"):
+        self.canvas.set_lasso_pos(group + "_" + "lasso_pointer", pos)
+
+    def set_lasso_traj(self, traj, group = "template"):
+        self.canvas.set_lasso_traj(group + "_" + "lasso_pointer", traj)
+
+    def get_lasso_select(self, polygon_vertices, points, group = "template"):
+        return self.canvas.lasso_select(group + "_" + "lasso_pointer", polygon_vertices, points)
 
     def set_point_cloud(self, points, color = "#00ff00", group = "template"):
         self.canvas.draw_point_cloud(group + "_" + "point_cloud", points, color, self.point_size)

@@ -85,16 +85,18 @@ class UosPCD:
             scene_frame_step = 20,
             roi_range = [-1, -1],
             pc_range = [-32.0, -50.0, -3.0, 32.0, 70.0, 10.0],
-            veh_range = [-2, -2, -1, 2, 5, 3]) -> None:
+            veh_range = [-2, -2, -1, 2, 5, 3],
+            mode = "build") -> None:
         self.pcd_path = pcd_path
         if not os.path.exists(pcd_path):
             print("ERROR PCD path not exist!")
             return
 
-        self.uos_lidar_data = UOSLidarData(self.pcd_path, image_path)
-        self.navi_list = self.uos_lidar_data.navi_list
-        self.framecnt = self.uos_lidar_data.framecnt
-        self.sensor_cnt = self.uos_lidar_data.sensor_cnt
+        if mode == "build":
+            self.uos_lidar_data = UOSLidarData(self.pcd_path, image_path)
+            self.navi_list = self.uos_lidar_data.navi_list
+            self.framecnt = self.uos_lidar_data.framecnt
+            self.sensor_cnt = self.uos_lidar_data.sensor_cnt
 
         self.info_ego_pos_list = []
         self.info_sample_list = []
@@ -104,9 +106,8 @@ class UosPCD:
         self.key_frame_step = sample_frame_step
         self.scene_step = scene_frame_step
         self.roi_frame_range = roi_range
-        self.ready_labeling_workspace(os.path.join(pcd_path, "useg_labeling"))
 
-        print("find sensor:", self.sensor_cnt, "find pcd:", self.framecnt, "step:", self.key_frame_step)
+        self.ready_labeling_workspace(os.path.join(pcd_path, "useg_labeling"))
         # maybe add a pipeline meta to record per step
 
     def ready_labeling_workspace(self, save_dir):

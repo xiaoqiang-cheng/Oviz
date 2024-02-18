@@ -1,4 +1,15 @@
 {
+    "lasso":{
+        "type": "add_lassoview",
+        "vis":{
+            "lasso_pointer":{
+                "type": "add_lasso_pointer_vis"
+            },
+            "lasso_line":{
+                "type": "add_lasso_line_vis"
+            }
+        }
+    },
     "view3d": {
         "type": "add_3dview",
         "camera": {

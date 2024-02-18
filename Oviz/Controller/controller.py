@@ -143,6 +143,7 @@ class Controller():
             roi_range=cloudmap_setting.roi_range,
             pc_range=cloudmap_setting.pc_range,
             veh_range=cloudmap_setting.veh_range,
+            mode="revert",
         )
 
         if os.path.exists(cloudmap_setting.cloudedmap_labeled_path):
