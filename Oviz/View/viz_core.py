@@ -137,8 +137,8 @@ class Canvas(QObject, scene.SceneCanvas):
 
     def add_lasso_pointer_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = scene.visuals.Ellipse(center=(0., 0.),
-                                radius=(2, 2,), color='red',
-                                border_width=0.5, border_color="red",
+                                radius=(5, 5,), color='red',
+                                border_width=1, border_color="red",
                                 num_segments=10)
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
@@ -237,7 +237,7 @@ class Canvas(QObject, scene.SceneCanvas):
     def lasso_select(self,vis_name, polygon_vertices, points, ):
         selected_mask = np.zeros(points.shape[0], dtype=bool)
         if polygon_vertices is not None:
-            points2 = self.vis_module[vis_name].get_transform('visual', 'canvas').map(points)
+            points2 = self.vis_module['template_point_cloud'].get_transform('visual', 'canvas').map(points)
             points2 /= points2[:,3:]
             selected_mask = points_in_polygon(polygon_vertices, points2)
         return selected_mask
@@ -245,19 +245,24 @@ class Canvas(QObject, scene.SceneCanvas):
     def set_lasso_pos(self, vis_name, pos):
         self.vis_module[vis_name].center = pos
 
-    def set_lasso_traj(self, vis_name, polygon_vertices):
-        self.vis_module[vis_name].set_data(pos = np.insert(polygon_vertices, len(polygon_vertices), polygon_vertices[0], axis=0))
+    def set_lasso_traj(self, vis_name, polygon_vertices, mode = 0):
+        if mode == 0:
+            self.vis_module[vis_name].set_data(pos = polygon_vertices)
+        else:
+            length = len(polygon_vertices)
+            self.vis_module[vis_name].set_data(pos = np.insert(polygon_vertices, length, polygon_vertices[0], axis=0))
 
     def set_pointcloud_glstate(self):
         for key in self.view_panel.keys():
             self.vis_module[key + "_" + "point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
 
     def on_mouse_move(self, event):
-        # for key in self.view_panel.keys():
-        #     mesh = self.vis_module[key + "_" + 'car_model']
-        #     transform = self.view_panel[key].camera.transform
-        #     dir = np.concatenate((self.initial_light_dir, [0]))
-        #     mesh.shading_filter.light_dir = transform.map(dir)[:3]
+        for key in self.view_panel.keys():
+            mesh = self.vis_module[key + "_" + 'car_model']
+            transform = self.view_panel[key].camera.transform
+            dir = np.concatenate((self.initial_light_dir, [0]))
+            mesh.shading_filter.light_dir = transform.map(dir)[:3]
+
         if event.button == 1:
             self.MouseMotionEvent.emit([CanvasMouseEvent.LeftPressMove, event])
         elif event.button == 2:
@@ -274,6 +279,8 @@ class Canvas(QObject, scene.SceneCanvas):
             self.MouseMotionEvent.emit([CanvasMouseEvent.LeftPress, event])
         elif event.button == 2:
             self.MouseMotionEvent.emit([CanvasMouseEvent.RightPress, event])
+        elif event.button == 3:
+            self.MouseMotionEvent.emit([CanvasMouseEvent.MiddlePress, event])
 
     def on_mouse_release(self, event):
         if event.button == 1:
@@ -286,7 +293,6 @@ class Canvas(QObject, scene.SceneCanvas):
 
 
     def draw_point_cloud(self, vis_name, point_clouds, point_color="#f3f3f3", size = 1):
-
         mask = point_color[:, -1] != 0.0
         points = point_clouds[mask]
         p_color = point_color[mask]

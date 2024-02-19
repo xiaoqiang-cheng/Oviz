@@ -1,17 +1,3 @@
-# -*- coding: utf-8 -*-
-# vispy: gallery 30
-# -----------------------------------------------------------------------------
-# Copyright (c) Vispy Development Team. All Rights Reserved.
-# Distributed under the (new) BSD License. See LICENSE.txt for more info.
-# -----------------------------------------------------------------------------
-"""
-Vispy Lasso
-===========
-
-Demonstrate the use of lasso selection.
-
-The lasso selection is done on a 2D scatter but could be extended further by user.
-"""
 import sys
 import warnings
 import numpy as np
@@ -34,8 +20,8 @@ NUMBER_POINT              = 5000
 SCATTER_SIZE              = 5
 
 canvas = scene.SceneCanvas(keys='interactive', show=True)
-view2 = canvas.central_widget.add_view()
 view = canvas.central_widget.add_view()
+view2 = canvas.central_widget.add_view()
 
 pointer = scene.visuals.Ellipse(center=(0., 0.), radius=(PEN_RADIUS, PEN_RADIUS,), color='red', border_width=0.5, border_color="red",
                                 num_segments=10,
@@ -59,28 +45,13 @@ pos *= scales
 
 pos += centers[indexes]
 
-# generate data
-# pos = np.random.normal(size=(NUMBER_POINT, 3), scale=0.2)
-# # one could stop here for the data generation, the rest is just to make the
-# # data look more interesting. Copied over from magnify.py
-# centers = np.random.normal(size=(50, 3))
-# indexes = np.random.normal(size=NUMBER_POINT, loc=centers.shape[0] / 2,
-#                            scale=centers.shape[0] / 3)
-# indexes = np.clip(indexes, 0, centers.shape[0] - 1).astype(int)
-# symbols = np.random.choice(['o', '^'], len(pos))
-# scales = 10**(np.linspace(-2, 0.5, centers.shape[0]))[indexes][:, np.newaxis]
-# pos *= scales
-# pos += centers[indexes]
 
-
-# create scatter object and fill in the data
 scatter = visuals.Markers(parent=view.scene)
 point_color = np.full((NUMBER_POINT, 4), FILTERED_COLOR)
 selected_mask = np.full(NUMBER_POINT, False)
 scatter.set_data(pos, edge_width=0, face_color=point_color, size=SCATTER_SIZE)
 
 view.add(scatter)
-# view.camera = 'turntable'  # or try 'arcball'
 view.camera = 'turntable'
 
 def points_in_polygon(polygon, pts):
@@ -134,20 +105,13 @@ def select(polygon_vertices, points):
 @canvas.connect
 def on_mouse_press(event):
     global point_color, selected_mask
-    # view.camera._resetting = True
-    print(event.button)
-    if event.button == 2:
-        # view.camera._resetting = True
-        # Reset lasso state.
+    if event.button == 1:
         lasso.set_data(pos=np.empty((1, 2)))
 
-        # Reset selected vertices to the filtered color, this would earn some time in case
-        # scene contains a lot of vertices.
         point_color[selected_mask] = FILTERED_COLOR
 
         scatter.set_data(pos, edge_width=0, face_color=point_color, size=SCATTER_SIZE)
     else:
-        # view.camera._resetting = False
         pass
 
 
@@ -156,14 +120,9 @@ def on_mouse_press(event):
 def on_mouse_move(event):
     global pointer, px, py
     pp = event.pos
-
-    # Optimization: to avoid too much recalculation/update we can update scene only if the mouse
-    # moved a certain amount of pixel.
-    # import ipdb
-    # ipdb.set_trace()
     if (abs(px - pp[0]) > MIN_MOVE_UPDATE_THRESHOLD or abs(py - pp[1]) > MIN_MOVE_UPDATE_THRESHOLD):
         pointer.center = pp
-        if event.button == 2:
+        if event.button == 1:
             polygon_vertices = event.trail()
             lasso.set_data(pos = np.insert(polygon_vertices, len(polygon_vertices), polygon_vertices[0], axis=0))
             px, py = pp
@@ -172,7 +131,7 @@ def on_mouse_move(event):
 def on_mouse_release(event):
     global point_color, selected_mask
 
-    if event.button == 2:
+    if event.button == 1:
         selected_mask = select(event.trail(), pos)
         print(selected_mask.any())
         # Set selected points with selection color

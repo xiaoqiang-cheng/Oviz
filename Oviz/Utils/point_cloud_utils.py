@@ -66,6 +66,10 @@ def read_pcd(path):
     points = pypcd.PointCloud.from_path(path)
     return np.array(points.pc_data.tolist(), dtype=np.float32)
 
+def read_origin_pcd(path):
+    points = pypcd.PointCloud.from_path(path)
+    return points
+
 def read_bin(path, dt = np.float32):
     points = np.fromfile(path, dtype=dt).reshape(-1)
     return points

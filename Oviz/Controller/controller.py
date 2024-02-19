@@ -39,6 +39,10 @@ class Controller():
 
         self.curr_frame_index = 0
         self.curr_frame_key = ""
+        self.selected_button_id = 0
+        self.last_selected_mask = None
+        self.last_selected_label = None
+        # self.lasso_select_enabled = False
 
         self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
         self.revert_user_config()
@@ -46,7 +50,6 @@ class Controller():
 
     def global_box_signal_connect(self):
         self.view.dock_global_control_box_layout_dict['car_model_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
-        # self.view.dock_global_control_box_layout_dict['global_setting']['color_id_map_list'].itemDoubleClicked.connect(self.toggle_list_kind_color)
         self.view.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
 
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
@@ -102,16 +105,73 @@ class Controller():
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["pcd_path"].SelectDone.connect(self.select_pointcloud)
 
         for key, val in self.view.color_checkbox_dict.items():
-            val.stateChanged.connect(self.update_buffer_vis)
+            val.stateChanged.connect(partial(self.update_buffer_vis, [POINTCLOUD]))
 
 
         for key, val in self.view.color_id_button_dict.items():
             val.clicked.connect(partial(self.trigger_labeled_button, key))
 
+        self.view.lassoSelected.connect(self.update_lasso_selected_area)
+
+    def update_lasso_selected_area(self, infos):
+        self.lasso_mouse_type = infos[1]
+        if self.lasso_mouse_type == CanvasMouseEvent.LeftRelease:
+            self.lasso_polygon_vertices = infos[0]
+            if self.lasso_polygon_vertices.shape[0] <= 1: return
+
+            self.lasso_select_enabled = True
+
+            pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
+            hide_mask = np.zeros(pointclouds[0].shape[0], dtype=bool)
+            prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32).reshape(-1)
+
+            for id, checkbutton in self.view.color_checkbox_dict.items():
+                if not checkbutton.isChecked():
+                    hide_mask = (prelabel == int(id)) | hide_mask
+
+            selected_mask = self.view.get_lasso_select(self.lasso_polygon_vertices,
+                                pointclouds[0][:, self.pointcloud_setting.xyz_dims])
+            selected_mask &= ~hide_mask
+            self.last_selected_mask = selected_mask
+            self.last_selected_label = pointclouds[0][selected_mask, self.pointcloud_setting.color_dims]
+            pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = self.selected_button_id
+
+            self.update_buffer_vis(field=[POINTCLOUD])
+            return
+
+        if self.lasso_mouse_type == CanvasMouseEvent.MiddlePress:
+            if (self.last_selected_mask is not None) and (self.last_selected_label is not None):
+                pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
+                pointclouds[0][self.last_selected_mask, self.pointcloud_setting.color_dims] = self.last_selected_label
+                self.update_buffer_vis(field=[POINTCLOUD])
+            return
+
+
+
+
+
+
+
+
     def trigger_labeled_button(self, button_id):
         self.view.reset_all_color_button()
         self.view.color_id_button_dict[button_id].setEnabled(False)
+        self.view.canvas.freeze_camera("template")
         self.view.label_mode_enable = True
+        self.selected_button_id = int(button_id)
+
+        prelabel = self.model.judge_labeled_results_exist(self.curr_frame_key)
+        pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
+
+        if prelabel is None:
+            prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32)
+
+            key_range = list(map(int, list(self.view.color_id_button_dict.keys())))
+            mask = (prelabel < min(key_range)) & (prelabel > max(key_range))
+            prelabel[mask] = min(key_range)
+
+        pointclouds[0][:, self.pointcloud_setting.color_dims] = prelabel
+
 
     def show_uos_3d_trajectory(self):
         cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())
@@ -253,11 +313,8 @@ class Controller():
         self.view.export_grab_video()
 
     def change_point_size(self, ptsize):
-        self.update_buffer_vis()
+        self.update_buffer_vis(field=[POINTCLOUD])
 
-    def toggle_list_kind_color(self):
-        if self.view.set_color_map_list():
-            self.update_buffer_vis()
 
     def select_format(self, group, topic_type, topic_path, ele_index):
         send_log_msg(NORMAL, "亲，你选择了 [%s] topic为: %s"%(topic_type, topic_path))
@@ -299,7 +356,7 @@ class Controller():
             self.pointcloud_setting = self.pointcloud_setting_dict[curr_tab_key][curr_sub_ele_index]
 
             if not check_setting_dims(self.pointcloud_setting.xyz_dims, [2, 3]): return
-            self.update_buffer_vis()
+            self.update_buffer_vis(field=[POINTCLOUD])
         except:
             print(self.pointcloud_setting.__dict__)
 
@@ -336,14 +393,16 @@ class Controller():
         data_dict = self.exec_user_magic_pipeline(data_dict, kargs)
         return data_dict
 
-    def update_buffer_vis(self, timestamp = None):
+    def update_buffer_vis(self, field = [], timestamp = None):
         data_dict = self.model.curr_frame_data
         if self.magicpipe_setting.enable:
             data_dict = self.exec_magic_pipeline(data_dict)
+
         for group, value in data_dict.items():
             collect_frame_data = {}
             self.clear_buffer_vis(group)
             for topic_type, data_list in value.items():
+                if (len(field) != 0) and topic_type not in field: continue
                 for ele_index, data in enumerate(data_list):
                     fun_name = topic_type + "_callback"
                     callback_fun = getattr(self, fun_name, None)
@@ -482,13 +541,17 @@ class Controller():
                 h = msg[..., pointcloud_setting.wlh_dims[2]]
         if isinstance(real_color, str):
             real_color = np.array([color_str_to_rgb(real_color)] * len(points))
+
+        # if self.lasso_select_enabled:
+        #     self.lasso_select_enabled = False
+        #     mask = self.view.get_lasso_select(self.lasso_polygon_vertices, points)
+        #     real_color[mask] = np.array([1., 0., 0., 1.])
         return points, real_color, w, l, h, pointcloud_setting.show_voxel, group
 
     def clear_buffer_vis(self, group):
         self.view.set_point_cloud_visible(False, group)
         self.view.set_point_voxel_visible(False, group)
         self.view.set_voxel_line_visible(False, group)
-
 
     def update_pointcloud_vis(self, data, group):
         points = []

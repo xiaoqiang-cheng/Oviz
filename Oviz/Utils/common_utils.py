@@ -89,6 +89,7 @@ class CanvasMouseEvent(Enum):
     LeftRelease     = 4
     RightPress      = 5
     RightRelease    = 6
+    MiddlePress     = 7
 
 
 def points_in_polygon(polygon, pts):

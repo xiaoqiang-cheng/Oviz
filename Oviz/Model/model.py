@@ -1,5 +1,5 @@
 from Oviz.Utils.common_utils import *
-from Oviz.Utils.point_cloud_utils import read_pcd, read_bin
+from Oviz.Utils.point_cloud_utils import read_pcd, read_bin, read_origin_pcd
 from Oviz.log_sys import send_log_msg
 import os
 import cv2
@@ -16,6 +16,19 @@ class Model(QObject):
         self.database = {}
         self.curr_frame_data = {}
         self.uos_lidar_type = False
+        self.sementic_labeled_results_path = None
+        self.pc_path = None
+
+    def judge_labeled_results_exist(self, key):
+        if self.pc_path is not None:
+            self.sementic_labeled_results_path = os.path.join(self.pc_path, "labeled")
+            if_not_exist_create(self.sementic_labeled_results_path)
+            labeled_fpath = os.path.join(self.sementic_labeled_results_path, key + ".pcd")
+            if os.path.exists(labeled_fpath):
+                label = read_origin_pcd(labeled_fpath)
+                return label['label']
+        return None
+
 
     def online_callback(self, msg):
         # print(msg)
@@ -131,6 +144,7 @@ class Model(QObject):
         else:
             self.uos_lidar_type = False
             cnt = self.deal_folder(group, folder_path, ele_index, POINTCLOUD, [".pcd", ".bin"])
+        self.pc_path = folder_path
         return cnt
 
     def deal_folder(self, group, folder_path, ele_index, topic_type, allowed_extensions):

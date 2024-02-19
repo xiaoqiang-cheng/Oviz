@@ -17,6 +17,7 @@ class View(QMainWindow):
     removeSubControlTab = Signal(str, int)
     removeImageDock = Signal(int)
     addImageDock = Signal(int)
+    lassoSelected = Signal(list)
 
     def __init__(self) -> None:
         super().__init__()
@@ -219,29 +220,41 @@ class View(QMainWindow):
 
     def canvas_mouse_trigger(self, infos):
         # print(event)
+        mouse_type, event = infos
+        if mouse_type == CanvasMouseEvent.MiddlePress:
+            self.set_lasso_traj(np.empty((1, 2)))
+            self.lassoSelected.emit([event.trail(), mouse_type])
+            return
+
         if not self.label_mode_enable:
             return
 
-        mouse_type, event = infos
         self.canvas.set_visible("template_lasso_pointer", True)
 
         if mouse_type == CanvasMouseEvent.LeftPress:
             self.set_lasso_traj(np.empty((1, 2)))
-            self.canvas.freeze_camera("template")
+            self.lassoSelected.emit([event.trail(), mouse_type])
+            return
+
+        if mouse_type == CanvasMouseEvent.LeftRelease:
+            self.lassoSelected.emit([event.trail(), mouse_type])
+            return
 
         if mouse_type == CanvasMouseEvent.RightRelease:
             self.reset_all_color_button()
             self.canvas.set_visible("template_lasso_pointer", False)
             self.set_lasso_traj(np.empty((1, 2)))
             self.canvas.unfreeze_camera("template")
-
+            return
 
         if mouse_type == CanvasMouseEvent.NormalMove:
             self.set_lasso_pos(event.pos)
+            return
 
         if mouse_type == CanvasMouseEvent.LeftPressMove:
             self.set_lasso_traj(event.trail())
-
+            # self.lassoSelected.emit([event.trail(), mouse_type])
+            return
 
     def set_show_grid_checkbox(self, flag):
         self.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].setChecked(flag)
@@ -674,13 +687,11 @@ class View(QMainWindow):
                     # TODO bug if key is not int str
                     mask = id_list == int(key)
                     self.color_pts_num_dict[key].setText(str(len(ret_color[mask])))
+                    ret_color[mask] = value
 
-                    if self.color_checkbox_dict[key].isChecked():
-                        ret_color[mask] = value
-                    else:
-                        remove_color = color_str_to_rgb(self.color_map_cfg['background'])
-                        remove_color[-1] = 0.0
-                        ret_color[mask] = remove_color
+                    if not self.color_checkbox_dict[key].isChecked():
+                        ret_color[mask, -1] = 0.0
+
                 return ret_color, True
             elif (id_list.shape[-1] == 2):
                 color_dim = 3
