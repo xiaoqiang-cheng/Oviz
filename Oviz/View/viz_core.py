@@ -257,11 +257,11 @@ class Canvas(QObject, scene.SceneCanvas):
             self.vis_module[key + "_" + "point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
 
     def on_mouse_move(self, event):
-        for key in self.view_panel.keys():
-            mesh = self.vis_module[key + "_" + 'car_model']
-            transform = self.view_panel[key].camera.transform
-            dir = np.concatenate((self.initial_light_dir, [0]))
-            mesh.shading_filter.light_dir = transform.map(dir)[:3]
+        # for key in self.view_panel.keys():
+        #     mesh = self.vis_module[key + "_" + 'car_model']
+        #     transform = self.view_panel[key].camera.transform
+        #     dir = np.concatenate((self.initial_light_dir, [0]))
+        #     mesh.shading_filter.light_dir = transform.map(dir)[:3]
 
         if event.button == 1:
             self.MouseMotionEvent.emit([CanvasMouseEvent.LeftPressMove, event])

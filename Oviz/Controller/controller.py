@@ -117,7 +117,7 @@ class Controller():
         self.lasso_mouse_type = infos[1]
         if self.lasso_mouse_type == CanvasMouseEvent.LeftRelease:
             self.lasso_polygon_vertices = infos[0]
-            if self.lasso_polygon_vertices.shape[0] <= 1: return
+            if (self.lasso_polygon_vertices is None) or (self.lasso_polygon_vertices.shape[0] <= 1): return
 
             self.lasso_select_enabled = True
 
@@ -137,21 +137,18 @@ class Controller():
             pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = self.selected_button_id
 
             self.update_buffer_vis(field=[POINTCLOUD])
+            self.model.dump_labeled_bin_results(self.curr_frame_key,
+                    pointclouds[0][:, self.pointcloud_setting.color_dims])
             return
 
         if self.lasso_mouse_type == CanvasMouseEvent.MiddlePress:
             if (self.last_selected_mask is not None) and (self.last_selected_label is not None):
                 pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
                 pointclouds[0][self.last_selected_mask, self.pointcloud_setting.color_dims] = self.last_selected_label
+                self.model.dump_labeled_bin_results(self.curr_frame_key,
+                        pointclouds[0][:, self.pointcloud_setting.color_dims])
                 self.update_buffer_vis(field=[POINTCLOUD])
             return
-
-
-
-
-
-
-
 
     def trigger_labeled_button(self, button_id):
         self.view.reset_all_color_button()
@@ -159,19 +156,6 @@ class Controller():
         self.view.canvas.freeze_camera("template")
         self.view.label_mode_enable = True
         self.selected_button_id = int(button_id)
-
-        prelabel = self.model.judge_labeled_results_exist(self.curr_frame_key)
-        pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
-
-        if prelabel is None:
-            prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32)
-
-            key_range = list(map(int, list(self.view.color_id_button_dict.keys())))
-            mask = (prelabel < min(key_range)) & (prelabel > max(key_range))
-            prelabel[mask] = min(key_range)
-
-        pointclouds[0][:, self.pointcloud_setting.color_dims] = prelabel
-
 
     def show_uos_3d_trajectory(self):
         cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())
@@ -393,10 +377,23 @@ class Controller():
         data_dict = self.exec_user_magic_pipeline(data_dict, kargs)
         return data_dict
 
-    def update_buffer_vis(self, field = [], timestamp = None):
+    def update_buffer_vis(self, field = [], event=0, timestamp = None):
         data_dict = self.model.curr_frame_data
         if self.magicpipe_setting.enable:
             data_dict = self.exec_magic_pipeline(data_dict)
+
+        if event == 1:
+            prelabel = self.model.check_labeled_results_exist(self.curr_frame_key)
+            pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
+            pointclouds[0] = np.frombuffer(pointclouds[0], dtype = np.dtype(self.pointcloud_setting.points_type)).reshape(-1, self.pointcloud_setting.points_dim)
+
+            if prelabel is None:
+                prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32)
+                key_range = list(map(int, list(self.view.color_id_button_dict.keys())))
+                mask = (prelabel < min(key_range)) & (prelabel > max(key_range))
+                prelabel[mask] = min(key_range)
+
+            pointclouds[0][:, self.pointcloud_setting.color_dims] = prelabel
 
         for group, value in data_dict.items():
             collect_frame_data = {}
@@ -419,7 +416,7 @@ class Controller():
         print(index)
         self.curr_frame_index = index
         self.curr_frame_key = self.model.get_curr_frame_data(index)
-        self.update_buffer_vis()
+        self.update_buffer_vis(event=1)
         self.view.send_update_vis_flag()
         if self.record_screen_setting.record_screen:
             self.view.grab_form(self.model.data_frame_list[index], ".png")

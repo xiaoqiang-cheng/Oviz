@@ -19,15 +19,22 @@ class Model(QObject):
         self.sementic_labeled_results_path = None
         self.pc_path = None
 
-    def judge_labeled_results_exist(self, key):
+    def check_labeled_results_exist(self, key):
         if self.pc_path is not None:
-            self.sementic_labeled_results_path = os.path.join(self.pc_path, "labeled")
+            self.sementic_labeled_results_path = os.path.join(self.pc_path, "labeled", "bins")
             if_not_exist_create(self.sementic_labeled_results_path)
-            labeled_fpath = os.path.join(self.sementic_labeled_results_path, key + ".pcd")
+            labeled_fpath = os.path.join(self.sementic_labeled_results_path, key + ".bin")
             if os.path.exists(labeled_fpath):
-                label = read_origin_pcd(labeled_fpath)
-                return label['label']
+                label = read_bin(labeled_fpath, dt=np.int32).reshape(-1, 1)
+                return label
         return None
+
+    def dump_labeled_bin_results(self, key, bin_data):
+        if self.pc_path is not None:
+            self.sementic_labeled_results_path = os.path.join(self.pc_path, "labeled", "bins")
+            if_not_exist_create(self.sementic_labeled_results_path)
+            labeled_fpath = os.path.join(self.sementic_labeled_results_path, key + ".bin")
+            bin_data.astype(np.int32).tofile(labeled_fpath)
 
 
     def online_callback(self, msg):
