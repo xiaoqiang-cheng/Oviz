@@ -52,6 +52,12 @@
                             "value": "140, 140"
                         }
                     }
+                },
+                "button_export_pcd_label":{
+                    "type" : "QPushButton",
+                    "params":{
+                        "text": "导出PCD label"
+                    }
                 }
             }
         },

@@ -51,6 +51,8 @@ class Controller():
     def global_box_signal_connect(self):
         self.view.dock_global_control_box_layout_dict['car_model_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
         self.view.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
+        self.view.dock_global_control_box_layout_dict['global_setting']['button_export_pcd_label'].clicked.connect(self.export_pcd_label)
+
 
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_mouse_record_screen'].stateChanged.connect(self.change_mouse_record_mode)
@@ -112,6 +114,10 @@ class Controller():
             val.clicked.connect(partial(self.trigger_labeled_button, key))
 
         self.view.lassoSelected.connect(self.update_lasso_selected_area)
+
+    def export_pcd_label(self):
+        self.model.export_labeled_pcd_results(self.pointcloud_setting.xyz_dims,
+                    self.pointcloud_setting.points_dim)
 
     def update_lasso_selected_area(self, infos):
         self.lasso_mouse_type = infos[1]
@@ -385,7 +391,8 @@ class Controller():
         if event == 1:
             prelabel = self.model.check_labeled_results_exist(self.curr_frame_key)
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
-            pointclouds[0] = np.frombuffer(pointclouds[0], dtype = np.dtype(self.pointcloud_setting.points_type)).reshape(-1, self.pointcloud_setting.points_dim)
+            pointclouds[0] = self.check_pointcloud_shape(pointclouds[0])
+            # pointclouds[0] = np.frombuffer(pointclouds[0], dtype = np.dtype(self.pointcloud_setting.points_type)).reshape(-1, self.pointcloud_setting.points_dim)
 
             if prelabel is None:
                 prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32)
@@ -497,19 +504,31 @@ class Controller():
         # self.view.set_bbox3d(bboxes, real_color, arrow, text_info, bbox3d_setting.text_format, group=group)
         return bboxes, real_color, arrow, text_info, bbox3d_setting.text_format, group
 
+    def check_pointcloud_shape(self, msg):
+        if len(msg.shape) == 1:
+            surplus = msg.shape[-1] % self.pointcloud_setting.points_dim
+            if surplus == 0:
+                msg = np.frombuffer(msg.data, dtype = np.dtype(self.pointcloud_setting.points_type)).reshape(-1, self.pointcloud_setting.points_dim)
+            else:
+                msg = np.frombuffer(msg.data, dtype = np.dtype(self.pointcloud_setting.points_type))[:-surplus].reshape(-1, self.pointcloud_setting.points_dim)
+                send_log_msg(ERROR, "your point dim [%d] is error, please check it"%self.pointcloud_setting.points_dim)
+
+        return msg
+
     def pointcloud_callback(self, msg, topic, ele_index, group):
         pointcloud_setting = self.pointcloud_setting_dict[group][ele_index]
 
-        if len(msg.shape) == 1:
-            try:
-                surplus = msg.shape[-1] % pointcloud_setting.points_dim
-                if surplus == 0:
-                    msg = np.frombuffer(msg.data, dtype = np.dtype(pointcloud_setting.points_type)).reshape(-1, pointcloud_setting.points_dim)
-                else:
-                    msg = np.frombuffer(msg.data, dtype = np.dtype(pointcloud_setting.points_type))[:-surplus].reshape(-1, pointcloud_setting.points_dim)
-                    send_log_msg(ERROR, "your point dim [%d] is error, please check it"%pointcloud_setting.points_dim)
-            except:
-                return
+        self.check_pointcloud_shape(msg)
+        # if len(msg.shape) == 1:
+        #     try:
+        #         surplus = msg.shape[-1] % pointcloud_setting.points_dim
+        #         if surplus == 0:
+        #             msg = np.frombuffer(msg.data, dtype = np.dtype(pointcloud_setting.points_type)).reshape(-1, pointcloud_setting.points_dim)
+        #         else:
+        #             msg = np.frombuffer(msg.data, dtype = np.dtype(pointcloud_setting.points_type))[:-surplus].reshape(-1, pointcloud_setting.points_dim)
+        #             send_log_msg(ERROR, "your point dim [%d] is error, please check it"%pointcloud_setting.points_dim)
+        #     except:
+        #         return
         max_dim = msg.shape[-1]
         if max(pointcloud_setting.xyz_dims) >= max_dim:
             send_log_msg(ERROR, "xyz维度无效:%s,最大维度为%d"%(str(pointcloud_setting.xyz_dims), max_dim))

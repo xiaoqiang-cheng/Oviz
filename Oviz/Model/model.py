@@ -1,10 +1,12 @@
 from Oviz.Utils.common_utils import *
-from Oviz.Utils.point_cloud_utils import read_pcd, read_bin, read_origin_pcd
+from Oviz.Utils.point_cloud_utils import read_pcd, read_bin, read_origin_pcd, write_pcd
 from Oviz.log_sys import send_log_msg
 import os
 import cv2
 from Oviz.PointPuzzle.uos_pcd import UOSLidarData
 import threading
+import PySimpleGUI as sg
+
 
 class Model(QObject):
     hasNewMsg = Signal(float)
@@ -17,11 +19,12 @@ class Model(QObject):
         self.curr_frame_data = {}
         self.uos_lidar_type = False
         self.sementic_labeled_results_path = None
+        self.sementic_labeled_pcd_results_path = None
         self.pc_path = None
 
     def check_labeled_results_exist(self, key):
         if self.pc_path is not None:
-            self.sementic_labeled_results_path = os.path.join(self.pc_path, "labeled", "bins")
+            self.sementic_labeled_results_path = os.path.join(self.pc_path, "internal", "bins")
             if_not_exist_create(self.sementic_labeled_results_path)
             labeled_fpath = os.path.join(self.sementic_labeled_results_path, key + ".bin")
             if os.path.exists(labeled_fpath):
@@ -31,10 +34,36 @@ class Model(QObject):
 
     def dump_labeled_bin_results(self, key, bin_data):
         if self.pc_path is not None:
-            self.sementic_labeled_results_path = os.path.join(self.pc_path, "labeled", "bins")
+            self.sementic_labeled_results_path = os.path.join(self.pc_path, "internal", "bins")
             if_not_exist_create(self.sementic_labeled_results_path)
             labeled_fpath = os.path.join(self.sementic_labeled_results_path, key + ".bin")
             bin_data.astype(np.int32).tofile(labeled_fpath)
+
+    def export_labeled_pcd_results(self, xyz_dims, pts_dim):
+        if self.pc_path is not None:
+            self.sementic_labeled_pcd_results_path = os.path.join(self.pc_path, "internal", "pcds")
+            if_not_exist_create(self.sementic_labeled_pcd_results_path)
+
+            for id, key in enumerate(self.data_frame_list):
+                sg.one_line_progress_meter("export pcd label", id, len(self.data_frame_list), orientation='h')
+                data_path = self.database['template'][POINTCLOUD][0][key]
+                pc_label = self.check_labeled_results_exist(key)
+                if pc_label is None: continue
+                pc_data = self.smart_read_pointcloud(data_path)
+                if len(pc_data.shape) == 1:
+                    pc_data = pc_data.reshape(-1, pts_dim)
+                object_label = np.ones((pc_data.shape[0], 1), dtype=np.float32) * -1
+                exp_pcd_buffer = np.concatenate([pc_data[:, xyz_dims], pc_label, object_label], axis = 1)
+                exp_pcd_path = os.path.join(self.sementic_labeled_pcd_results_path, key + ".pcd")
+                write_pcd(exp_pcd_path, exp_pcd_buffer,
+                    filed = [('x', np.float32) ,
+                            ('y', np.float32),
+                            ('z', np.float32),
+                            ('label', np.int32),
+                            ('object', np.int32)])
+            sg.one_line_progress_meter("export pcd label", len(self.data_frame_list), len(self.data_frame_list), orientation='h')
+            os.system("xdg-open %s"%self.sementic_labeled_pcd_results_path)
+
 
 
     def online_callback(self, msg):
