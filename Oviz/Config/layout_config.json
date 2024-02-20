@@ -62,6 +62,22 @@
             }
         },
 
+        "frame_id_mask":
+        {
+            "type": "QVBoxLayout",
+            "widget":{
+                "linetxt_frame_dim":{
+                    "type": "LineTextWithLabelWidget",
+                    "params":{
+                        "widget_titie" : "frame_dim",
+                        "default_value": {
+                            "value": "5"
+                        }
+                    }
+                }
+            }
+        },
+
         "pointcloud":{
             "type": "QVBoxLayout",
             "widget":{

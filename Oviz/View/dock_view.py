@@ -4,6 +4,7 @@ import os
 from Oviz.Utils.common_utils import *
 import time
 import copy
+from .custom_widget import LineTextWithLabelWidget
 class ImageViewer(QWidget):
     doubleClicked = Signal()
     def __init__(self, parent=None):
@@ -573,3 +574,77 @@ class ControlBoxDockWidget(QDockWidget):
             self.hide()
         else:
             self.show()
+
+
+class FilterHideDock(QDockWidget):
+    filterHideChange = Signal(list, int)
+    def __init__(self, parent=None, title="FilterSetting"):
+        super().__init__(title, parent)
+        self.setObjectName(title)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+
+        self.widget_dict = {}
+        self.mainwidget_area = QScrollArea()
+        self.mainwidget_area.setWidgetResizable(True)
+        self.mainwidget_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        main_widget = QWidget()
+        self.mainwidget_layout = QVBoxLayout(main_widget)
+
+        self.header_label = QLabel("指定帧维度")
+        self.header_linetxt = QLineEdit("5")
+        self.update_filter_frame_dim()
+        self.header_linetxt.textChanged.connect(self.update_filter_frame_dim)
+        header_widget = self.create_header()
+
+        self.checkbox_dict = {}
+
+        self.mainwidget_layout.addWidget(header_widget)
+        self.update_filter_checkbox()
+        self.mainwidget_layout.addStretch()
+        self.mainwidget_area.setWidget(main_widget)
+        self.setWidget(self.mainwidget_area)
+
+    def update_filter_frame_dim(self):
+        self.filter_frame_dim = int(self.header_linetxt.text())
+
+    def create_header(self):
+        local_widget = QWidget()
+        local_layout = QHBoxLayout()
+        local_widget.setLayout(local_layout)
+        local_layout.addWidget(self.header_label)
+        local_layout.addWidget(self.header_linetxt)
+
+        return local_widget
+
+    def update_filter_checkbox(self, frame_idx = []):
+        for _, widget in self.checkbox_dict.items():
+            widget.deleteLater()
+
+        self.checkbox_dict.clear()
+
+        for i in frame_idx:
+            self.checkbox_dict[str(i)] = QCheckBox(str(i))
+            self.checkbox_dict[str(i)].stateChanged.connect(self.checkbox_state_change)
+            self.mainwidget_layout.addWidget(self.checkbox_dict[str(i)])
+        self.mainwidget_layout.addStretch()
+
+    def get_marked_frame_idx(self):
+        ret = []
+        for key, widget in self.checkbox_dict.items():
+            if widget.isChecked():
+                ret.append(int(key))
+
+        return ret
+
+    def checkbox_state_change(self):
+        valid_frame = self.get_marked_frame_idx()
+        self.filterHideChange.emit(valid_frame, int(self.header_linetxt.text()))
+
+    def toggle_hide(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
+

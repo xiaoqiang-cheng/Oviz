@@ -37,6 +37,11 @@ class Controller():
         self.image_root_dirs = []
         self.signal_connect()
 
+        self.pointcloud_hide_mask = None
+        self.pointcloud_hide_color_mask = None
+
+        self.pointcloud_legacy_mask = None
+
         self.curr_frame_index = 0
         self.curr_frame_key = ""
         self.selected_button_id = 0
@@ -52,7 +57,6 @@ class Controller():
         self.view.dock_global_control_box_layout_dict['car_model_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
         self.view.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
         self.view.dock_global_control_box_layout_dict['global_setting']['button_export_pcd_label'].clicked.connect(self.export_pcd_label)
-
 
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_mouse_record_screen'].stateChanged.connect(self.change_mouse_record_mode)
@@ -107,17 +111,32 @@ class Controller():
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["pcd_path"].SelectDone.connect(self.select_pointcloud)
 
         for key, val in self.view.color_checkbox_dict.items():
-            val.stateChanged.connect(partial(self.update_buffer_vis, [POINTCLOUD]))
+            # val.stateChanged.connect(partial(self.update_buffer_vis, [POINTCLOUD]))
+            val.stateChanged.connect(self.filtr_hide_color)
+
 
 
         for key, val in self.view.color_id_button_dict.items():
             val.clicked.connect(partial(self.trigger_labeled_button, key))
 
         self.view.lassoSelected.connect(self.update_lasso_selected_area)
+        self.view.dock_filter_hide_box.filterHideChange.connect(self.filter_hide_frame)
 
     def export_pcd_label(self):
         self.model.export_labeled_pcd_results(self.pointcloud_setting.xyz_dims,
                     self.pointcloud_setting.points_dim)
+
+
+    def filtr_hide_color(self):
+        pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
+        prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32).reshape(-1)
+        self.pointcloud_hide_color_mask = np.zeros(pointclouds[0].shape[0], dtype=bool)
+        for id, checkbutton in self.view.color_checkbox_dict.items():
+            if not checkbutton.isChecked():
+                self.pointcloud_hide_color_mask = (prelabel == int(id)) | self.pointcloud_hide_color_mask
+
+        self.pointcloud_legacy_mask = ~(self.pointcloud_hide_color_mask | self.pointcloud_hide_mask)
+        self.update_buffer_vis([POINTCLOUD])
 
     def update_lasso_selected_area(self, infos):
         self.lasso_mouse_type = infos[1]
@@ -128,16 +147,10 @@ class Controller():
             self.lasso_select_enabled = True
 
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
-            hide_mask = np.zeros(pointclouds[0].shape[0], dtype=bool)
-            prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32).reshape(-1)
-
-            for id, checkbutton in self.view.color_checkbox_dict.items():
-                if not checkbutton.isChecked():
-                    hide_mask = (prelabel == int(id)) | hide_mask
 
             selected_mask = self.view.get_lasso_select(self.lasso_polygon_vertices,
                                 pointclouds[0][:, self.pointcloud_setting.xyz_dims])
-            selected_mask &= ~hide_mask
+            selected_mask &= self.pointcloud_legacy_mask
             self.last_selected_mask = selected_mask
             self.last_selected_label = pointclouds[0][selected_mask, self.pointcloud_setting.color_dims]
             pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = self.selected_button_id
@@ -155,6 +168,23 @@ class Controller():
                         pointclouds[0][:, self.pointcloud_setting.color_dims])
                 self.update_buffer_vis(field=[POINTCLOUD])
             return
+
+    def filter_hide_frame(self, valid_frame = [], dim = None):
+
+        pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
+        keep_mask = np.zeros(pointclouds[0].shape[0], dtype=bool)
+        if len(valid_frame) == 0:
+            self.pointcloud_hide_mask = keep_mask
+            # self.pointcloud_legacy_mask = ~(self.pointcloud_hide_mask)
+        else:
+            frame_array = pointclouds[0][:, dim]
+            for fidx in valid_frame:
+                keep_mask |= (frame_array == fidx)
+            self.pointcloud_hide_mask = ~keep_mask
+
+        self.pointcloud_legacy_mask = ~(self.pointcloud_hide_color_mask | self.pointcloud_hide_mask)
+
+        self.update_buffer_vis([POINTCLOUD])
 
     def trigger_labeled_button(self, button_id):
         self.view.reset_all_color_button()
@@ -207,7 +237,6 @@ class Controller():
                     cloudmap_controller.labeled_ground_truth_dir))
         cloudmap_controller.revert()
         os.system("xdg-open %s"%cloudmap_setting.pcd_path)
-
 
     def build_multi_frame_cloudmap(self):
         cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())
@@ -392,7 +421,6 @@ class Controller():
             prelabel = self.model.check_labeled_results_exist(self.curr_frame_key)
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
             pointclouds[0] = self.check_pointcloud_shape(pointclouds[0])
-            # pointclouds[0] = np.frombuffer(pointclouds[0], dtype = np.dtype(self.pointcloud_setting.points_type)).reshape(-1, self.pointcloud_setting.points_dim)
 
             if prelabel is None:
                 prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32)
@@ -401,6 +429,16 @@ class Controller():
                 prelabel[mask] = min(key_range)
 
             pointclouds[0][:, self.pointcloud_setting.color_dims] = prelabel
+            dim = self.view.dock_filter_hide_box.filter_frame_dim
+            if dim < pointclouds[0].shape[1]:
+                self.view.create_frame_idx_hide_widget(pointclouds[0][:, 5])
+            else:
+                self.view.create_frame_idx_hide_widget()
+
+            self.pointcloud_hide_mask = np.zeros((pointclouds[0].shape[0]), dtype=bool)
+            self.pointcloud_hide_color_mask = np.zeros((pointclouds[0].shape[0]), dtype=bool)
+            self.filter_hide_frame()
+            self.filtr_hide_color()
 
         for group, value in data_dict.items():
             collect_frame_data = {}
@@ -605,5 +643,5 @@ class Controller():
         if show_voxel:
             self.view.set_point_voxel(points, w, l, h, real_color, group)
         else:
-            self.view.set_point_cloud(points, color = real_color, group=group)
+            self.view.set_point_cloud(points, color = real_color, group=group, legacy_mask = self.pointcloud_legacy_mask)
         self.view.set_voxel_mode(show_voxel, group)

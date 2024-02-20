@@ -309,7 +309,9 @@ class UosPCD:
     def calc_eular_dist(self, pos):
         return math.sqrt((pos[1] ** 2 + pos[2] ** 2))
 
-    def split_cloud_map(self, cloud_map, scene_name = "",
+    def split_cloud_map(self, cloud_map,
+                        cloud_map_frame_id = None,
+                        scene_name = "",
                         roi_navi_state = None, roi_image_state = None,
                         split_dist = None):
         patch_mask_metadata_fname = os.path.join(self.labeling_cloudmap_patch_dir, "cloud_mask_metadata.pkl")
@@ -338,13 +340,24 @@ class UosPCD:
 
             patch_mask[scene_name][scene_patch_name] = mask
 
-            write_pcd(patch_pcd_fname, cloud,
-                            filed = [('x', np.float32) ,
-                            ('y', np.float32),
-                            ('z', np.float32),
-                            ('label', np.int32),
-                            ('object', np.int32)])
-            # copy img
+            if cloud_map_frame_id is None:
+                write_pcd(patch_pcd_fname, cloud,
+                                filed = [('x', np.float32) ,
+                                ('y', np.float32),
+                                ('z', np.float32),
+                                ('label', np.int32),
+                                ('object', np.int32)])
+            else:
+                cloud_idx = cloud_map_frame_id[mask].reshape(-1, 1)
+                cloud_with_frame = np.concatenate([cloud, cloud_idx], axis=1)
+                write_pcd(patch_pcd_fname, cloud_with_frame,
+                                filed = [('x', np.float32) ,
+                                ('y', np.float32),
+                                ('z', np.float32),
+                                ('label', np.int32),
+                                ('object', np.int32),
+                                ('frame', np.int32),])
+                # copy img
             image_list = roi_image_state[i]
             for ix, fi in enumerate(image_list):
                 if fi is not None:
@@ -437,7 +450,8 @@ class UosPCD:
                             ('object', np.int32)])
 
             cloudmap_frame.tofile(cloudmap_idx_fname)
-            self.split_cloud_map(cloudmap, scene_range_name, roi_navi_state, roi_image_state, split_dist)
+            self.split_cloud_map(cloudmap, cloudmap_frame,
+                    scene_range_name, roi_navi_state, roi_image_state, split_dist)
 
         write_json(self.info_ego_pos_list, self.ego_pos_list_fname)
         write_json(self.info_sample_list, self.sample_fname)

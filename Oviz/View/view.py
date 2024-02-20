@@ -91,11 +91,14 @@ class View(QMainWindow):
         self.dock_mapping_control_box_layout_dict = self.set_mapping_control_box()
         self.dock_mapping_control_box = ControlBoxDockWidget(title="MappingSetting", layout_dict=self.dock_mapping_control_box_layout_dict)
 
+        self.dock_filter_hide_box = FilterHideDock()
 
         self.create_image_dock_widgets(self.layout_config["image_dock_path"])
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_control_box)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_mapping_control_box)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_filter_hide_box)
+
 
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
         self.dock_log_info.hide()
@@ -263,6 +266,15 @@ class View(QMainWindow):
         for key, val in self.color_id_button_dict.items():
             val.setEnabled(True)
         self.label_mode_enable = False
+
+    def create_frame_idx_hide_widget(self, frame_idxs = None):
+        if frame_idxs is not None:
+            frame_idxs = frame_idxs.astype(np.int32)
+            unique_idx = list(set(frame_idxs))
+            unique_idx.sort()
+            self.dock_filter_hide_box.update_filter_checkbox(unique_idx)
+        else:
+            self.dock_filter_hide_box.update_filter_checkbox([])
 
     def create_color_map_widget(self):
         color_list_widget = QWidget()
@@ -688,9 +700,8 @@ class View(QMainWindow):
                     mask = id_list == int(key)
                     self.color_pts_num_dict[key].setText(str(len(ret_color[mask])))
                     ret_color[mask] = value
-
-                    if not self.color_checkbox_dict[key].isChecked():
-                        ret_color[mask, -1] = 0.0
+                    # if not self.color_checkbox_dict[key].isChecked():
+                    #     ret_color[mask, -1] = 0.0
 
                 return ret_color, True
             elif (id_list.shape[-1] == 2):
@@ -789,8 +800,8 @@ class View(QMainWindow):
     def get_lasso_select(self, polygon_vertices, points, group = "template"):
         return self.canvas.lasso_select(group + "_" + "lasso_pointer", polygon_vertices, points)
 
-    def set_point_cloud(self, points, color = "#00ff00", group = "template"):
-        self.canvas.draw_point_cloud(group + "_" + "point_cloud", points, color, self.point_size)
+    def set_point_cloud(self, points, color = "#00ff00", group = "template", legacy_mask = None):
+        self.canvas.draw_point_cloud(group + "_" + "point_cloud", points, color, self.point_size, legacy_mask)
 
     def set_point_voxel(self, points, w, l, h, face, group="template"):
         self.canvas.draw_point_voxel(group + "_" + "point_voxel", points, w, l, h, face, face)

@@ -292,11 +292,17 @@ class Canvas(QObject, scene.SceneCanvas):
         self.grid.bgcolor = value
 
 
-    def draw_point_cloud(self, vis_name, point_clouds, point_color="#f3f3f3", size = 1):
-        mask = point_color[:, -1] != 0.0
-        points = point_clouds[mask]
-        p_color = point_color[mask]
+    def draw_point_cloud(self, vis_name, point_clouds, point_color="#f3f3f3", size = 1, legacy_mask = None):
+        # mask = point_color[:, -1] != 0.0
+        # points = point_clouds[mask]
+        # p_color = point_color[mask]
 
+        if legacy_mask is not None:
+            points = point_clouds[legacy_mask]
+            p_color = point_color[legacy_mask]
+        else:
+            points = point_clouds
+            p_color = point_color
         # face_color = edge_color = Color(point_color)
         self.vis_module[vis_name].set_data(np.array(points),
                                             edge_width=0,
