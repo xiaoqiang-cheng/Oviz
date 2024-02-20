@@ -148,9 +148,12 @@ class Controller():
 
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
 
-            selected_mask = self.view.get_lasso_select(self.lasso_polygon_vertices,
-                                pointclouds[0][:, self.pointcloud_setting.xyz_dims])
-            selected_mask &= self.pointcloud_legacy_mask
+            local_selected_mask = self.view.get_lasso_select(self.lasso_polygon_vertices,
+                                pointclouds[0][self.pointcloud_legacy_mask][:, self.pointcloud_setting.xyz_dims])
+
+            selected_mask = self.pointcloud_legacy_mask.copy()
+            selected_mask[np.where(self.pointcloud_legacy_mask == True)] &= local_selected_mask
+
             self.last_selected_mask = selected_mask
             self.last_selected_label = pointclouds[0][selected_mask, self.pointcloud_setting.color_dims]
             pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = self.selected_button_id

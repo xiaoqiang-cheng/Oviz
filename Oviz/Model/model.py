@@ -28,7 +28,7 @@ class Model(QObject):
             if_not_exist_create(self.sementic_labeled_results_path)
             labeled_fpath = os.path.join(self.sementic_labeled_results_path, key + ".bin")
             if os.path.exists(labeled_fpath):
-                label = read_bin(labeled_fpath, dt=np.int32).reshape(-1, 1)
+                label = read_bin(labeled_fpath, dt=np.int8).astype(np.int32).reshape(-1, 1)
                 return label
         return None
 
@@ -37,7 +37,7 @@ class Model(QObject):
             self.sementic_labeled_results_path = os.path.join(self.pc_path, "internal", "bins")
             if_not_exist_create(self.sementic_labeled_results_path)
             labeled_fpath = os.path.join(self.sementic_labeled_results_path, key + ".bin")
-            bin_data.astype(np.int32).tofile(labeled_fpath)
+            bin_data.astype(np.int8).tofile(labeled_fpath)
 
     def export_labeled_pcd_results(self, xyz_dims, pts_dim):
         if self.pc_path is not None:
