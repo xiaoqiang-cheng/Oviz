@@ -31,7 +31,7 @@ class Canvas(QObject, scene.SceneCanvas):
 
     def __init__(self, background=(1,1,1,1)):
         super().__init__()
-        scene.SceneCanvas.__init__(self, keys='interactive')
+        scene.SceneCanvas.__init__(self, keys=None)
 
         self.unfreeze()
         self.grid = self.central_widget
