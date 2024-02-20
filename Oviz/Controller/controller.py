@@ -422,6 +422,7 @@ class Controller():
 
         if event == 1:
             prelabel = self.model.check_labeled_results_exist(self.curr_frame_key)
+            if 'template' not in self.model.curr_frame_data.keys(): return
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
             pointclouds[0] = self.check_pointcloud_shape(pointclouds[0])
 
@@ -434,7 +435,7 @@ class Controller():
             pointclouds[0][:, self.pointcloud_setting.color_dims] = prelabel
             dim = self.view.dock_filter_hide_box.filter_frame_dim
             if dim < pointclouds[0].shape[1]:
-                self.view.create_frame_idx_hide_widget(pointclouds[0][:, 5])
+                self.view.create_frame_idx_hide_widget(pointclouds[0][:, dim])
             else:
                 self.view.create_frame_idx_hide_widget()
 

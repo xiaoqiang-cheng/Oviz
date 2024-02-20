@@ -288,7 +288,7 @@ class View(QMainWindow):
             local_widget.setLayout(local_layout)
             color_label = self.color_map_label[c]
             self.color_id_button_dict[c] = QPushButton(color_label)
-            self.color_id_button_dict[c].setMinimumWidth(200)
+            self.color_id_button_dict[c].setMinimumWidth(150)
             self.color_id_button_dict[c].setStyleSheet("color:black")
             self.color_id_button_dict[c].setStyleSheet("background-color:%s"%val)
 
