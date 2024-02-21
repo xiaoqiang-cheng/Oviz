@@ -205,6 +205,7 @@ class RangeSlideDockWidget(QDockWidget):
         # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
         self.setObjectName(titie)
         self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setMaximumHeight(70)
 
         widget = QWidget()
         layout = QVBoxLayout()
@@ -582,18 +583,22 @@ class FilterHideDock(QDockWidget):
         super().__init__(title, parent)
         self.setObjectName(title)
         self.setWindowFlags(Qt.FramelessWindowHint)
-        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-
+        # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.butt)
+        self.setMaximumHeight(70)
         self.widget_dict = {}
         self.mainwidget_area = QScrollArea()
         self.mainwidget_area.setWidgetResizable(True)
         self.mainwidget_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
         main_widget = QWidget()
-        self.mainwidget_layout = QVBoxLayout(main_widget)
+        main_widget.setMaximumHeight(60)
+        self.mainwidget_layout = QHBoxLayout(main_widget)
 
         self.header_label = QLabel("指定帧维度")
         self.header_linetxt = QLineEdit("5")
+        self.header_linetxt.setMaximumWidth(50)
+        self.header_linetxt.setMaximumHeight(50)
+
         self.update_filter_frame_dim()
         self.header_linetxt.textChanged.connect(self.update_filter_frame_dim)
         header_widget = self.create_header()
@@ -602,7 +607,7 @@ class FilterHideDock(QDockWidget):
 
         self.mainwidget_layout.addWidget(header_widget)
         self.update_filter_checkbox()
-        self.mainwidget_layout.addStretch()
+        # self.mainwidget_layout.addStretch()
         self.mainwidget_area.setWidget(main_widget)
         self.setWidget(self.mainwidget_area)
 

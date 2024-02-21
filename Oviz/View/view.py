@@ -97,7 +97,7 @@ class View(QMainWindow):
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_control_box)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_mapping_control_box)
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_filter_hide_box)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_filter_hide_box)
 
 
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)

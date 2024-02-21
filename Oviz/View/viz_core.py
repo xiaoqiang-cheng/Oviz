@@ -146,7 +146,7 @@ class Canvas(QObject, scene.SceneCanvas):
 
     def add_lasso_line_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = scene.visuals.Line(pos=np.array([[0, 0], [0, 0]]),
-                    color = (1, .1, .1), width = 2 , antialias=True)
+                    color = (1, .1, .1), width = 1 , antialias=True)
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_image_vis(self, vis_name, parent_view):
