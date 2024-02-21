@@ -260,7 +260,10 @@ class Canvas(QObject, scene.SceneCanvas):
 
     def on_mouse_move(self, event):
         if self.ctrl_pressed:
-            self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlMove, event])
+            if event.button == 1:
+                self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlLeftPressMove, event])
+            else:
+                self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlMove, event])
             return
 
         if event.button == 1:

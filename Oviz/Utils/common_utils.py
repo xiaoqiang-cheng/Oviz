@@ -92,6 +92,7 @@ class CanvasMouseEvent(Enum):
     MiddlePress     = 7
     CtrlLeftPress   = 8
     CtrlMove        = 9
+    CtrlLeftPressMove = 10
 
 
 

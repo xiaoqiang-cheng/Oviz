@@ -423,17 +423,26 @@ class Controller():
         if event == 1:
             prelabel = self.model.check_labeled_results_exist(self.curr_frame_key)
             if 'template' not in self.model.curr_frame_data.keys(): return
+
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
             pointclouds[0] = self.check_pointcloud_shape(pointclouds[0])
 
             if prelabel is None:
-                prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32)
-                key_range = list(map(int, list(self.view.color_id_button_dict.keys())))
-                mask = (prelabel < min(key_range)) & (prelabel > max(key_range))
-                prelabel[mask] = min(key_range)
+                if max(self.pointcloud_setting.color_dims) >= pointclouds[0].shape[1]:
+                    prelabel = np.zeros(pointclouds[0].shape[0], dtype=np.int32).reshape(-1, 1)
+                    self.pointcloud_setting.color_dims = [-1]
+                else:
+                    prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32)
+                    key_range = list(map(int, list(self.view.color_id_button_dict.keys())))
+                    mask = (prelabel < min(key_range)) & (prelabel > max(key_range))
+                    prelabel[mask] = min(key_range)
+                # import ipdb
+                # ipdb.set_trace()
 
             pointclouds[0][:, self.pointcloud_setting.color_dims] = prelabel
+
             dim = self.view.dock_filter_hide_box.filter_frame_dim
+
             if dim < pointclouds[0].shape[1]:
                 self.view.create_frame_idx_hide_widget(pointclouds[0][:, dim])
             else:

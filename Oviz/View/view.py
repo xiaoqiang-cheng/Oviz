@@ -224,36 +224,24 @@ class View(QMainWindow):
     def canvas_mouse_trigger(self, infos):
         # print(event)
         mouse_type, event = infos
-        if mouse_type == CanvasMouseEvent.MiddlePress:
-            self.set_lasso_traj(np.empty((1, 2)))
-            self.lassoSelected.emit([event.trail(), mouse_type])
-            return
 
-        # self.canvas.set_visible("template_lasso_pointer", True)
+        # if mouse_type in [CanvasMouseEvent.MiddlePress,
+        #                     CanvasMouseEvent.LeftPress,
+        #                     CanvasMouseEvent.LeftRelease,
+        #                     CanvasMouseEvent.RightRelease]:
 
-        if mouse_type == CanvasMouseEvent.LeftPress:
-            self.set_lasso_traj(np.empty((1, 2)))
-            self.lassoSelected.emit([event.trail(), mouse_type])
-            return
-
-        if mouse_type == CanvasMouseEvent.LeftRelease:
-            self.lassoSelected.emit([event.trail(), mouse_type])
-            return
-
-        if mouse_type == CanvasMouseEvent.RightRelease:
-            # self.reset_all_color_button()
-            # self.canvas.set_visible("template_lasso_pointer", False)
-            self.set_lasso_traj(np.empty((1, 2)))
-            # self.canvas.unfreeze_camera("template")
-            return
+        #     self.set_lasso_traj(np.empty((1, 2)))
+        #     self.lassoSelected.emit([event.trail(), mouse_type])
+        #     return
 
         if mouse_type == CanvasMouseEvent.CtrlMove:
             self.set_lasso_pos(event.pos)
+            # self.lassoSelected.emit([event.trail(), mouse_type])
             return
 
-        if mouse_type == CanvasMouseEvent.LeftPressMove:
+        if mouse_type == CanvasMouseEvent.CtrlLeftPressMove:
             self.set_lasso_traj(event.trail())
-            # self.lassoSelected.emit([event.trail(), mouse_type])
+            self.lassoSelected.emit([event.trail(), mouse_type])
             return
 
     def set_show_grid_checkbox(self, flag):
