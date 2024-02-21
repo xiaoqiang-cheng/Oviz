@@ -17,6 +17,7 @@ from Oviz.Utils.common_utils import *
 from vispy.io import imread, load_data_file, read_mesh
 from vispy.scene.visuals import Mesh
 from vispy.visuals.filters import TextureFilter
+import vispy.util.keys as vispy_key
 
 VIEW3D_COL_MAX_NUM = 3
 
@@ -42,6 +43,7 @@ class Canvas(QObject, scene.SceneCanvas):
         self.vis_module = {}
         self.curr_col_image_view = 0
         self.curr_col_3d_view = 0
+        self.ctrl_pressed = False
 
     def create_view(self, view_type, view_name, camera = None):
         create_method = getattr(self, view_type, None)
@@ -257,11 +259,9 @@ class Canvas(QObject, scene.SceneCanvas):
             self.vis_module[key + "_" + "point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
 
     def on_mouse_move(self, event):
-        # for key in self.view_panel.keys():
-        #     mesh = self.vis_module[key + "_" + 'car_model']
-        #     transform = self.view_panel[key].camera.transform
-        #     dir = np.concatenate((self.initial_light_dir, [0]))
-        #     mesh.shading_filter.light_dir = transform.map(dir)[:3]
+        if self.ctrl_pressed:
+            self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlMove, event])
+            return
 
         if event.button == 1:
             self.MouseMotionEvent.emit([CanvasMouseEvent.LeftPressMove, event])
@@ -275,6 +275,10 @@ class Canvas(QObject, scene.SceneCanvas):
 
     def on_mouse_press(self, event):
         self.set_pointcloud_glstate()
+        if self.ctrl_pressed and event.button == 1:
+            self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlLeftPress, event])
+            return
+
         if event.button == 1:
             self.MouseMotionEvent.emit([CanvasMouseEvent.LeftPress, event])
         elif event.button == 2:
@@ -287,6 +291,18 @@ class Canvas(QObject, scene.SceneCanvas):
             self.MouseMotionEvent.emit([CanvasMouseEvent.LeftRelease, event])
         elif event.button == 2:
             self.MouseMotionEvent.emit([CanvasMouseEvent.RightRelease, event])
+
+    def on_key_press(self, event):
+        if event.key == vispy_key.CONTROL:
+            self.ctrl_pressed = True
+            self.set_visible('template_lasso_pointer', True)
+            return
+
+    def on_key_release(self, event):
+        if event.key == vispy_key.CONTROL:
+            self.ctrl_pressed = False
+            self.set_visible('template_lasso_pointer', False)
+            return
 
     def set_vis_bgcolor(self, value = (0, 0, 0, 1)):
         self.grid.bgcolor = value

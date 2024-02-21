@@ -154,7 +154,7 @@ class Controller():
             selected_mask = self.pointcloud_legacy_mask.copy()
             selected_mask[np.where(self.pointcloud_legacy_mask == True)] &= local_selected_mask
 
-            self.last_selected_mask = selected_mask
+            self.last_selected_last_selected_labelmask = selected_mask
             self.last_selected_label = pointclouds[0][selected_mask, self.pointcloud_setting.color_dims]
             pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = self.selected_button_id
 
@@ -190,10 +190,10 @@ class Controller():
         self.update_buffer_vis([POINTCLOUD])
 
     def trigger_labeled_button(self, button_id):
-        self.view.reset_all_color_button()
-        self.view.color_id_button_dict[button_id].setEnabled(False)
-        self.view.canvas.freeze_camera("template")
-        self.view.label_mode_enable = True
+        # self.view.reset_all_color_button()
+        # self.view.color_id_button_dict[button_id].setEnabled(False)
+        # self.view.canvas.freeze_camera("template")
+        # self.view.label_mode_enable = True
         self.selected_button_id = int(button_id)
 
     def show_uos_3d_trajectory(self):

@@ -229,10 +229,7 @@ class View(QMainWindow):
             self.lassoSelected.emit([event.trail(), mouse_type])
             return
 
-        if not self.label_mode_enable:
-            return
-
-        self.canvas.set_visible("template_lasso_pointer", True)
+        # self.canvas.set_visible("template_lasso_pointer", True)
 
         if mouse_type == CanvasMouseEvent.LeftPress:
             self.set_lasso_traj(np.empty((1, 2)))
@@ -244,13 +241,13 @@ class View(QMainWindow):
             return
 
         if mouse_type == CanvasMouseEvent.RightRelease:
-            self.reset_all_color_button()
-            self.canvas.set_visible("template_lasso_pointer", False)
+            # self.reset_all_color_button()
+            # self.canvas.set_visible("template_lasso_pointer", False)
             self.set_lasso_traj(np.empty((1, 2)))
-            self.canvas.unfreeze_camera("template")
+            # self.canvas.unfreeze_camera("template")
             return
 
-        if mouse_type == CanvasMouseEvent.NormalMove:
+        if mouse_type == CanvasMouseEvent.CtrlMove:
             self.set_lasso_pos(event.pos)
             return
 

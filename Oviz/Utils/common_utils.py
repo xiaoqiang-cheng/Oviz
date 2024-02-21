@@ -90,6 +90,9 @@ class CanvasMouseEvent(Enum):
     RightPress      = 5
     RightRelease    = 6
     MiddlePress     = 7
+    CtrlLeftPress   = 8
+    CtrlMove        = 9
+
 
 
 def points_in_polygon(polygon, pts):
