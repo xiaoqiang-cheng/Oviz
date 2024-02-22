@@ -140,11 +140,9 @@ class Controller():
 
     def update_lasso_selected_area(self, infos):
         self.lasso_mouse_type = infos[1]
-        if self.lasso_mouse_type == CanvasMouseEvent.LeftRelease:
+        if self.lasso_mouse_type == CanvasMouseEvent.CtrlRelease:
             self.lasso_polygon_vertices = infos[0]
             if (self.lasso_polygon_vertices is None) or (self.lasso_polygon_vertices.shape[0] <= 1): return
-
-            self.lasso_select_enabled = True
 
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
 
@@ -154,22 +152,25 @@ class Controller():
             selected_mask = self.pointcloud_legacy_mask.copy()
             selected_mask[np.where(self.pointcloud_legacy_mask == True)] &= local_selected_mask
 
-            self.last_selected_last_selected_labelmask = selected_mask
-            self.last_selected_label = pointclouds[0][selected_mask, self.pointcloud_setting.color_dims]
-            pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = self.selected_button_id
+            if self.last_selected_mask is None:
+                self.last_selected_mask = selected_mask
+                self.last_selected_label = pointclouds[0][:, self.pointcloud_setting.color_dims]
+            else:
+                self.last_selected_mask |= selected_mask
+
+            pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = -1
 
             self.update_buffer_vis(field=[POINTCLOUD])
-            self.model.dump_labeled_bin_results(self.curr_frame_key,
-                    pointclouds[0][:, self.pointcloud_setting.color_dims])
             return
 
         if self.lasso_mouse_type == CanvasMouseEvent.MiddlePress:
-            if (self.last_selected_mask is not None) and (self.last_selected_label is not None):
+            if self.last_selected_label is not None:
                 pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
-                pointclouds[0][self.last_selected_mask, self.pointcloud_setting.color_dims] = self.last_selected_label
+                pointclouds[0][:, self.pointcloud_setting.color_dims] = self.last_selected_label
+                self.last_selected_mask = None
+                self.update_buffer_vis(field=[POINTCLOUD])
                 self.model.dump_labeled_bin_results(self.curr_frame_key,
                         pointclouds[0][:, self.pointcloud_setting.color_dims])
-                self.update_buffer_vis(field=[POINTCLOUD])
             return
 
     def filter_hide_frame(self, valid_frame = [], dim = None):
@@ -190,11 +191,15 @@ class Controller():
         self.update_buffer_vis([POINTCLOUD])
 
     def trigger_labeled_button(self, button_id):
-        # self.view.reset_all_color_button()
-        # self.view.color_id_button_dict[button_id].setEnabled(False)
-        # self.view.canvas.freeze_camera("template")
-        # self.view.label_mode_enable = True
+        if self.last_selected_mask is None: return
+
         self.selected_button_id = int(button_id)
+        pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
+        pointclouds[0][self.last_selected_mask, self.pointcloud_setting.color_dims] = self.selected_button_id
+        self.last_selected_mask = None
+        self.update_buffer_vis()
+        self.model.dump_labeled_bin_results(self.curr_frame_key,
+                pointclouds[0][:, self.pointcloud_setting.color_dims])
 
     def show_uos_3d_trajectory(self):
         cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())
@@ -438,7 +443,8 @@ class Controller():
                     prelabel[mask] = min(key_range)
                 # import ipdb
                 # ipdb.set_trace()
-
+            self.last_selected_mask = None
+            self.last_selected_label = None
             pointclouds[0][:, self.pointcloud_setting.color_dims] = prelabel
 
             dim = self.view.dock_filter_hide_box.filter_frame_dim

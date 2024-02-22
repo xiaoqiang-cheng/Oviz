@@ -61,13 +61,17 @@ class View(QMainWindow):
 
     def struct_color_map(self):
         self.color_map = {
+                # "-2" : self.color_map_cfg['background'],
+                # "-1" : self.color_map_cfg['default']
             }
         self.color_map_label = {
+            # "-2": "background",
+            # "-1": "default"
         }
+
         for index, setting in enumerate(self.color_map_cfg['objects']):
             self.color_map[str(index)] = setting['color']
             self.color_map_label[str(index)] = setting['label']
-
 
 
     def create_central_widget(self):
@@ -225,24 +229,38 @@ class View(QMainWindow):
         # print(event)
         mouse_type, event = infos
 
-        # if mouse_type in [CanvasMouseEvent.MiddlePress,
-        #                     CanvasMouseEvent.LeftPress,
-        #                     CanvasMouseEvent.LeftRelease,
-        #                     CanvasMouseEvent.RightRelease]:
-
-        #     self.set_lasso_traj(np.empty((1, 2)))
-        #     self.lassoSelected.emit([event.trail(), mouse_type])
-        #     return
-
         if mouse_type == CanvasMouseEvent.CtrlMove:
-            self.set_lasso_pos(event.pos)
-            # self.lassoSelected.emit([event.trail(), mouse_type])
+            if len(self.canvas.event_pos_traj) == 0:
+                self.set_lasso_pos(event.pos)
+            else:
+                self.set_lasso_pos(event.pos)
+                show_traj = np.array(self.canvas.event_pos_traj + [event.pos])
+                self.set_lasso_traj(show_traj)
             return
 
         if mouse_type == CanvasMouseEvent.CtrlLeftPressMove:
-            self.set_lasso_traj(event.trail())
-            self.lassoSelected.emit([event.trail(), mouse_type])
+            self.set_lasso_pos(event.pos)
+            self.set_lasso_traj(self.canvas.event_pos_traj)
+            # self.lassoSelected.emit([event.trail(), mouse_type])
             return
+
+        if mouse_type == CanvasMouseEvent.CtrlRelease:
+            if len(self.canvas.event_pos_traj) > 0:
+                traj = np.array(self.canvas.event_pos_traj + [self.canvas.event_pos_traj[0]])
+                self.set_lasso_traj(traj)
+                self.lassoSelected.emit([traj, mouse_type])
+                return
+
+        if mouse_type in [CanvasMouseEvent.LeftPress,
+                    CanvasMouseEvent.RightPress,
+                    CanvasMouseEvent.RightPressMove]:
+            self.set_lasso_traj(np.empty((1, 2)))
+            return
+
+        if mouse_type in [CanvasMouseEvent.MiddlePress]:
+            self.lassoSelected.emit([None, mouse_type])
+            return None
+
 
     def set_show_grid_checkbox(self, flag):
         self.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].setChecked(flag)
@@ -680,6 +698,7 @@ class View(QMainWindow):
                     rgb_color_map[key] = color_str_to_rgb(value)
                     color_dim = len(rgb_color_map[key])
                 ret_color = np.zeros((len(id_list), color_dim))
+                ret_color[:, 0] = 1.0
                 for key, value in rgb_color_map.items():
                     # TODO bug if key is not int str
                     mask = id_list == int(key)

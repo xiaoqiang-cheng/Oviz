@@ -44,6 +44,7 @@ class Canvas(QObject, scene.SceneCanvas):
         self.curr_col_image_view = 0
         self.curr_col_3d_view = 0
         self.ctrl_pressed = False
+        self.event_pos_traj = []
 
     def create_view(self, view_type, view_name, camera = None):
         create_method = getattr(self, view_type, None)
@@ -249,6 +250,7 @@ class Canvas(QObject, scene.SceneCanvas):
 
     def set_lasso_traj(self, vis_name, polygon_vertices, mode = 0):
         if mode == 0:
+            polygon_vertices = np.array(polygon_vertices)
             self.vis_module[vis_name].set_data(pos = polygon_vertices)
         else:
             length = len(polygon_vertices)
@@ -261,6 +263,7 @@ class Canvas(QObject, scene.SceneCanvas):
     def on_mouse_move(self, event):
         if self.ctrl_pressed:
             if event.button == 1:
+                self.event_pos_traj.append(event.pos)
                 self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlLeftPressMove, event])
             else:
                 self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlMove, event])
@@ -274,11 +277,13 @@ class Canvas(QObject, scene.SceneCanvas):
             self.MouseMotionEvent.emit([CanvasMouseEvent.NormalMove, event])
 
     def on_mouse_wheel(self, event):
+        self.MouseMotionEvent.emit([CanvasMouseEvent.RightPressMove, event])
         self.set_pointcloud_glstate()
 
     def on_mouse_press(self, event):
         self.set_pointcloud_glstate()
         if self.ctrl_pressed and event.button == 1:
+            self.event_pos_traj.append(event.pos)
             self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlLeftPress, event])
             return
 
@@ -298,12 +303,14 @@ class Canvas(QObject, scene.SceneCanvas):
     def on_key_press(self, event):
         if event.key == vispy_key.CONTROL:
             self.ctrl_pressed = True
+            self.event_pos_traj = []
             self.set_visible('template_lasso_pointer', True)
             return
 
     def on_key_release(self, event):
         if event.key == vispy_key.CONTROL:
             self.ctrl_pressed = False
+            self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlRelease, event])
             self.set_visible('template_lasso_pointer', False)
             return
 
