@@ -307,6 +307,12 @@ class Canvas(QObject, scene.SceneCanvas):
             self.set_visible('template_lasso_pointer', True)
             return
 
+        if self.ctrl_pressed == True and event.key == vispy_key.Key('z'):
+            self.MouseMotionEvent.emit([CanvasMouseEvent.MiddlePress, event])
+            return
+
+
+
     def on_key_release(self, event):
         if event.key == vispy_key.CONTROL:
             self.ctrl_pressed = False
