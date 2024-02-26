@@ -430,6 +430,8 @@ class Controller():
             if 'template' not in self.model.curr_frame_data.keys(): return
 
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
+
+            if len(pointclouds) == 0: return
             pointclouds[0] = self.check_pointcloud_shape(pointclouds[0])
 
             if prelabel is None:
@@ -441,8 +443,7 @@ class Controller():
                     key_range = list(map(int, list(self.view.color_id_button_dict.keys())))
                     mask = (prelabel < min(key_range)) & (prelabel > max(key_range))
                     prelabel[mask] = min(key_range)
-                # import ipdb
-                # ipdb.set_trace()
+
             self.last_selected_mask = None
             self.last_selected_label = None
             pointclouds[0][:, self.pointcloud_setting.color_dims] = prelabel
