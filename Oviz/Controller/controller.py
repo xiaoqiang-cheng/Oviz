@@ -16,6 +16,7 @@ from functools import partial
 class Controller():
     def __init__(self) -> None:
         self.app = QApplication([])
+        self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
         self.view = View()
         self.model = Model()
 
@@ -49,7 +50,6 @@ class Controller():
         self.last_selected_label = None
         # self.lasso_select_enabled = False
 
-        self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
         self.revert_user_config()
         send_log_msg(NORMAL, "Oviz 系統开始运行！")
 

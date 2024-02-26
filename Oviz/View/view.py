@@ -69,9 +69,14 @@ class View(QMainWindow):
             # "-1": "default"
         }
 
+        self.color_show_label = {
+
+        }
+
         for index, setting in enumerate(self.color_map_cfg['objects']):
             self.color_map[str(index)] = setting['color']
             self.color_map_label[str(index)] = setting['label']
+            self.color_show_label[str(index)] = setting['show_label']
 
 
     def create_central_widget(self):
@@ -289,11 +294,17 @@ class View(QMainWindow):
             local_widget = QWidget()
             local_layout = QHBoxLayout()
             local_widget.setLayout(local_layout)
-            color_label = self.color_map_label[c]
+            # color_label = self.color_map_label[c]
+            color_label = self.color_show_label[c]
             self.color_id_button_dict[c] = QPushButton(color_label)
             self.color_id_button_dict[c].setMinimumWidth(150)
-            self.color_id_button_dict[c].setStyleSheet("color:black")
-            self.color_id_button_dict[c].setStyleSheet("background-color:%s"%val)
+            # self.color_id_button_dict[c].setStyleSheet("color: black")
+            # self.color_id_button_dict[c].setStyleSheet("background-color:%s"%val)
+
+            self.color_id_button_dict[c].setStyleSheet(
+                '''QPushButton{ background: %s; border-radius:5px; font-size:blod 15px;  color: rgb(0,0,0);}'''%val
+            )
+
 
             self.color_pts_num_dict[c] = QLabel("0")
             self.color_checkbox_dict[c] = QCheckBox(c)
