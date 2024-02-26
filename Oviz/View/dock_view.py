@@ -364,7 +364,7 @@ class CollapsibleBox(QWidget):
         self.toggle_button.setArrowType(Qt.RightArrow)
         self.toggle_button.pressed.connect(self.on_pressed)
         self.toggle_button.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.toggle_button.customContextMenuRequested.connect(self.right_clicked)
+        # self.toggle_button.customContextMenuRequested.connect(self.right_clicked)
 
         self.toggle_animation = QParallelAnimationGroup(self)
         self.tab_widget = QTabWidget()

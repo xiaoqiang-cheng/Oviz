@@ -53,6 +53,12 @@
                         }
                     }
                 },
+                "button_export_curr_pcd_label":{
+                    "type" : "QPushButton",
+                    "params":{
+                        "text": "导出当前PCD label"
+                    }
+                },
                 "button_export_pcd_label":{
                     "type" : "QPushButton",
                     "params":{

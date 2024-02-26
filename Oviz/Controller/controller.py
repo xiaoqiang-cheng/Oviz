@@ -16,7 +16,6 @@ from functools import partial
 class Controller():
     def __init__(self) -> None:
         self.app = QApplication([])
-        self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
         self.view = View()
         self.model = Model()
 
@@ -49,6 +48,7 @@ class Controller():
         self.last_selected_mask = None
         self.last_selected_label = None
         # self.lasso_select_enabled = False
+        self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
 
         self.revert_user_config()
         send_log_msg(NORMAL, "Oviz 系統开始运行！")
@@ -57,6 +57,8 @@ class Controller():
         self.view.dock_global_control_box_layout_dict['car_model_setting']['checkbox_show_car'].stateChanged.connect(self.show_car_mode)
         self.view.dock_global_control_box_layout_dict['global_setting']['checkbox_show_grid'].stateChanged.connect(self.show_global_grid)
         self.view.dock_global_control_box_layout_dict['global_setting']['button_export_pcd_label'].clicked.connect(self.export_pcd_label)
+        self.view.dock_global_control_box_layout_dict['global_setting']['button_export_curr_pcd_label'].clicked.connect(self.export_curr_pcd_label)
+
 
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_record_screen'].stateChanged.connect(self.change_record_mode)
         self.view.dock_global_control_box_layout_dict['record_screen_setting']['checkbox_mouse_record_screen'].stateChanged.connect(self.change_mouse_record_mode)
@@ -121,6 +123,10 @@ class Controller():
 
         self.view.lassoSelected.connect(self.update_lasso_selected_area)
         self.view.dock_filter_hide_box.filterHideChange.connect(self.filter_hide_frame)
+
+    def export_curr_pcd_label(self):
+        self.model.export_curr_labeled_pcd_results(self.curr_frame_key, self.pointcloud_setting.xyz_dims,
+                    self.pointcloud_setting.points_dim)
 
     def export_pcd_label(self):
         self.model.export_labeled_pcd_results(self.pointcloud_setting.xyz_dims,

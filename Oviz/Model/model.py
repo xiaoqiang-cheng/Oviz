@@ -39,6 +39,32 @@ class Model(QObject):
             labeled_fpath = os.path.join(self.sementic_labeled_results_path, key + ".bin")
             bin_data.astype(np.int8).tofile(labeled_fpath)
 
+    def export_curr_labeled_pcd_results(self, key, xyz_dims, pts_dim):
+        if self.pc_path is not None:
+            sg.one_line_progress_meter(key, 0, 1, orientation='h')
+
+            self.sementic_labeled_pcd_results_path = os.path.join(self.pc_path, "internal", "pcds")
+            if_not_exist_create(self.sementic_labeled_pcd_results_path)
+
+            data_path = self.database['template'][POINTCLOUD][0][key]
+            pc_label = self.check_labeled_results_exist(key)
+            if pc_label is None: return
+            pc_data = self.smart_read_pointcloud(data_path)
+            if len(pc_data.shape) == 1:
+                pc_data = pc_data.reshape(-1, pts_dim)
+            object_label = np.ones((pc_data.shape[0], 1), dtype=np.float32) * -1
+            exp_pcd_buffer = np.concatenate([pc_data[:, xyz_dims], pc_label, object_label], axis = 1)
+            exp_pcd_path = os.path.join(self.sementic_labeled_pcd_results_path, key + ".pcd")
+            write_pcd(exp_pcd_path, exp_pcd_buffer,
+                filed = [('x', np.float32) ,
+                        ('y', np.float32),
+                        ('z', np.float32),
+                        ('label', np.int32),
+                        ('object', np.int32)])
+            sg.one_line_progress_meter(key, 1, 1, orientation='h')
+            os.system("xdg-open %s"%self.sementic_labeled_pcd_results_path)
+
+
     def export_labeled_pcd_results(self, xyz_dims, pts_dim):
         if self.pc_path is not None:
             self.sementic_labeled_pcd_results_path = os.path.join(self.pc_path, "internal", "pcds")
