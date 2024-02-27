@@ -44,8 +44,10 @@ class Canvas(QObject, scene.SceneCanvas):
         self.curr_col_image_view = 0
         self.curr_col_3d_view = 0
         self.ctrl_pressed = False
+        self.shift_key_enable = False
         self.event_pos_traj = []
         self.event_mark_mode = True
+        self.focus_points_pos = self.size
 
     def create_view(self, view_type, view_name, camera = None):
         create_method = getattr(self, view_type, None)
@@ -238,6 +240,16 @@ class Canvas(QObject, scene.SceneCanvas):
         self.initial_light_dir = self.view_panel[parent_view].camera.transform.imap((0, 0, 1) )[:3]
         self.set_visible(vis_name, False)
 
+    def get_canvas_latest_pos(self,vis_name, canvas_pos, points):
+
+        points2 = self.vis_module['template_point_cloud'].get_transform('visual', 'canvas').map(points)
+        points2 /= points2[:, 3:]
+        canvas_pos = canvas_pos.reshape(1, -1)
+        diff = np.absolute(canvas_pos - points2[:, :2]).sum(axis=1)
+
+        index = np.argmin(diff)
+        return points[index]
+
     def lasso_select(self,vis_name, polygon_vertices, points, ):
         selected_mask = np.zeros(points.shape[0], dtype=bool)
         if polygon_vertices is not None:
@@ -282,6 +294,7 @@ class Canvas(QObject, scene.SceneCanvas):
         else:
             self.MouseMotionEvent.emit([CanvasMouseEvent.NormalMove, event])
 
+
     def on_mouse_wheel(self, event):
         self.MouseMotionEvent.emit([CanvasMouseEvent.RightPressMove, event])
         self.set_pointcloud_glstate()
@@ -299,7 +312,9 @@ class Canvas(QObject, scene.SceneCanvas):
             return
 
         if event.button == 1:
+            self.focus_points_pos = event.pos
             self.MouseMotionEvent.emit([CanvasMouseEvent.LeftPress, event])
+
         elif event.button == 2:
             self.MouseMotionEvent.emit([CanvasMouseEvent.RightPress, event])
         elif event.button == 3:
@@ -322,6 +337,37 @@ class Canvas(QObject, scene.SceneCanvas):
             self.MouseMotionEvent.emit([CanvasMouseEvent.MiddlePress, event])
             return
 
+        if event.key == vispy_key.Key('v'):
+            self.MouseMotionEvent.emit([CanvasMouseEvent.VisionPress, event])
+            # max_x, max_y = self.size
+            # # offset_x = max_x / 2. - self.focus_points_pos[0]
+            # # offset_y = max_y / 2. - self.focus_points_pos[1]
+            # # self.view_panel['template'].camera._scale_factor = 25
+            # # self.view_panel['template'].camera._elevation = 90.0
+
+            # # self.view_panel['template'].camera._roll = 0.0
+            # # self.view_panel['template'].camera._azimuth = 0.0
+
+            # canvas_pos = np.array([self.focus_points_pos[0], self.focus_points_pos[1], 1., 1.])
+            # points = self.vis_module['template_point_cloud'].get_transform('canvas', 'visual').map(canvas_pos)
+            # points /= points[3]
+            # # points2[2] = 0.
+            # # points2 /= points2[3:]
+            # print(self.view_panel['template'].camera.center, self.focus_points_pos,  points)
+            # # import ipdb
+            # # ipdb.set_trace()
+            # points[2] = 0.0
+            # self.view_panel['template'].camera.center = points[:3]
+            # # import ipdb
+            # # ipdb.set_trace()
+
+            # # trans = np.array([[offset_x , offset_y,   0. ,   0. ]], dtype=np.float32)
+            # # print(trans)
+            # # self.view_panel['template'].camera.transform.translate((offset_x , offset_y, 0))
+
+            # self.view_panel['template'].camera.view_changed()
+            return
+
 
 
     def on_key_release(self, event):
@@ -330,6 +376,14 @@ class Canvas(QObject, scene.SceneCanvas):
             self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlRelease, event])
             self.set_visible('template_lasso_pointer', False)
             return
+
+    def set_camera_center(self, pos):
+        self.view_panel['template'].camera.center = pos[:3]
+        self.view_panel['template'].camera._scale_factor = 25
+        self.view_panel['template'].camera._elevation = 90.0
+        self.view_panel['template'].camera._roll = 0.0
+        self.view_panel['template'].camera._azimuth = 0.0
+        self.view_panel['template'].camera.view_changed()
 
     def set_vis_bgcolor(self, value = (0, 0, 0, 1)):
         self.grid.bgcolor = value

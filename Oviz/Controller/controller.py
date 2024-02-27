@@ -171,6 +171,13 @@ class Controller():
             self.update_buffer_vis(field=[POINTCLOUD])
             return
 
+        if self.lasso_mouse_type == CanvasMouseEvent.VisionPress:
+            focus_pos = self.view.get_focus_pos()
+            pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
+            pos = self.view.get_canvas_latest_pos(focus_pos, pointclouds[0][:, self.pointcloud_setting.xyz_dims])
+            self.view.set_focus_camera(pos)
+            return
+
         if self.lasso_mouse_type == CanvasMouseEvent.MiddlePress:
             if self.last_selected_label is not None:
                 pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]

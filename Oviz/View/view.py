@@ -257,6 +257,12 @@ class View(QMainWindow):
                 self.lassoSelected.emit([traj, mouse_type, self.canvas.event_mark_mode])
                 return
 
+        if mouse_type == CanvasMouseEvent.VisionPress:
+            self.set_lasso_traj(np.empty((1, 2)))
+            self.lassoSelected.emit([None, mouse_type])
+            return
+
+
         if mouse_type in [CanvasMouseEvent.LeftPress,
                     CanvasMouseEvent.RightPress,
                     CanvasMouseEvent.RightPressMove]:
@@ -266,6 +272,12 @@ class View(QMainWindow):
         if mouse_type in [CanvasMouseEvent.MiddlePress]:
             self.lassoSelected.emit([None, mouse_type])
             return None
+
+    def get_focus_pos(self):
+        return self.canvas.focus_points_pos
+
+    def set_focus_camera(self, pos):
+        self.canvas.set_camera_center(pos)
 
 
     def set_show_grid_checkbox(self, flag):
@@ -812,6 +824,9 @@ class View(QMainWindow):
 
     def set_lasso_traj(self, traj, group = "template"):
         self.canvas.set_lasso_traj(group + "_" + "lasso_line", traj)
+
+    def get_canvas_latest_pos(self, canvas_pos, points, group = "template"):
+        return self.canvas.get_canvas_latest_pos(group + "_" + "lasso_pointer", canvas_pos, points)
 
     def get_lasso_select(self, polygon_vertices, points, group = "template"):
         return self.canvas.lasso_select(group + "_" + "lasso_pointer", polygon_vertices, points)

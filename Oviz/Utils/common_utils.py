@@ -97,6 +97,7 @@ class CanvasMouseEvent(Enum):
     CtrlRightPress          = 12
     CtrlRightRelease        = 13
     CtrlRightPressMove      = 14
+    VisionPress             = 15
 
 
 def points_in_polygon(polygon, pts):
