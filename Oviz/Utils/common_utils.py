@@ -82,19 +82,21 @@ comment_re = re.compile(
 
 
 class CanvasMouseEvent(Enum):
-    NormalMove      = 0
-    LeftPressMove   = 1
-    RightPressMove  = 2
-    LeftPress       = 3
-    LeftRelease     = 4
-    RightPress      = 5
-    RightRelease    = 6
-    MiddlePress     = 7
-    CtrlLeftPress   = 8
-    CtrlMove        = 9
-    CtrlLeftPressMove = 10
-    CtrlRelease     = 11
-
+    NormalMove              = 0
+    LeftPressMove           = 1
+    RightPressMove          = 2
+    LeftPress               = 3
+    LeftRelease             = 4
+    RightPress              = 5
+    RightRelease            = 6
+    MiddlePress             = 7
+    CtrlLeftPress           = 8
+    CtrlMove                = 9
+    CtrlLeftPressMove       = 10
+    CtrlRelease             = 11
+    CtrlRightPress          = 12
+    CtrlRightRelease        = 13
+    CtrlRightPressMove      = 14
 
 
 def points_in_polygon(polygon, pts):

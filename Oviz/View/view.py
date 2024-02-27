@@ -243,7 +243,8 @@ class View(QMainWindow):
                 self.set_lasso_traj(show_traj)
             return
 
-        if mouse_type == CanvasMouseEvent.CtrlLeftPressMove:
+        if mouse_type in [CanvasMouseEvent.CtrlLeftPressMove,
+                        CanvasMouseEvent.CtrlRightPressMove]:
             self.set_lasso_pos(event.pos)
             self.set_lasso_traj(self.canvas.event_pos_traj)
             # self.lassoSelected.emit([event.trail(), mouse_type])
@@ -253,7 +254,7 @@ class View(QMainWindow):
             if len(self.canvas.event_pos_traj) > 0:
                 traj = np.array(self.canvas.event_pos_traj + [self.canvas.event_pos_traj[0]])
                 self.set_lasso_traj(traj)
-                self.lassoSelected.emit([traj, mouse_type])
+                self.lassoSelected.emit([traj, mouse_type, self.canvas.event_mark_mode])
                 return
 
         if mouse_type in [CanvasMouseEvent.LeftPress,

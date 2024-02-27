@@ -81,7 +81,6 @@ class Controller():
             sub_module['linetxt_xyz_dim'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_wlh_dim'].textChanged.connect(self.update_pointsetting_dims)
             sub_module['linetxt_color_dim'].textChanged.connect(self.update_pointsetting_dims)
-            # sub_module['show_voxel_mode'].stateChanged.connect(self.update_pointsetting_dims)
 
 
     def element_control_box_connect(self):
@@ -148,23 +147,26 @@ class Controller():
         self.lasso_mouse_type = infos[1]
         if self.lasso_mouse_type == CanvasMouseEvent.CtrlRelease:
             self.lasso_polygon_vertices = infos[0]
+            mode = infos[2]
             if (self.lasso_polygon_vertices is None) or (self.lasso_polygon_vertices.shape[0] <= 1): return
-
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
 
             local_selected_mask = self.view.get_lasso_select(self.lasso_polygon_vertices,
                                 pointclouds[0][self.pointcloud_legacy_mask][:, self.pointcloud_setting.xyz_dims])
-
             selected_mask = self.pointcloud_legacy_mask.copy()
             selected_mask[np.where(self.pointcloud_legacy_mask == True)] &= local_selected_mask
 
-            if self.last_selected_mask is None:
-                self.last_selected_mask = selected_mask
-                self.last_selected_label = pointclouds[0][:, self.pointcloud_setting.color_dims]
+            if mode:
+                if self.last_selected_mask is None:
+                    self.last_selected_mask = selected_mask
+                    self.last_selected_label = pointclouds[0][:, self.pointcloud_setting.color_dims]
+                else:
+                    self.last_selected_mask |= selected_mask
+                pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = -1
             else:
-                self.last_selected_mask |= selected_mask
-
-            pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = -1
+                # revert_label = self.last_selected_label
+                if self.last_selected_label is not None:
+                    pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = self.last_selected_label[selected_mask].reshape(-1)
 
             self.update_buffer_vis(field=[POINTCLOUD])
             return

@@ -45,6 +45,7 @@ class Canvas(QObject, scene.SceneCanvas):
         self.curr_col_3d_view = 0
         self.ctrl_pressed = False
         self.event_pos_traj = []
+        self.event_mark_mode = True
 
     def create_view(self, view_type, view_name, camera = None):
         create_method = getattr(self, view_type, None)
@@ -264,7 +265,12 @@ class Canvas(QObject, scene.SceneCanvas):
         if self.ctrl_pressed:
             if event.button == 1:
                 self.event_pos_traj.append(event.pos)
+                self.event_mark_mode = True
                 self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlLeftPressMove, event])
+            elif event.button == 2:
+                self.event_mark_mode = False
+                self.event_pos_traj.append(event.pos)
+                self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlRightPressMove, event])
             else:
                 self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlMove, event])
             return
@@ -285,6 +291,11 @@ class Canvas(QObject, scene.SceneCanvas):
         if self.ctrl_pressed and event.button == 1:
             self.event_pos_traj.append(event.pos)
             self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlLeftPress, event])
+            return
+
+        if self.ctrl_pressed and event.button == 2:
+            self.event_pos_traj.append(event.pos)
+            self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlRightPress, event])
             return
 
         if event.button == 1:
