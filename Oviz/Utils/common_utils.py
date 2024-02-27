@@ -40,7 +40,7 @@ np.seterr(divide='ignore',invalid='ignore')
 
 GUICOREVERSION = __GUICOREVERSION__
 OVIZ_CONFIG_DIR = os.path.join(os.path.dirname(Oviz.__file__), "Config")
-OVIZ_HOME_DIR = os.path.join(os.path.expanduser("~"), ".oviz")
+OVIZ_HOME_DIR = os.path.join(os.path.expanduser("~"), ".useg")
 USER_CONFIG_DIR = os.path.join(OVIZ_HOME_DIR, "user")
 DUMP_HISTORY_DIR = os.path.join(OVIZ_HOME_DIR, "history")
 # MAGIC_PIPELINE_DIR = "MagicPipe"
