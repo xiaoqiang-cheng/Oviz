@@ -115,12 +115,16 @@ class Controller():
             # val.stateChanged.connect(partial(self.update_buffer_vis, [POINTCLOUD]))
             val.stateChanged.connect(self.filtr_hide_color)
 
+        for key, val in self.view.reverse_color_checkbox_dict.items():
+            # val.stateChanged.connect(partial(self.update_buffer_vis, [POINTCLOUD]))
+            val.stateChanged.connect(self.filtr_hide_color)
 
 
         for key, val in self.view.color_id_button_dict.items():
             val.clicked.connect(partial(self.trigger_labeled_button, key))
 
         self.view.lassoSelected.connect(self.update_lasso_selected_area)
+        self.view.updateFilterHide.connect(self.filtr_hide_color)
         self.view.dock_filter_hide_box.filterHideChange.connect(self.filter_hide_frame)
 
     def export_curr_pcd_label(self):
@@ -136,6 +140,12 @@ class Controller():
         pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
         prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32).reshape(-1)
         self.pointcloud_hide_color_mask = np.zeros(pointclouds[0].shape[0], dtype=bool)
+
+        if len(self.view.get_reverse_color_checkbox_state()) != 0:
+            for id, checkbutton in self.view.reverse_color_checkbox_dict.items():
+                if not checkbutton.isChecked():
+                    self.pointcloud_hide_color_mask = (prelabel == int(id)) | self.pointcloud_hide_color_mask
+
         for id, checkbutton in self.view.color_checkbox_dict.items():
             if not checkbutton.isChecked():
                 self.pointcloud_hide_color_mask = (prelabel == int(id)) | self.pointcloud_hide_color_mask

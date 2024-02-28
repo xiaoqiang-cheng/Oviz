@@ -400,7 +400,15 @@ class Canvas(QObject, scene.SceneCanvas):
         else:
             points = point_clouds
             p_color = point_color
-        # face_color = edge_color = Color(point_color)
+
+        if len(points) == 0:
+            self.set_visible(vis_name, False)
+            p_color = 'black'
+            # print(self.vis_module[vis_name].visible )
+            # return
+        else:
+            self.set_visible(vis_name, True)
+
         self.vis_module[vis_name].set_data(np.array(points),
                                             edge_width=0,
                                             edge_width_rel = None,

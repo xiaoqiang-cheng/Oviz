@@ -18,6 +18,7 @@ class View(QMainWindow):
     removeImageDock = Signal(int)
     addImageDock = Signal(int)
     lassoSelected = Signal(list)
+    updateFilterHide = Signal()
 
     def __init__(self) -> None:
         super().__init__()
@@ -297,12 +298,71 @@ class View(QMainWindow):
         else:
             self.dock_filter_hide_box.update_filter_checkbox([])
 
+    def get_reverse_color_checkbox_state(self):
+        ret = []
+        for id, checkbutton in self.reverse_color_checkbox_dict.items():
+            if checkbutton.isChecked():
+                ret.append(id)
+        return ret
+
+    def toggle_all_color_checkbox_changed(self, state):
+        for key, val in self.color_checkbox_dict.items():
+            val.blockSignals(True)
+
+            if state > 0:
+                val.setChecked(True)
+            else:
+                val.setChecked(False)
+
+            val.blockSignals(False)
+        self.updateFilterHide.emit()
+
+    def toggle_all_reverse_color_checkbox_changed(self, state):
+        for key, val in self.reverse_color_checkbox_dict.items():
+            val.blockSignals(True)
+
+            if state > 0:
+                val.setChecked(True)
+            else:
+                val.setChecked(False)
+
+            val.blockSignals(False)
+        self.updateFilterHide.emit()
+
+
+
     def create_color_map_widget(self):
         color_list_widget = QWidget()
         color_id_map_list = QVBoxLayout()
         self.color_id_button_dict = {}
         self.color_checkbox_dict = {}
+        self.reverse_color_checkbox_dict = {}
         self.color_pts_num_dict = {}
+
+
+        local_widget = QWidget()
+        local_layout = QHBoxLayout()
+        local_widget.setLayout(local_layout)
+        label1 = QLabel("点数")
+        label2 = QLabel("标签")
+        label2.setMinimumWidth(100)
+
+        self.toggle_all_color_checkbox = QCheckBox("选看")
+        self.toggle_all_color_checkbox.setChecked(True)
+        self.toggle_all_color_checkbox.stateChanged.connect(self.toggle_all_color_checkbox_changed)
+
+        self.toggle_all_reverse_color_checkbox = QCheckBox("只看")
+        self.toggle_all_reverse_color_checkbox.stateChanged.connect(self.toggle_all_reverse_color_checkbox_changed)
+
+        local_layout.addWidget(label1)
+        local_layout.addWidget(label2)
+
+        local_layout.addWidget(self.toggle_all_color_checkbox)
+        local_layout.addWidget(self.toggle_all_reverse_color_checkbox)
+        local_layout.setSpacing(5)
+        local_layout.setContentsMargins(0, 0, 0, 0)
+        color_id_map_list.addWidget(local_widget)
+
         for c, val in self.color_map.items():
             local_widget = QWidget()
             local_layout = QHBoxLayout()
@@ -310,7 +370,7 @@ class View(QMainWindow):
             # color_label = self.color_map_label[c]
             color_label = self.color_show_label[c]
             self.color_id_button_dict[c] = QPushButton(color_label)
-            self.color_id_button_dict[c].setMinimumWidth(150)
+            self.color_id_button_dict[c].setMinimumWidth(100)
             # self.color_id_button_dict[c].setStyleSheet("color: black")
             # self.color_id_button_dict[c].setStyleSheet("background-color:%s"%val)
 
@@ -321,11 +381,14 @@ class View(QMainWindow):
 
             self.color_pts_num_dict[c] = QLabel("0")
             self.color_checkbox_dict[c] = QCheckBox(c)
+            self.reverse_color_checkbox_dict[c] = QCheckBox('~')
             self.color_checkbox_dict[c].setChecked(True)
 
             local_widget.layout().addWidget(self.color_pts_num_dict[c])
             local_widget.layout().addWidget(self.color_id_button_dict[c])
             local_widget.layout().addWidget(self.color_checkbox_dict[c])
+            local_widget.layout().addWidget(self.reverse_color_checkbox_dict[c])
+
             local_layout.setSpacing(5)
             local_layout.setContentsMargins(0, 0, 0, 0)
             color_id_map_list.addWidget(local_widget)
