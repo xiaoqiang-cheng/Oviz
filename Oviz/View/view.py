@@ -345,6 +345,7 @@ class View(QMainWindow):
         local_widget.setLayout(local_layout)
         label1 = QLabel("点数")
         label2 = QLabel("标签")
+        label1.setMinimumWidth(60)
         label2.setMinimumWidth(100)
 
         self.toggle_all_color_checkbox = QCheckBox("选看")
@@ -380,6 +381,7 @@ class View(QMainWindow):
 
 
             self.color_pts_num_dict[c] = QLabel("0")
+            self.color_pts_num_dict[c].setMinimumWidth(60)
             self.color_checkbox_dict[c] = QCheckBox(c)
             self.reverse_color_checkbox_dict[c] = QCheckBox('~')
             self.color_checkbox_dict[c].setChecked(True)
