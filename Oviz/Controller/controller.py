@@ -166,6 +166,7 @@ class Controller():
             else:
                 # revert_label = self.last_selected_label
                 if self.last_selected_label is not None:
+                    self.last_selected_mask &= ~selected_mask
                     pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = self.last_selected_label[selected_mask].reshape(-1)
 
             self.update_buffer_vis(field=[POINTCLOUD])
