@@ -18,7 +18,7 @@ from vispy.io import imread, load_data_file, read_mesh
 from vispy.scene.visuals import Mesh
 from vispy.visuals.filters import TextureFilter
 import vispy.util.keys as vispy_key
-
+from .custom_camera import CustomCamera
 VIEW3D_COL_MAX_NUM = 3
 
 class Canvas(QObject, scene.SceneCanvas):
@@ -92,9 +92,9 @@ class Canvas(QObject, scene.SceneCanvas):
         # distance: None | float = None,
         # translate_speed: float = 1.0,
         if camera is None:
-            self.view_panel[view_name].camera  = scene.TurntableCamera()
+            self.view_panel[view_name].camera  = CustomCamera()
         else:
-            self.view_panel[view_name].camera  = scene.TurntableCamera(
+            self.view_panel[view_name].camera  = CustomCamera(
                     **camera,
                 )
     def unfreeze_camera(self, view_name):
@@ -350,33 +350,6 @@ class Canvas(QObject, scene.SceneCanvas):
 
         if event.key == vispy_key.Key('v'):
             self.MouseMotionEvent.emit([CanvasMouseEvent.VisionPress, event])
-            # max_x, max_y = self.size
-            # # offset_x = max_x / 2. - self.focus_points_pos[0]
-            # # offset_y = max_y / 2. - self.focus_points_pos[1]
-            # # self.view_panel['template'].camera._scale_factor = 25
-            # # self.view_panel['template'].camera._elevation = 90.0
-
-            # # self.view_panel['template'].camera._roll = 0.0
-            # # self.view_panel['template'].camera._azimuth = 0.0
-
-            # canvas_pos = np.array([self.focus_points_pos[0], self.focus_points_pos[1], 1., 1.])
-            # points = self.vis_module['template_point_cloud'].get_transform('canvas', 'visual').map(canvas_pos)
-            # points /= points[3]
-            # # points2[2] = 0.
-            # # points2 /= points2[3:]
-            # print(self.view_panel['template'].camera.center, self.focus_points_pos,  points)
-            # # import ipdb
-            # # ipdb.set_trace()
-            # points[2] = 0.0
-            # self.view_panel['template'].camera.center = points[:3]
-            # # import ipdb
-            # # ipdb.set_trace()
-
-            # # trans = np.array([[offset_x , offset_y,   0. ,   0. ]], dtype=np.float32)
-            # # print(trans)
-            # # self.view_panel['template'].camera.transform.translate((offset_x , offset_y, 0))
-
-            # self.view_panel['template'].camera.view_changed()
             return
 
 
