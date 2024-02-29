@@ -1,44 +1,15 @@
+
+from kiss_icp.config import load_config
+from kiss_icp.kiss_icp import KissICP
 import numpy as np
-from vispy import app, scene
+class CustomKissICP(object):
 
-# Create a canvas
-canvas = scene.SceneCanvas(keys='interactive')
-view = canvas.central_widget.add_view()
+    def __init__(self) -> None:
+        self.config = load_config(None, deskew=False, max_range=None)
+        self.odometry = KissICP(config=self.config)
 
-# Create a camera
-cam = scene.TurntableCamera(up='z')
-
-# Set camera parameters
-cam.center = (0, 0, 0)  # Initial center point
-cam.distance = 5  # Initial distance from center
-view.camera = cam
-
-# Create a cube visual
-cube = scene.visuals.Cube(size=2, color=(1, 0, 0, 1), edge_color='k')
-view.add(cube)
-
-# Function to translate the center point
-def translate_center(dx, dy, dz):
-    cam.center += np.array([dx, dy, dz])
-
-# Define keyboard events for translation
-@canvas.events.key_press.connect
-def on_key_press(event):
-    if event.text == 'w':
-        translate_center(0, 1, 0)  # Move up
-    elif event.text == 's':
-        translate_center(0, -1, 0)  # Move down
-    elif event.text == 'a':
-        translate_center(-1, 0, 0)  # Move left
-    elif event.text == 'd':
-        translate_center(1, 0, 0)  # Move right
-    elif event.text == 'q':
-        translate_center(0, 0, 1)  # Move forward
-    elif event.text == 'e':
-        translate_center(0, 0, -1)  # Move backward
-
-# Show the canvas
-canvas.show()
-
-# Run the application
-app.run()
+    def run_icp(self, raw_points, timestamp):
+        timestamps = np.array([timestamp] * raw_points.shape[0])
+        source, keypoints = self.odometry.register_frame(raw_points[:, 0:3], timestamps)
+        realtive_pos = self.odometry.poses[-1]
+        return realtive_pos

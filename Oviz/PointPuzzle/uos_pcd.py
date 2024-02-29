@@ -4,7 +4,7 @@ from tqdm import tqdm
 import math
 import PySimpleGUI as sg
 import matplotlib.pyplot as plt
-
+from .points_icp import CustomKissICP
 
 class UOSLidarData:
     def __init__(self, pcd_path, image_path = []):
@@ -97,6 +97,9 @@ class UosPCD:
             self.navi_list = self.uos_lidar_data.navi_list
             self.framecnt = self.uos_lidar_data.framecnt
             self.sensor_cnt = self.uos_lidar_data.sensor_cnt
+            self.enable_icp = True
+            if self.enable_icp:
+                self.odometry = CustomKissICP()
 
         self.info_ego_pos_list = []
         self.info_sample_list = []
@@ -238,17 +241,27 @@ class UosPCD:
                 split_dist = 10):
         world_pcd_list = []
         world_pcd_frame_list = []
-        init_navi = self.navi_list[frame_range[0]].copy()
 
-        first_navi = init_navi.copy()
-        first_navi[[1,2,3]] = 0
-        roi_navi_state = [first_navi]
+        if self.enable_icp:
+            roi_navi_state = [np.eye(4)]
+            last_split_navi = np.zeros(4, dtype=np.float32)
+        else:
+            init_navi = self.navi_list[frame_range[0]].copy()
+            first_navi = init_navi.copy()
+            first_navi[[1,2,3]] = 0
+            roi_navi_state = [first_navi]
+            last_split_navi = first_navi.copy()
+
         camera_id_list = list(range(len(self.uos_lidar_data.image_path)))
         roi_image_state = [self.get_frame_image(frame_range[0], camera_id_list)]
-        last_split_navi = first_navi.copy()
+
         for i in tqdm(range(*frame_range)):
             ego_pcd = self.get_frame_pcd(i)
             curr_navi_state = self.navi_list[i].copy()
+
+            if self.enable_icp:
+                icp_pose_mat = self.odometry.run_icp(ego_pcd, curr_navi_state[0])
+
             self.info_ego_pos_list.append(
                 {
                     "token": i,
@@ -286,16 +299,25 @@ class UosPCD:
                 # mark ego pcd
                 ego_pcd_for_label = self.mark(ego_pcd_for_label, bboxes_path=bboxes_path, height_range=height_range)
 
-                curr_navi_state[[1, 2, 3]] -= init_navi[[1, 2, 3]]
-                world_pcd = self.trans_coord(NaviState(*curr_navi_state).mat, ego_pcd_for_label)
+                if self.enable_icp:
+                    world_pcd = self.trans_coord(icp_pose_mat, ego_pcd_for_label)
+                    curr_navi_state = icp_pose_mat[:, -1]
+                    if self.calc_eular_dist(last_split_navi - curr_navi_state) >= split_dist:
+                        roi_navi_state.append(icp_pose_mat)
+                        roi_image_state.append(self.get_frame_image(i, camera_id=camera_id_list))
+                        last_split_navi = curr_navi_state.copy()
+                else:
+                    curr_navi_state[[1, 2, 3]] -= init_navi[[1, 2, 3]]
+                    world_pcd = self.trans_coord(NaviState(*curr_navi_state).mat, ego_pcd_for_label)
+                    if self.calc_eular_dist(last_split_navi - curr_navi_state) >= split_dist:
+                        roi_navi_state.append(curr_navi_state)
+                        roi_image_state.append(self.get_frame_image(i, camera_id=camera_id_list))
+                        last_split_navi = curr_navi_state.copy()
 
                 world_pcd_list.append(world_pcd)
                 world_pcd_frame_list.append(np.ones(len(world_pcd), dtype=np.int32) * i)
 
-                if self.calc_eular_dist(last_split_navi - curr_navi_state) >= split_dist:
-                    roi_navi_state.append(curr_navi_state)
-                    roi_image_state.append(self.get_frame_image(i, camera_id=camera_id_list))
-                    last_split_navi = curr_navi_state.copy()
+
             else:
                 sweep_frame_fname = os.path.join(self.labeling_sweep_frame_sample,
                                             str(i).zfill(6) + ".bin")
@@ -319,7 +341,10 @@ class UosPCD:
         mask_any = np.ones(len(cloud_map), dtype=bool)
 
         for i, navi in enumerate(roi_navi_state):
-            inv_mat = np.linalg.inv(NaviState(*navi).mat)
+            if self.enable_icp:
+                inv_mat = np.linalg.inv(navi)
+            else:
+                inv_mat = np.linalg.inv(NaviState(*navi).mat)
             local_pcd = self.trans_coord(inv_mat, cloud_map.copy())
             if i == len(roi_navi_state) - 1:
                 mask = mask_any
