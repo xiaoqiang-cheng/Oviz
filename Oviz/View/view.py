@@ -58,6 +58,7 @@ class View(QMainWindow):
         self.layout_config = self.get_user_config("layout_config.json")
         self.menu_bar_config = self.get_user_config("menu_bar.json")
         self.status_bar_config = self.get_user_config("status_bar.json")
+        self.insight_config = self.get_user_config("insight_cfg.json")
         self.struct_color_map()
 
     def struct_color_map(self):
@@ -103,11 +104,18 @@ class View(QMainWindow):
 
         self.dock_filter_hide_box = FilterHideDock()
 
+        self.dock_insight_box = InsightDock()
+        self.dock_insight_box.addCameraInsight.connect(self.add_camera_insight)
+        self.dock_insight_box.removeCameraInsight.connect(self.remove_camera_insight)
+        self.dock_insight_box.revertCameraInsight.connect(self.revert_camera_insight)
+
         self.create_image_dock_widgets(self.layout_config["image_dock_path"])
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_control_box)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_mapping_control_box)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_filter_hide_box)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock_insight_box)
+
 
 
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
@@ -121,6 +129,18 @@ class View(QMainWindow):
         self.struct_single_canvas(self.canvas, self.canvas_cfg['lasso'])
         self.struct_single_canvas(self.canvas, self.canvas_cfg['view3d'])
 
+    def add_camera_insight(self, name):
+        insight = self.canvas.get_canvas_camera()
+        self.insight_config[name] = insight
+        write_json(self.insight_config, "%s/insight_cfg.json"%USER_CONFIG_DIR)
+
+    def remove_camera_insight(self, name):
+        self.insight_config.pop(name)
+        write_json(self.insight_config, "%s/insight_cfg.json"%USER_CONFIG_DIR)
+
+    def revert_camera_insight(self, name):
+        canvas_camera = self.insight_config[name]
+        self.canvas.revert_canvas_camera(canvas_camera)
 
     def create_menu_bar(self):
         self.menubar = self.menuBar()
@@ -495,7 +515,10 @@ class View(QMainWindow):
 
     def get_user_config(self, config_name):
         default_config_file = os.path.join(OVIZ_CONFIG_DIR, config_name)
-        default_cfg = parse_json(default_config_file)
+        if os.path.exists(default_config_file):
+            default_cfg = parse_json(default_config_file)
+        else:
+            default_cfg = {}
         user_config_file = os.path.join(USER_CONFIG_DIR, config_name)
         if os.path.exists(user_config_file):
             user_cfg = parse_json(user_config_file)

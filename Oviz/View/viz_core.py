@@ -110,15 +110,26 @@ class Canvas(QObject, scene.SceneCanvas):
         self.view_panel[view_name].camera._resetting = True
         self.freeze_camera_param = self.get_canvas_camera(view_name)
 
-    def get_canvas_camera(self, view_name):
+    def get_canvas_camera(self, view_name = 'template'):
         return {
-            "fov": self.view_panel[view_name].camera._fov,
+            # "fov": self.view_panel[view_name].camera._fov,
             "elevation": self.view_panel[view_name].camera._elevation,
             "azimuth" : self.view_panel[view_name].camera._azimuth,
             "roll" : self.view_panel[view_name].camera._roll,
-            "distance": self.view_panel[view_name].camera._distance,
+            # "distance": self.view_panel[view_name].camera._distance,
+            "center": self.view_panel[view_name].camera.center,
             "scale_factor": self.view_panel[view_name].camera._scale_factor
         }
+
+    def revert_canvas_camera(self, camera_dict):
+        # self.view_panel["template"].camera._fov = camera_dict["fov"]
+        self.view_panel["template"].camera._elevation = camera_dict["elevation"]
+        self.view_panel["template"].camera._azimuth = camera_dict["azimuth"]
+        self.view_panel["template"].camera._roll = camera_dict["roll"]
+        self.view_panel["template"].camera.center = camera_dict["center"]
+        # self.view_panel["template"].camera._distance = camera_dict["distance"]
+        self.view_panel["template"].camera._scale_factor = camera_dict["scale_factor"]
+        self.view_panel["template"].camera.view_changed()
 
     def print_3dview_camera_params(self, view_name = "template"):
         print("=================3D view Camera Params:============")

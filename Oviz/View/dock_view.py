@@ -577,6 +577,92 @@ class ControlBoxDockWidget(QDockWidget):
             self.show()
 
 
+class InsightDock(QDockWidget):
+    revertCameraInsight = Signal(str)
+    addCameraInsight = Signal(str)
+    removeCameraInsight = Signal(str)
+
+    def __init__(self, insight_camera = {}, parent=None, title="视角"):
+        super().__init__(title, parent)
+        self.setObjectName(title)
+
+        widget = QWidget()
+        layout = QVBoxLayout()
+
+        self.insight_dict = {}
+        self.insight_list_widget = QListWidget()
+        self.insight_list_widget.itemDoubleClicked.connect(self.revert_camera)
+
+        style_sheet = '''
+                QListView{
+                    font: 25 14pt "Microsoft YaHei";
+                }
+                QListView::item {
+                    height: 30px;
+                }
+        '''
+        self.insight_list_widget.setStyleSheet(style_sheet)
+
+        layout.addWidget(self.insight_list_widget)
+
+        for key, _ in insight_camera.items():
+            self.add_item(key)
+
+        layout.addWidget(self.add_footer())
+
+        widget.setLayout(layout)
+        self.setWidget(widget)
+
+    def add_item(self, name):
+        self.insight_dict[name] = QListWidgetItem(name)
+        self.insight_list_widget.addItem(self.insight_dict[name])
+
+    def revert_camera(self):
+        item = self.insight_list_widget.currentItem()
+        self.revertCameraInsight.emit(item.text())
+
+    def remove_item(self):
+        # item = self.insight_list_widget.currentItem()
+        selected_row = self.insight_list_widget.currentRow()
+        if selected_row == -1: return
+        item = self.insight_list_widget.takeItem(selected_row)
+        self.insight_dict.pop(item.text())
+        # self.insight_list_widget.removeItemWidget(item)
+        self.removeCameraInsight.emit(item.text())
+        del item
+
+
+    def create_input_dialog(self, title, info):
+        inputs_name, ok = QInputDialog.getText(self, title, info, QLineEdit.Normal)
+        return inputs_name, ok
+
+    def add_insight(self):
+        name, status = self.create_input_dialog("视角保存", "名称")
+        if status:
+            self.add_item(name)
+            self.addCameraInsight.emit(name)
+
+    def add_footer(self):
+
+        local_widget = QWidget()
+        local_layout = QHBoxLayout(local_widget)
+
+        self.add_button = QPushButton('+')
+        self.remove_button = QPushButton('-')
+        # self.save_button = QPushButton('保存')
+
+        self.remove_button.clicked.connect(self.remove_item)
+        self.add_button.clicked.connect(self.add_insight)
+
+        local_layout.addWidget(self.add_button)
+        # local_layout.addWidget(self.save_button)
+        local_layout.addWidget(self.remove_button)
+        return local_widget
+
+
+
+
+
 class FilterHideDock(QDockWidget):
     filterHideChange = Signal(list, int)
     def __init__(self, parent=None, title="FilterSetting"):
@@ -652,4 +738,6 @@ class FilterHideDock(QDockWidget):
             self.hide()
         else:
             self.show()
+
+
 
