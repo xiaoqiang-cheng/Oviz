@@ -110,7 +110,7 @@ def if_not_exist_create(dir_path):
 def get_metadata(pcd_path):
     metadata = {}
     sensor_cnt = 0
-
+    veh_name = None
     with open(os.path.join(pcd_path, "lidar_metadata"), "r") as calib_para:
         for line in calib_para:
             if 'sensor' in line:
