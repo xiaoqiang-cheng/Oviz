@@ -175,7 +175,7 @@ class Controller():
                 pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = -1
             else:
                 # revert_label = self.last_selected_label
-                if self.last_selected_label is not None:
+                if (self.last_selected_mask is not None) and (selected_mask is not None):
                     self.last_selected_mask &= ~selected_mask
                     pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = self.last_selected_label[selected_mask].reshape(-1)
 
@@ -463,12 +463,17 @@ class Controller():
             if prelabel is None:
                 if max(self.pointcloud_setting.color_dims) >= pointclouds[0].shape[1]:
                     prelabel = np.zeros(pointclouds[0].shape[0], dtype=np.int32).reshape(-1, 1)
-                    self.pointcloud_setting.color_dims = [-1]
+                    pointclouds[0] = np.concatenate([pointclouds[0], prelabel], axis=1)
+                    # self.pointcloud_setting.color_dims = [-1]
                 else:
                     prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32)
                     key_range = list(map(int, list(self.view.color_id_button_dict.keys())))
                     mask = (prelabel < min(key_range)) & (prelabel > max(key_range))
                     prelabel[mask] = min(key_range)
+            else:
+                if max(self.pointcloud_setting.color_dims) >= pointclouds[0].shape[1]:
+                    tmp = np.zeros(pointclouds[0].shape[0], dtype=np.int32).reshape(-1, 1)
+                    pointclouds[0] = np.concatenate([pointclouds[0], tmp], axis=1)
 
             self.last_selected_mask = None
             self.last_selected_label = None
