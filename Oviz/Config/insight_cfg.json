@@ -1,0 +1,35 @@
+{
+    "X": {
+        "elevation": 0.0,
+        "azimuth": 90.0,
+        "roll": 0.0,
+        "center": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "scale_factor": 90
+    },
+    "Y": {
+        "elevation": 0.0,
+        "azimuth": -180,
+        "roll": 0.0,
+        "center": [
+            0.0,
+	    0.0,
+	    0.0
+        ],
+        "scale_factor": 90
+    },
+    "Z": {
+        "elevation": 90,
+        "azimuth": -90.0,
+        "roll": 0.0,
+        "center": [
+		0.0,
+		0.0,
+		0.0
+        ],
+        "scale_factor": 90
+    }
+}

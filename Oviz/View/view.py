@@ -104,7 +104,7 @@ class View(QMainWindow):
 
         self.dock_filter_hide_box = FilterHideDock()
 
-        self.dock_insight_box = InsightDock()
+        self.dock_insight_box = InsightDock(insight_camera=self.insight_config)
         self.dock_insight_box.addCameraInsight.connect(self.add_camera_insight)
         self.dock_insight_box.removeCameraInsight.connect(self.remove_camera_insight)
         self.dock_insight_box.revertCameraInsight.connect(self.revert_camera_insight)
@@ -616,7 +616,11 @@ class View(QMainWindow):
             f.flush()
 
     def load_layout(self):
-        p = '%s/layout.ini'%USER_CONFIG_DIR
+        first_layout = '%s/layout.ini'%OVIZ_CONFIG_DIR
+        if os.path.exists(first_layout):
+            p = first_layout
+        else:
+            p = '%s/layout.ini'%USER_CONFIG_DIR
         if os.path.exists(p):
             with open(p, 'rb') as f:
                 s = f.read()
