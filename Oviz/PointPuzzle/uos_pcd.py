@@ -98,8 +98,6 @@ class UosPCD:
             self.framecnt = self.uos_lidar_data.framecnt
             self.sensor_cnt = self.uos_lidar_data.sensor_cnt
             self.enable_icp = True
-            if self.enable_icp:
-                self.odometry = CustomKissICP()
 
         self.info_ego_pos_list = []
         self.info_sample_list = []
@@ -356,6 +354,11 @@ class UosPCD:
                 # cloud = local_pcd[mask]
 
             cloud = local_pcd[mask]
+            if len(cloud) == 0:
+                # import ipdb
+                # ipdb.set_trace()
+                continue
+
             # cloud[:, [0,1,2]] -= navi[[1,2,3]]
             scene_patch_name = scene_name + "_" + str(i).zfill(4)
 
@@ -464,6 +467,8 @@ class UosPCD:
             cloudmap_idx_fname = os.path.join(self.labeling_cloudmap_fidx_dir,
                         scene_range_name + ".bin")
 
+            if self.enable_icp:
+                self.odometry = CustomKissICP()
             cloudmap, cloudmap_frame, roi_navi_state, roi_image_state = self.mapping(scene_frame_range, roi_frame_range[-1],
                         bbox_root_path, height_range=height_range, split_dist = split_dist)
 
