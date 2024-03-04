@@ -320,7 +320,8 @@ class UosPCD:
                 sweep_frame_fname = os.path.join(self.labeling_sweep_frame_sample,
                                             str(i).zfill(6) + ".bin")
                 ego_pcd.tofile(sweep_frame_fname)
-            self.update_progress("build", i, max_frame)
+            if not self.update_progress("build", i, max_frame):
+                break;
         mapping_pcd = np.concatenate(world_pcd_list)
         frame_idx_bin = np.concatenate(world_pcd_frame_list)
 
