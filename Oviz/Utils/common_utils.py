@@ -335,7 +335,10 @@ def rec_merge_map_list(d1, d2):
                 max_len = max(len(d1[key]), len(value))
                 for i in range(max_len):
                     if i < len(d1[key]) and i < len(value):
-                        merged_list.append(rec_merge_map_list(d1[key][i], value[i]))
+                        if isinstance(d1[key][i], dict) and isinstance(value[i], dict):
+                            merged_list.append(rec_merge_map_list(d1[key][i], value[i]))
+                        else:
+                            merged_list.append(d1[key][i])
                     elif i < len(d1[key]):
                         merged_list.append(d1[key][i])
                     elif i < len(value):
