@@ -285,7 +285,7 @@ class Canvas(QObject, scene.SceneCanvas):
             self.vis_module[key + "_" + "point_cloud"].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
 
     def on_mouse_move(self, event):
-        if self.ctrl_pressed:
+        if vispy_key.ALT in event.modifiers:
             if event.button == 1:
                 self.event_pos_traj.append(event.pos)
                 self.event_mark_mode = True
@@ -297,6 +297,8 @@ class Canvas(QObject, scene.SceneCanvas):
             else:
                 self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlMove, event])
             return
+
+        self.set_visible('template_lasso_pointer', False)
 
         if event.button == 1:
             self.MouseMotionEvent.emit([CanvasMouseEvent.LeftPressMove, event])
@@ -312,12 +314,12 @@ class Canvas(QObject, scene.SceneCanvas):
 
     def on_mouse_press(self, event):
         self.set_pointcloud_glstate()
-        if self.ctrl_pressed and event.button == 1:
+        if (vispy_key.ALT in event.modifiers) and event.button == 1:
             self.event_pos_traj.append(event.pos)
             self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlLeftPress, event])
             return
 
-        if self.ctrl_pressed and event.button == 2:
+        if (vispy_key.ALT in event.modifiers) and event.button == 2:
             self.event_pos_traj.append(event.pos)
             self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlRightPress, event])
             return
@@ -344,7 +346,7 @@ class Canvas(QObject, scene.SceneCanvas):
             self.set_visible('template_lasso_pointer', True)
             return
 
-        if self.ctrl_pressed == True and event.key == vispy_key.Key('z'):
+        if (vispy_key.CONTROL in event.modifiers) and event.key == vispy_key.Key('z'):
             self.MouseMotionEvent.emit([CanvasMouseEvent.MiddlePress, event])
             return
 
