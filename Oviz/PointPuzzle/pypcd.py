@@ -7,6 +7,7 @@ dimatura@cmu.edu, 2013-2018
 - TODO deal properly with padding
 - TODO deal properly with multicount fields
 - TODO better support for rgb nonsense
+do not support compress binary
 """
 
 import re
@@ -16,7 +17,7 @@ import copy
 from io import StringIO as sio
 import numpy as np
 import warnings
-import lzf
+# import lzf
 
 HAS_SENSOR_MSGS = True
 try:
@@ -244,33 +245,33 @@ def parse_binary_pc_data(f, dtype, metadata):
 
 
 def parse_binary_compressed_pc_data(f, dtype, metadata):
-    """ Parse lzf-compressed data.
-    Format is undocumented but seems to be:
-    - compressed size of data (uint32)
-    - uncompressed size of data (uint32)
-    - compressed data
-    - junk
-    """
-    fmt = 'II'
-    compressed_size, uncompressed_size =\
-        struct.unpack(fmt, f.read(struct.calcsize(fmt)))
-    compressed_data = f.read(compressed_size)
-    # TODO what to use as second argument? if buf is None
-    # (compressed > uncompressed)
-    # should we read buf as raw binary?
-    buf = lzf.decompress(compressed_data, uncompressed_size)
-    if len(buf) != uncompressed_size:
-        raise IOError('Error decompressing data')
-    # the data is stored field-by-field
-    pc_data = np.zeros(metadata['width'], dtype=dtype)
-    ix = 0
-    for dti in range(len(dtype)):
-        dt = dtype[dti]
-        bytes = dt.itemsize * metadata['width']
-        column = np.fromstring(buf[ix:(ix+bytes)], dt)
-        pc_data[dtype.names[dti]] = column
-        ix += bytes
-    return pc_data
+    # """ Parse lzf-compressed data.
+    # Format is undocumented but seems to be:
+    # - compressed size of data (uint32)
+    # - uncompressed size of data (uint32)
+    # - compressed data
+    # - junk
+    # """
+    # fmt = 'II'
+    # compressed_size, uncompressed_size =\
+    #     struct.unpack(fmt, f.read(struct.calcsize(fmt)))
+    # compressed_data = f.read(compressed_size)
+    # # TODO what to use as second argument? if buf is None
+    # # (compressed > uncompressed)
+    # # should we read buf as raw binary?
+    # buf = lzf.decompress(compressed_data, uncompressed_size)
+    # if len(buf) != uncompressed_size:
+    #     raise IOError('Error decompressing data')
+    # # the data is stored field-by-field
+    # pc_data = np.zeros(metadata['width'], dtype=dtype)
+    # ix = 0
+    # for dti in range(len(dtype)):
+    #     dt = dtype[dti]
+    #     bytes = dt.itemsize * metadata['width']
+    #     column = np.fromstring(buf[ix:(ix+bytes)], dt)
+    #     pc_data[dtype.names[dti]] = column
+    #     ix += bytes
+    return None
 
 
 def point_cloud_from_fileobj(f):
@@ -330,32 +331,32 @@ def point_cloud_to_fileobj(pc, fileobj, data_compression=None):
         fmtstr = build_ascii_fmtstr(pc)
         np.savetxt(fileobj, pc.pc_data, fmt=fmtstr)
     elif metadata['data'].lower() == 'binary':
-        pc.pc_data.tofile(fileobj)
-        # fileobj.write(pc.pc_data.tostring('C'))
+        fileobj.write(pc.pc_data.tostring('C'))
     elif metadata['data'].lower() == 'binary_compressed':
         # TODO
         # a '_' field is ignored by pcl and breakes compressed point clouds.
         # changing '_' to '_padding' or other name fixes this.
         # admittedly padding shouldn't be compressed in the first place.
         # reorder to column-by-column
-        uncompressed_lst = []
-        for fieldname in pc.pc_data.dtype.names:
-            column = np.ascontiguousarray(pc.pc_data[fieldname]).tostring('C')
-            uncompressed_lst.append(column)
-        uncompressed = ''.join(uncompressed_lst)
-        uncompressed_size = len(uncompressed)
-        # print("uncompressed_size = %r"%(uncompressed_size))
-        buf = lzf.compress(uncompressed)
-        if buf is None:
-            # compression didn't shrink the file
-            # TODO what do to do in this case when reading?
-            buf = uncompressed
-            compressed_size = uncompressed_size
-        else:
-            compressed_size = len(buf)
-        fmt = 'II'
-        fileobj.write(struct.pack(fmt, compressed_size, uncompressed_size))
-        fileobj.write(buf)
+        # uncompressed_lst = []
+        # for fieldname in pc.pc_data.dtype.names:
+        #     column = np.ascontiguousarray(pc.pc_data[fieldname]).tostring('C')
+        #     uncompressed_lst.append(column)
+        # uncompressed = ''.join(uncompressed_lst)
+        # uncompressed_size = len(uncompressed)
+        # # print("uncompressed_size = %r"%(uncompressed_size))
+        # buf = lzf.compress(uncompressed)
+        # if buf is None:
+        #     # compression didn't shrink the file
+        #     # TODO what do to do in this case when reading?
+        #     buf = uncompressed
+        #     compressed_size = uncompressed_size
+        # else:
+        #     compressed_size = len(buf)
+        # fmt = 'II'
+        # fileobj.write(struct.pack(fmt, compressed_size, uncompressed_size))
+        # fileobj.write(buf)
+        pass
     else:
         raise ValueError('unknown DATA type')
     # we can't close because if it's stringio buf then we can't get value after
