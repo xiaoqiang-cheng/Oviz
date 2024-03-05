@@ -442,7 +442,7 @@ class CollapsibleBox(QWidget):
             self.content_area.setLayout(layout['layout'])
             content_height = layout['layout'].sizeHint().height()
         collapsed_height = (
-            self.sizeHint().height() - self.content_area.maximumHeight()
+            self.sizeHint().height() - self.content_area.maximumHeight() + 10
         )
         for i in range(self.toggle_animation.animationCount()):
             animation = self.toggle_animation.animationAt(i)
@@ -559,7 +559,7 @@ class ControlBoxDockWidget(QDockWidget):
             vlay.addWidget(box)
             box.setContentLayout(val)
         vlay.addStretch()
-        self.setWidget(scroll_area)  # 将QScrollArea作为QDockWidget的widget
+        self.setWidget(scroll_area)             # 将QScrollArea作为QDockWidget的widget
 
     def unfold(self):
         for key, val in self.boxes.items():

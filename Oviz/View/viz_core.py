@@ -338,7 +338,7 @@ class Canvas(QObject, scene.SceneCanvas):
             self.MouseMotionEvent.emit([CanvasMouseEvent.RightRelease, event])
 
     def on_key_press(self, event):
-        if event.key == vispy_key.CONTROL:
+        if event.key == vispy_key.ALT:
             self.ctrl_pressed = True
             self.event_pos_traj = []
             self.set_visible('template_lasso_pointer', True)
@@ -355,7 +355,7 @@ class Canvas(QObject, scene.SceneCanvas):
 
 
     def on_key_release(self, event):
-        if event.key == vispy_key.CONTROL:
+        if event.key == vispy_key.ALT:
             self.ctrl_pressed = False
             self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlRelease, event])
             self.set_visible('template_lasso_pointer', False)

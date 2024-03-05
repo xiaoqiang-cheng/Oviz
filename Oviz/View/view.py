@@ -365,6 +365,7 @@ class View(QMainWindow):
     def create_color_map_widget(self):
         color_list_widget = QWidget()
         color_id_map_list = QVBoxLayout()
+        color_id_map_list.addStretch()
         self.color_id_button_dict = {}
         self.color_checkbox_dict = {}
         self.reverse_color_checkbox_dict = {}
@@ -372,32 +373,44 @@ class View(QMainWindow):
 
 
         local_widget = QWidget()
-        local_layout = QHBoxLayout()
-        local_widget.setLayout(local_layout)
+        local_layout1 = QHBoxLayout()
+        local_widget.setLayout(local_layout1)
+        local_layout1.setSpacing(5)
+        local_layout1.setContentsMargins(0, 0, 0, 0)
+        # local_layout1.addStretch()
+
         label1 = QLabel("点数")
         label2 = QLabel("标签")
+        title_height = 200
         label1.setMinimumWidth(60)
+        # label1.setMinimumHeight(title_height)
+
         label2.setMinimumWidth(100)
+        # label2.setMinimumHeight(title_height)
 
         self.toggle_all_color_checkbox = QCheckBox("选看")
+        # self.toggle_all_color_checkbox.setMinimumHeight(title_height)
         self.toggle_all_color_checkbox.setChecked(True)
         self.toggle_all_color_checkbox.stateChanged.connect(self.toggle_all_color_checkbox_changed)
 
         self.toggle_all_reverse_color_checkbox = QCheckBox("只看")
+        # self.toggle_all_reverse_color_checkbox.setMinimumHeight(title_height)
         self.toggle_all_reverse_color_checkbox.stateChanged.connect(self.toggle_all_reverse_color_checkbox_changed)
 
-        local_layout.addWidget(label1)
-        local_layout.addWidget(label2)
+        local_layout1.addWidget(label1)
+        local_layout1.addWidget(label2)
 
-        local_layout.addWidget(self.toggle_all_color_checkbox)
-        local_layout.addWidget(self.toggle_all_reverse_color_checkbox)
-        local_layout.setSpacing(5)
-        local_layout.setContentsMargins(0, 0, 0, 0)
+        local_layout1.addWidget(self.toggle_all_color_checkbox)
+        local_layout1.addWidget(self.toggle_all_reverse_color_checkbox)
+        # local_layout.setSpacing(5)
+        # local_layout.setContentsMargins(0, 0, 0, 0)
         color_id_map_list.addWidget(local_widget)
 
         for c, val in self.color_map.items():
             local_widget = QWidget()
             local_layout = QHBoxLayout()
+            local_layout.setContentsMargins(2, 2, 2, 2)
+            # local_layout.setSpacing(5)
             local_widget.setLayout(local_layout)
             # color_label = self.color_map_label[c]
             color_label = self.color_show_label[c]
@@ -422,9 +435,10 @@ class View(QMainWindow):
             local_widget.layout().addWidget(self.color_checkbox_dict[c])
             local_widget.layout().addWidget(self.reverse_color_checkbox_dict[c])
 
-            local_layout.setSpacing(5)
-            local_layout.setContentsMargins(0, 0, 0, 0)
+
             color_id_map_list.addWidget(local_widget)
+        # local_layout.setSpacing(5)
+        # local_layout.setContentsMargins(0, 0, 0, 0)
         color_id_map_list.setSpacing(1)
         color_id_map_list.setContentsMargins(0, 0, 0, 0)
         color_list_widget.setLayout(color_id_map_list)
@@ -442,6 +456,7 @@ class View(QMainWindow):
         for wk, wv in value["widget"].items():
             ret[wk] = eval(wv['type'])(**wv['params'])
             ret["layout"].addWidget(ret[wk])
+
         return ret
 
     def set_element_box(self, element_dict, group="template"):
@@ -506,8 +521,12 @@ class View(QMainWindow):
         for key, value in self.layout_config['global_control_box'].items():
             ret[key] = {}
             ret[key]["layout"] = eval(value['type'])()
+            # ret[key]["layout"].setContentsMargins(10, 10, 10, 10)
+            # ret[key]["layout"].addStretch()
             for wk, wv in value["widget"].items():
                 ret[key][wk] = eval(wv['type'])(**wv['params'])
+                if key == "car_model_setting":
+                    ret[key][wk].setMinimumHeight(30)
                 ret[key]["layout"].addWidget(ret[key][wk])
 
         return ret
@@ -887,8 +906,8 @@ class View(QMainWindow):
     def set_car_visible(self, mode):
         for group in self.canvas_cfg_set.keys():
             self.canvas.set_visible(group + "_" + "car_model", mode)
-            if mode:
-                self.set_car_model_pos(group = group)
+            # if mode:
+            #     self.set_car_model_pos(group = group)
 
     def set_car_model_pos(self, x = 0, y = 0, z = 0,
                     r = 90, s = 1, group="template"):
