@@ -110,6 +110,17 @@ class View(QMainWindow):
         self.dock_insight_box.revertCameraInsight.connect(self.revert_camera_insight)
 
         self.create_image_dock_widgets(self.layout_config["image_dock_path"])
+
+        dock_title_style = '''
+                QDockWidget { font-family: "Roboto Lt"; font-size: 10pt; }
+        '''
+
+        self.dock_range_slide.setStyleSheet(dock_title_style)
+        self.dock_mapping_control_box.setStyleSheet(dock_title_style)
+        self.dock_global_control_box.setStyleSheet(dock_title_style)
+        self.dock_filter_hide_box.setStyleSheet(dock_title_style)
+        self.dock_insight_box.setStyleSheet(dock_title_style)
+
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_range_slide)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_control_box)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_mapping_control_box)
@@ -616,11 +627,11 @@ class View(QMainWindow):
             f.flush()
 
     def load_layout(self):
-        first_layout = '%s/layout.ini'%OVIZ_CONFIG_DIR
+        first_layout = '%s/layout.ini'%USER_CONFIG_DIR
         if os.path.exists(first_layout):
             p = first_layout
         else:
-            p = '%s/layout.ini'%USER_CONFIG_DIR
+            p = '%s/layout.ini'%OVIZ_CONFIG_DIR
         if os.path.exists(p):
             with open(p, 'rb') as f:
                 s = f.read()
