@@ -198,6 +198,49 @@ class LogDockWidget(QDockWidget):
         else:
             self.show()
 
+class CustomQCompleter(QCompleter):
+    def __init__(self, *args):
+        super(CustomQCompleter, self).__init__(*args)
+        self.change_flag = False
+        # 保留最原始的字符串
+        self.source_str = None
+        self.real_str = None
+
+    def setModel(self, c):
+        update_model_list = QStringListModel(c)
+        # self.setModel(self.update_model_list)
+        return super().setModel(update_model_list)
+
+    # 当输入发生变化 自动调用此函数
+    def splitPath(self, path):
+        if (path[-1] == " " or path[-1] == "."):
+            return ["None"]
+
+        if (self.change_flag):
+            self.change_flag = False
+            return ["None"]
+        # 备份原始字符串
+        self.source_str = path
+        # 按照分割规则，获取最后的字符串
+        json_path = path.split()
+        str_list = [json_path[0]]
+        if (len(json_path) == 2):
+            str_list += json_path[1].split(".")
+        real_path = str_list[-1]
+        self.real_str = real_path
+
+        if (len(real_path) > 1):
+            return [real_path]
+
+        return ["None"]
+
+    # 当选择了元素 调用此函数
+    def pathFromIndex(self, index):
+        self.change_flag = True
+        # return super().pathFromIndex(index)
+        return self.source_str[:-len(self.real_str)] + index.data()
+
+
 class RangeSlideDockWidget(QDockWidget):
     frameChanged = Signal(int)
     def __init__(self, parent=None, titie = "Progress"):
@@ -225,6 +268,10 @@ class RangeSlideDockWidget(QDockWidget):
         self.frame = QLineEdit()
         self.frame.setMaximumWidth(50)
 
+        self.search_text = QLineEdit("")
+        self.search_text.setPlaceholderText("搜索")
+        self.search_text.setMaximumWidth(200)
+
         self.frame_cnt = QLabel("\\N")
         self.curr_filename = QLabel("filename")
         self.curr_filename.setTextInteractionFlags(Qt.TextSelectableByMouse)
@@ -240,6 +287,7 @@ class RangeSlideDockWidget(QDockWidget):
         layout2.addWidget(self.range_slider)
         layout2.addWidget(self.frame)
         layout2.addWidget(self.frame_cnt)
+        layout2.addWidget(self.search_text)
         layout2.addWidget(self.curr_filename)
         layout2.addWidget(self.fps)
         layout2.addWidget(self.fps_label)
@@ -257,7 +305,13 @@ class RangeSlideDockWidget(QDockWidget):
 
         self.frame.textChanged.connect(self.set_bar)
         self.range_slider.valueChanged.connect(self.change_bar)
+        self.search_text.textChanged.connect(self.search_change)
         self.auto.stateChanged.connect(self.auto_ctrl)
+
+    def set_completer(self, frame_name_list):
+        self.completer = QCompleter(frame_name_list)
+        self.completer.setFilterMode(Qt.MatchContains)
+        self.search_text.setCompleter(self.completer)
 
     def stop_auto_play(self):
         self.auto.setCheckState(Qt.Unchecked)
@@ -291,7 +345,7 @@ class RangeSlideDockWidget(QDockWidget):
 
     def change_bar(self):
         self.curr_index = self.range_slider.value()
-        self.set_frmae_text(self.curr_index)
+        self.set_frame_text(self.curr_index)
 
     def set_filename(self, name):
         self.curr_filename.setText(str(name))
@@ -299,15 +353,23 @@ class RangeSlideDockWidget(QDockWidget):
     def set_frame_cnt(self, cnt):
         self.frame_cnt.setText("/" + str(cnt))
 
+    def search_change(self, text):
+        index = -1
+        try:
+            index = self.listname.index(text)
+            self.set_frame_text(index)
+        except:
+            pass
+
     def set_bar(self):
         try:
             self.curr_index = int(self.frame.text())
             if self.curr_index < 0:
                 self.curr_index = 0
-                self.set_frmae_text(self.curr_index)
+                self.set_frame_text(self.curr_index)
             elif self.curr_index >= self.frame_range:
                 self.curr_index = self.frame_range - 1
-                self.set_frmae_text(self.curr_index)
+                self.set_frame_text(self.curr_index)
             # 如果频繁的按下 next 或者 拖动，可视化会很卡，然后会停不下来
             # 可视化和这些东西还是放入异步线程比较好
             if self.update_handled:
@@ -318,31 +380,32 @@ class RangeSlideDockWidget(QDockWidget):
         self.range_slider.setValue(self.curr_index)
         self.set_filename(self.listname[self.curr_index])
 
-    def set_frmae_text(self, index):
+    def set_frame_text(self, index):
         self.frame.setText(str(index))
 
     def next_frame(self):
         self.curr_index += 1
         if self.curr_index >= self.frame_range:
             self.curr_index = 0
-        self.set_frmae_text(self.curr_index)
+        self.set_frame_text(self.curr_index)
 
     def last_frame(self):
         self.curr_index -= 1
         if self.curr_index < 0:
             self.curr_index = self.frame_range - 1
-        self.set_frmae_text(self.curr_index)
+        self.set_frame_text(self.curr_index)
 
     def get_curr_index(self):
         return self.curr_index
 
     def set_range(self, list_name):
         self.listname = list_name
+        self.set_completer(list_name)
         self.frame_range = len(self.listname)
         self.range_slider.setRange(0, self.frame_range - 1)
         self.set_frame_cnt(self.frame_range - 1)
         if self.curr_index >= self.frame_range:
-            self.set_frmae_text(0)
+            self.set_frame_text(0)
 
 
 class CollapsibleBox(QWidget):

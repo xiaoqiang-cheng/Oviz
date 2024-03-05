@@ -635,7 +635,7 @@ class View(QMainWindow):
             self.image_dock[i].set_topic_path(val['default_value']['value'])
 
         self.load_layout()
-        self.dock_range_slide.set_frmae_text(self.layout_config["last_slide_num"])
+        self.dock_range_slide.set_frame_text(self.layout_config["last_slide_num"])
 
     def closeEvent(self, e):
         print("ready to close ui")

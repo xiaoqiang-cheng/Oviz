@@ -64,7 +64,9 @@ def get_metadata(pcd_path):
 
 def read_pcd(path):
     points = pypcd.PointCloud.from_path(path)
-    return np.array(points.pc_data.tolist(), dtype=np.float32)
+    new_dtype =  np.dtype([(name, '<f4') for name in points.pc_data.dtype.names])
+    points_float32 = points.pc_data.astype(new_dtype).view(np.float32).reshape(points.pc_data.shape + (-1,))
+    return points_float32
 
 def read_origin_pcd(path):
     points = pypcd.PointCloud.from_path(path)
