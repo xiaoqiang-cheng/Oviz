@@ -1,4 +1,10 @@
 {
+    "数据" : [
+        {
+            "打开点云数据": "Ctrl+O"
+        },
+        "self.menu_bar_trigger_opendata"
+    ],
     "视图" : [
         {
             "显示图片" : "Ctrl+Shift+I",

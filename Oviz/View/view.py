@@ -188,6 +188,10 @@ class View(QMainWindow):
             tmp_widget.setOpenExternalLinks(True)
             self.statusbar.addWidget(tmp_widget, value['stretch'])
 
+    def menu_bar_trigger_opendata(self, q):
+        if q.text() == "打开点云数据":
+            self.dock_global_control_box_layout_dict['pointcloud']['folder_path'].select_folder()
+
     def menu_bar_trigger_view(self, q):
         trigger_map = {
             "显示图片"      : self.show_dock_image,
