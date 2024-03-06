@@ -149,8 +149,11 @@ def find_files_with_extension(directory, extension = [".jpg", ".png"]):
             if ext in extension:
                 file_list.append(os.path.join(root, file))
                 timestamp.append(float(file[:17]))
+    sorted_indices = sorted(range(len(timestamp)), key=lambda k: timestamp[k])
+    sorted_files = [file_list[i] for i in sorted_indices]
+    sorted_timestamp = [timestamp[i] for i in sorted_indices]
 
-    return file_list, timestamp
+    return sorted_files, sorted_timestamp
 
 
 def parse_json(filename):

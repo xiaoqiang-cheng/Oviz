@@ -46,7 +46,7 @@ class UOSLidarData:
             if time_difference < min_time_difference:
                 min_time_difference = time_difference
                 best_image_path = self.image_fname_list[camera_id][j]
-                if time_difference < 0.005:
+                if time_difference < 0.05:
                     break
         return best_image_path
 

@@ -152,18 +152,33 @@ class Model(QObject):
                 image_list, timestamp_list = find_files_with_extension(folder_path)
                 target_timestamp_list = self.uos_lidar_data.navi_list[:, 0]
                 latest_database = {}
-
+                last_j = 0
                 for i, lidar_t in enumerate(target_timestamp_list):
                     min_time_difference = float('inf')
-                    for j, img_t in enumerate(timestamp_list):
+                    for j, img_t in enumerate(timestamp_list[last_j:], start=last_j):  # 修复bug
                         time_difference = abs(img_t - lidar_t)
-                        if time_difference > 1.0: continue
+                        if time_difference > 1.0:
+                            continue
                         if time_difference < min_time_difference:
                             min_time_difference = time_difference
                             key = str(i).zfill(6)
                             latest_database[key] = image_list[j]
-                            if time_difference < 0.5:
+                            last_j = j
+                            if time_difference < 0.05:
                                 break
+
+                # for i, lidar_t in enumerate(target_timestamp_list):
+                #     min_time_difference = float('inf')
+                #     for j, img_t in enumerate(timestamp_list[last_j:]):
+                #         time_difference = abs(img_t - lidar_t)
+                #         if time_difference > 1.0: continue
+                #         if time_difference < min_time_difference:
+                #             min_time_difference = time_difference
+                #             key = str(i).zfill(6)
+                #             latest_database[key] = image_list[j + last_j]
+                #             if time_difference < 0.005:
+                #                 last_j = j + last_j
+                #                 break
 
                 group_data = self.database.setdefault(group, {})
                 topic_data = group_data.setdefault(IMAGE, [])
