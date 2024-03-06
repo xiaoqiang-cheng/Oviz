@@ -331,7 +331,8 @@ def point_cloud_to_fileobj(pc, fileobj, data_compression=None):
         fmtstr = build_ascii_fmtstr(pc)
         np.savetxt(fileobj, pc.pc_data, fmt=fmtstr)
     elif metadata['data'].lower() == 'binary':
-        fileobj.write(pc.pc_data.tostring('C'))
+        # fileobj.write(pc.pc_data.tostring('C'))
+        pc.pc_data.tofile(fileobj)
     elif metadata['data'].lower() == 'binary_compressed':
         # TODO
         # a '_' field is ignored by pcl and breakes compressed point clouds.

@@ -119,8 +119,11 @@ class UosPCD:
         self.labeling_cloudmap_patch_dir = os.path.join(save_dir, "patch_for_anno", "cloudmap")
         self.labeling_image_patch_dir = os.path.join(save_dir, "patch_for_anno", "image_align")
         # self.labeling_cloud_filter = os.path.join(save_dir, "cloud_filter")
-        self.labeling_key_frame_sample = os.path.join(save_dir, "sample")
-        self.labeling_sweep_frame_sample = os.path.join(save_dir, "sweep")
+        self.labeling_key_frame_sample = os.path.join(save_dir, "sample", "lidar")
+        self.labeling_sweep_frame_sample = os.path.join(save_dir, "sweep", "lidar")
+        self.labeling_key_frame_sample_camera = os.path.join(save_dir, "sample", "camera")
+        self.labeling_sweep_frame_sample_camera = os.path.join(save_dir, "sweep", "camera")
+
         self.labeling_info_dir = os.path.join(save_dir, "info")
 
         self.labeled_ground_truth_dir = os.path.join(save_dir, "cloudmap_labeled")
@@ -136,7 +139,10 @@ class UosPCD:
         if_not_exist_create(self.labeling_image_patch_dir)
 
         if_not_exist_create(self.labeling_key_frame_sample)
+        if_not_exist_create(self.labeling_key_frame_sample_camera)
         if_not_exist_create(self.labeling_sweep_frame_sample)
+        if_not_exist_create(self.labeling_sweep_frame_sample_camera)
+
         if_not_exist_create(self.labeling_info_dir)
         if_not_exist_create(self.labeled_ground_truth_dir)
 
@@ -271,12 +277,20 @@ class UosPCD:
                 },
             )
 
+            curr_camera_list = self.get_frame_image(i, camera_id=camera_id_list)
+
             # is key frame
             if (i - frame_range[0]) % self.key_frame_step == 0:
                 ego_pcd, filter_pcd = self.filter(ego_pcd)
 
                 key_frame_sample_fname = os.path.join(self.labeling_key_frame_sample,
                                                 str(i).zfill(6) + ".bin")
+
+                for im_idx, img_path in enumerate(curr_camera_list):
+                    target_img_dir = os.path.join(self.labeling_key_frame_sample_camera, str(im_idx))
+                    if_not_exist_create(target_img_dir)
+                    dst_img_name = os.path.join(target_img_dir, str(i).zfill(6) + img_path[-4:])
+                    os.system("cp -r %s %s"%(img_path, dst_img_name))
 
                 resort_ego_pcd = np.concatenate((ego_pcd, filter_pcd))
                 resort_ego_pcd.tofile(key_frame_sample_fname)
@@ -304,26 +318,30 @@ class UosPCD:
                     curr_navi_state = icp_pose_mat[:, -1]
                     if self.calc_eular_dist(last_split_navi - curr_navi_state) >= split_dist:
                         roi_navi_state.append(icp_pose_mat)
-                        roi_image_state.append(self.get_frame_image(i, camera_id=camera_id_list))
+                        roi_image_state.append(curr_camera_list)
                         last_split_navi = curr_navi_state.copy()
                 else:
                     curr_navi_state[[1, 2, 3]] -= init_navi[[1, 2, 3]]
                     world_pcd = self.trans_coord(NaviState(*curr_navi_state).mat, ego_pcd_for_label)
                     if self.calc_eular_dist(last_split_navi - curr_navi_state) >= split_dist:
                         roi_navi_state.append(curr_navi_state)
-                        roi_image_state.append(self.get_frame_image(i, camera_id=camera_id_list))
+                        roi_image_state.append(curr_camera_list)
                         last_split_navi = curr_navi_state.copy()
 
                 world_pcd_list.append(world_pcd)
                 world_pcd_frame_list.append(np.ones(len(world_pcd), dtype=np.int32) * i)
-
-
             else:
                 sweep_frame_fname = os.path.join(self.labeling_sweep_frame_sample,
                                             str(i).zfill(6) + ".bin")
                 ego_pcd.tofile(sweep_frame_fname)
+
+                for im_idx, img_path in enumerate(curr_camera_list):
+                    target_img_dir = os.path.join(self.labeling_sweep_frame_sample_camera, str(im_idx))
+                    if_not_exist_create(target_img_dir)
+                    dst_img_name = os.path.join(target_img_dir, str(i).zfill(6) + img_path[-4:])
+                    os.system("cp -r %s %s"%(img_path, dst_img_name))
             if not self.update_progress("build", i, max_frame):
-                break;
+                break
         mapping_pcd = np.concatenate(world_pcd_list)
         frame_idx_bin = np.concatenate(world_pcd_frame_list)
 
@@ -474,7 +492,8 @@ class UosPCD:
                 self.odometry = CustomKissICP()
             cloudmap, cloudmap_frame, roi_navi_state, roi_image_state = self.mapping(scene_frame_range, roi_frame_range[-1],
                         bbox_root_path, height_range=height_range, split_dist = split_dist)
-
+            import ipdb
+            ipdb.set_trace()
             write_pcd(cloudmap_fname, cloudmap,
                     filed = [('x', np.float32) ,
                             ('y', np.float32),
