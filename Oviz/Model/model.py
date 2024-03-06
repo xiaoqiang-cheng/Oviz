@@ -5,7 +5,7 @@ import os
 import cv2
 from Oviz.PointPuzzle.uos_pcd import UOSLidarData
 import threading
-import PySimpleGUI as sg
+import Oviz.View.custom_progress as sg
 
 
 class Model(QObject):

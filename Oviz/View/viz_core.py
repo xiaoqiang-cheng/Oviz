@@ -298,7 +298,17 @@ class Canvas(QObject, scene.SceneCanvas):
                 self.MouseMotionEvent.emit([CanvasMouseEvent.CtrlMove, event])
             return
 
+
         self.set_visible('template_lasso_pointer', False)
+
+        # if (vispy_key.CONTROL in event.modifiers) and (event.button == 1):
+        #     if len(event.trail()) >= 2:
+        #         p1 = event.trail()[-1]
+        #         p0 = event.trail()[-2]
+
+        #         dx, dy = p1 - p0
+        #         self.view_panel['template'].camera.orbit(-dx/2, 0)
+
 
         if event.button == 1:
             self.MouseMotionEvent.emit([CanvasMouseEvent.LeftPressMove, event])

@@ -2,7 +2,9 @@ from Oviz.Utils.common_utils import *
 from .utils import *
 from tqdm import tqdm
 import math
-import PySimpleGUI as sg
+# import PySimpleGUI as sg
+import Oviz.View.custom_progress as sg
+
 import matplotlib.pyplot as plt
 from .points_icp import CustomKissICP
 
