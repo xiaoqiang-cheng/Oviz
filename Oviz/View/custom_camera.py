@@ -8,6 +8,29 @@ import numpy as np
 from vispy.util import transforms, keys
 from vispy.scene.cameras.perspective import Base3DRotationCamera, PerspectiveCamera
 
+def rotate_around_forward(angle, forward):
+    # 将向量转换为单位向量
+    forward = forward / np.linalg.norm(forward)
+
+    # 根据旋转角度创建旋转矩阵
+    theta = np.radians(angle)
+    cos_theta = np.cos(theta)
+    sin_theta = np.sin(theta)
+    rotation_matrix = np.array([[cos_theta + forward[0]**2 * (1 - cos_theta),
+                                 forward[0] * forward[1] * (1 - cos_theta) - forward[2] * sin_theta,
+                                 forward[0] * forward[2] * (1 - cos_theta) + forward[1] * sin_theta],
+                                [forward[1] * forward[0] * (1 - cos_theta) + forward[2] * sin_theta,
+                                 cos_theta + forward[1]**2 * (1 - cos_theta),
+                                 forward[1] * forward[2] * (1 - cos_theta) - forward[0] * sin_theta],
+                                [forward[2] * forward[0] * (1 - cos_theta) - forward[1] * sin_theta,
+                                 forward[2] * forward[1] * (1 - cos_theta) + forward[0] * sin_theta,
+                                 cos_theta + forward[2]**2 * (1 - cos_theta)]])
+
+    # 应用旋转矩阵到forward向量上
+    rotated_forward = np.dot(rotation_matrix, forward)
+
+    return rotated_forward
+
 
 class CustomCamera(Base3DRotationCamera):
     """3D camera class that orbits around a center point while
@@ -271,4 +294,33 @@ class CustomCamera(Base3DRotationCamera):
                 self.fov = min(180.0, max(0.0, fov))
 
             elif 1 in event.buttons and keys.CONTROL in modifiers:
-                self._update_ctrl_rotation(event)
+                p1 = event.press_event.pos
+                p2 = event.pos
+                d = p2 - p1
+
+                # 计算旋转角度
+                rotation_angle = np.degrees(np.arctan2(d[1], d[0])) * 0.5
+                self.azimuth += rotation_angle
+
+
+
+
+'''
+ch_em = self.events.transform_change
+        with ch_em.blocker(self._update_transform):
+            up, forward, right = self._get_dim_vectors()
+
+            # Create mapping so correct dim is up
+            pp1 = np.array([(0, 0, 0), (0, 0, -1), (1, 0, 0), (0, 1, 0)])
+            pp2 = np.array([(0, 0, 0), forward, right, up])
+            pos = -self._actual_distance * forward
+            scale = [1.0/a for a in self._flip_factors]
+
+            self.transform.matrix = np.linalg.multi_dot((
+                transforms.affine_map(pp1, pp2).T,
+                transforms.translate(pos),
+                self._get_rotation_tr(),
+                transforms.scale(scale),
+                transforms.translate(self.center)
+            ))
+'''

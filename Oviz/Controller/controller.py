@@ -109,7 +109,7 @@ class Controller():
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_revert_single"].clicked.connect(self.revert_multi_frame_cloudmap)
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_pcd2bin"].clicked.connect(self.uos_pcd2bin)
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["button_show_3d_trajectory"].clicked.connect(self.show_uos_3d_trajectory)
-        self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["pcd_path"].SelectDone.connect(self.select_pointcloud)
+        self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["pcd_path"].SelectDone.connect(self.select_pointcloud_sub)
 
         for key, val in self.view.color_checkbox_dict.items():
             # val.stateChanged.connect(partial(self.update_buffer_vis, [POINTCLOUD]))
@@ -382,6 +382,9 @@ class Controller():
             self.image_root_dirs.append(topic_path)
         self.select_format("template", IMAGE, topic_path, meta_form_idx)
 
+    def select_pointcloud_sub(self, topic_path, topic_type):
+        # self.view.dock_element_control_box_layout_dict['template']['pointcloud']['folder_path'].set_topic_path(topic_path)
+        self.view.dock_global_control_box_layout_dict['pointcloud']['folder_path'].set_topic_path(topic_path)
 
     def select_pointcloud(self, topic_path, topic_type):
         self.update_pointsetting_dims()
