@@ -155,11 +155,53 @@ class UosPCD:
         return self.uos_lidar_data.get_frame_image(frame_id=frame_id, camera_id=camera_id)
 
     def only_pcd2bin(self):
-        for i in tqdm(range(self.framecnt)):
-            ego_pcd = self.get_frame_pcd(i)
-            ego_pcd_fname = os.path.join(self.labeling_key_frame_sample, str(i).zfill(6) + ".bin")
-            ego_pcd.tofile(ego_pcd_fname)
-            self.update_progress("pcd2bin", i, self.framecnt)
+        # for i in tqdm(range(self.framecnt)):
+        #     ego_pcd = self.get_frame_pcd(i)
+        #     ego_pcd_fname = os.path.join(self.labeling_key_frame_sample, str(i).zfill(6) + ".bin")
+        #     ego_pcd.tofile(ego_pcd_fname)
+        #     self.update_progress("pcd2bin", i, self.framecnt)
+
+        scene_frame_num = self.scene_step * self.key_frame_step
+        if self.roi_frame_range[0] == -1 and self.roi_frame_range[1] == -1:
+            self.roi_frame_range = [0, self.framecnt]
+        roi_frame_range = [
+            min(self.framecnt, max(0, self.roi_frame_range[0])),
+            max(0, min(self.framecnt, self.roi_frame_range[1])),
+        ]
+        print("roi range is: %s"%str(roi_frame_range))
+        camera_id_list = list(range(len(self.uos_lidar_data.image_path)))
+        for frame in range(*roi_frame_range, scene_frame_num):
+            end_frame = frame + scene_frame_num
+            # when scene frame < scene_frame_num break
+            if end_frame > roi_frame_range[-1]: end_frame = roi_frame_range[-1]
+
+            scene_frame_range = [frame, end_frame]
+            for i in tqdm(range(*scene_frame_range)):
+                ego_pcd = self.get_frame_pcd(i)
+                curr_camera_list = self.get_frame_image(i, camera_id=camera_id_list)
+
+                if (i - scene_frame_range[0]) % self.key_frame_step == 0:
+                    key_frame_sample_fname = os.path.join(self.labeling_key_frame_sample,
+                                                str(i).zfill(6) + ".bin")
+                    ego_pcd.tofile(key_frame_sample_fname)
+
+                    for im_idx, img_path in enumerate(curr_camera_list):
+                        target_img_dir = os.path.join(self.labeling_key_frame_sample_camera, str(im_idx))
+                        if_not_exist_create(target_img_dir)
+                        dst_img_name = os.path.join(target_img_dir, str(i).zfill(6) + img_path[-4:])
+                        os.system("cp -r %s %s"%(img_path, dst_img_name))
+                else:
+                    sweep_frame_fname = os.path.join(self.labeling_sweep_frame_sample,
+                                            str(i).zfill(6) + ".bin")
+                    ego_pcd.tofile(sweep_frame_fname)
+                    for im_idx, img_path in enumerate(curr_camera_list):
+                        target_img_dir = os.path.join(self.labeling_sweep_frame_sample_camera, str(im_idx))
+                        if_not_exist_create(target_img_dir)
+                        dst_img_name = os.path.join(target_img_dir, str(i).zfill(6) + img_path[-4:])
+                        os.system("cp -r %s %s"%(img_path, dst_img_name))
+
+                if not self.update_progress("pcd2bin", i, roi_frame_range[-1]):
+                    break
 
 
     def filter_points_by_range(self, points,

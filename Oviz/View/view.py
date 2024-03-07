@@ -727,7 +727,7 @@ class View(QMainWindow):
 
     def dynamic_add_image_dock(self, index):
         # image_dock_config =
-        self.layout_config['image_dock_path'].append(self.layout_config['image_dock_path'][index])
+        self.layout_config['image_dock_path'].append(copy.deepcopy(self.layout_config['image_dock_path'][index]))
         self.add_single_image_dock(self.layout_config['image_dock_path'][-1])
         self.addImageDock.emit(len(self.image_dock) - 1)
 
