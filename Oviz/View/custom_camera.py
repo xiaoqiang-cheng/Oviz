@@ -112,7 +112,11 @@ class CustomCamera(Base3DRotationCamera):
     @elevation.setter
     def elevation(self, elev):
         elev = float(elev)
-        self._elevation = min(90, max(-90, elev))
+        while elev < -180:
+            elev += 360
+        while elev > 180:
+            elev -= 360
+        self._elevation = elev
         self.view_changed()
 
     @property
@@ -226,6 +230,12 @@ class CustomCamera(Base3DRotationCamera):
         if event.type == 'mouse_release':
             self._event_value = None  # Reset
         elif event.type == 'mouse_press':
+            if 1 in event.buttons and keys.CONTROL in event.mouse_event.modifiers:
+                self.rotation_ctrl_press = self._get_rotation_tr()
+
+                pos = event.pos[0:2]
+                center = np.array([event.source.width / 2, event.source.height / 2])
+                self.theta_ctrl_press = np.arctan2(center[1] - pos[1], pos[0] - center[0]) / np.pi * 180
             event.handled = True
         elif event.type == 'mouse_move':
             if event.press_event is None:
@@ -294,13 +304,17 @@ class CustomCamera(Base3DRotationCamera):
                 self.fov = min(180.0, max(0.0, fov))
 
             elif 1 in event.buttons and keys.CONTROL in modifiers:
-                p1 = event.press_event.pos
-                p2 = event.pos
-                d = p2 - p1
+                pos = event.pos[0:2]
+                center = np.array([event.source.width / 2, event.source.height / 2])
+                theta = np.arctan2(center[1] - pos[1], pos[0] - center[0]) / np.pi * 180
+                delta = theta - self.theta_ctrl_press
 
-                # 计算旋转角度
-                rotation_angle = np.degrees(np.arctan2(d[1], d[0])) * 0.5
-                self.azimuth += rotation_angle
+                up, forward, right = self._get_dim_vectors()
+                rotation = transforms.rotate(delta, forward) @ self.rotation_ctrl_press
+                self.elevation = np.arctan2(rotation[2, 1], rotation[1, 1]) / np.pi * 180
+                self.azimuth = np.arcsin(rotation[0, 1]) / np.pi * 180
+                self.roll = -np.arctan2(rotation[0, 2], rotation[0, 0]) / np.pi * 180
+
 
 
 
