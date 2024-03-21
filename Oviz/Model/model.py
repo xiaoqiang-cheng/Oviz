@@ -151,6 +151,10 @@ class Model(QObject):
         if self.uos_lidar_type:
             if self.offline_frame_cnt > 0:
                 cnt = self.offline_frame_cnt
+                temp_flist = os.listdir(folder_path)
+                if len(temp_flist[0]) < 17:
+                    self.deal_folder(group, folder_path, ele_index, IMAGE, [".jpg", ".png", ".tiff"])
+                    return cnt
                 image_list, timestamp_list = find_files_with_extension(folder_path)
                 target_timestamp_list = self.uos_lidar_data.navi_list[:, 0]
                 latest_database = {}

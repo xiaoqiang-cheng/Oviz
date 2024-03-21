@@ -15,11 +15,25 @@ class UOSLidarData:
         self.image_path = image_path
         self.image_fname_list = []
         self.image_timestamp_list = []
-
+        self.image_timestamp_mode = []
         for f in self.image_path:
-            image_list, timestamp_list = find_files_with_extension(f)
-            self.image_fname_list.append(image_list)
-            self.image_timestamp_list.append(timestamp_list)
+            if len(os.listdir(f)[0]) < 17:
+                curr_camera_image_list = {}
+                self.image_timestamp_mode.append(False)
+                image_list = []
+                image_dir_list = os.listdir(f)
+                image_dir_list.sort()
+                for fi in image_dir_list:
+                    key, ext = os.path.splitext(fi)
+                    if ext in ['.png', '.jpg']:
+                        curr_camera_image_list[key] = os.path.join(f, fi)
+                self.image_fname_list.append(curr_camera_image_list)
+            else:
+                self.image_timestamp_mode.append(True)
+                image_list, timestamp_list = find_files_with_extension(f)
+                self.image_fname_list.append(image_list)
+                self.image_timestamp_list.append(timestamp_list)
+
         try:
             self.veh_name, self.lidar_metadata = get_metadata(pcd_path)
             self.sensor2ego_mat = get_sensor2ego_mat(self.lidar_metadata)
@@ -38,18 +52,26 @@ class UOSLidarData:
     def get_image_filepath(self, camera_id = 0, frame_id = 0):
         if len(self.image_path) <= camera_id:
             return None
-        lidar_t = self.navi_list[frame_id][0]
-        best_image_path = None
-        curr_camera_timestamp_list = self.image_timestamp_list[camera_id]
-        min_time_difference = float('inf')
 
-        for j, img_t in enumerate(curr_camera_timestamp_list):
-            time_difference = abs(img_t - lidar_t)
-            if time_difference < min_time_difference:
-                min_time_difference = time_difference
-                best_image_path = self.image_fname_list[camera_id][j]
-                if time_difference < 0.05:
-                    break
+        if self.image_timestamp_mode[camera_id]:
+            lidar_t = self.navi_list[frame_id][0]
+            best_image_path = None
+            curr_camera_timestamp_list = self.image_timestamp_list[camera_id]
+            min_time_difference = float('inf')
+
+            for j, img_t in enumerate(curr_camera_timestamp_list):
+                time_difference = abs(img_t - lidar_t)
+                if time_difference < min_time_difference:
+                    min_time_difference = time_difference
+                    best_image_path = self.image_fname_list[camera_id][j]
+                    if time_difference < 0.05:
+                        break
+        else:
+            try:
+                best_image_path = self.image_fname_list[camera_id][str(frame_id).zfill(6)]
+            except:
+                print(frame_id)
+                best_image_path = None
         return best_image_path
 
     def trans_coord(self, mat, points, dim=[0, 1, 2]):
@@ -244,12 +266,22 @@ class UosPCD:
         return filtered_points, ~within_range
 
     def mark_points_by_bboxes(self, points, bboxes_path = ""):
-        gt_bboxes = np.loadtxt(bboxes_path, dtype=np.float32)
-        if len(gt_bboxes.shape) == 1:
-            gt_bboxes = gt_bboxes.reshape(1, -1)
+        try:
+            gt_bboxes = np.loadtxt(bboxes_path, dtype=np.float32)
+            if len(gt_bboxes.shape) == 1:
+                gt_bboxes.reshape(1, -1)
 
-        gt_labels = gt_bboxes[:, 0].astype(np.int32)
-        gt_bboxes = gt_bboxes[:, 1:-1]
+            gt_bboxes[:, -1] = -gt_bboxes[:, -1]
+            gt_labels = gt_bboxes[:, 0].astype(np.int32)
+            gt_bboxes = gt_bboxes[:, 1:-1]
+        except:
+            bboxes = np.loadtxt(bboxes_path, dtype=str)
+            if len(bboxes.shape) == 1:
+                bboxes = bboxes.reshape(1, -1)
+            gt_bboxes = bboxes[..., [1,2,3,5,6,4,7]].astype(np.float32)
+
+            gt_labels = bboxes[..., 0].astype(np.float32).astype(np.int32)
+
 
         pts_semantic_label, pts_instance_label = labeling_point_in_rbbox(points, gt_bboxes, gt_labels)
         points[:, -2] = pts_semantic_label
@@ -546,15 +578,13 @@ class UosPCD:
                 self.odometry = CustomKissICP()
             cloudmap, cloudmap_frame, roi_navi_state, roi_image_state = self.mapping(scene_frame_range, roi_frame_range[-1],
                         bbox_root_path, height_range=height_range, split_dist = split_dist)
-            import ipdb
-            ipdb.set_trace()
+
             write_pcd(cloudmap_fname, cloudmap,
                     filed = [('x', np.float32) ,
                             ('y', np.float32),
                             ('z', np.float32),
                             ('label', np.int32),
                             ('object', np.int32)])
-
             cloudmap_frame.tofile(cloudmap_idx_fname)
             self.split_cloud_map(cloudmap, cloudmap_frame,
                     scene_range_name, roi_navi_state, roi_image_state, split_dist)

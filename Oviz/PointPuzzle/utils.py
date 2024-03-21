@@ -29,11 +29,11 @@ PARSE_LABEL_MODE = 1
 POINTS_CLASS_NAME = [
     'ignore', 'barrier', 'bicycle', 'bus', 'car', 'construction_vehicle', 'motorcycle',
     'pedestrian', 'traffic_cone', 'trailer', 'truck', 'driveable_surface', 'sidewalk',
-    'terrain', 'other_flat', 'manmade', 'vegetation', 'pole', 'traffic sign', 'tricycle'
+    'terrain', 'other_flat', 'manmade', 'vegetation', 'pole', 'traffic sign', 'tricycle', 'railing', 'animal'
 ]
 
 BBOX_CLASS_NAME = [
-    'car', 'truck', 'bus', 'bicycle', 'triple_wheel', 'human', 'animal', 'traffic_cone', 'other'
+    'ignore', 'car', 'truck', 'bus', 'bicycle', 'triple_wheel', 'human', 'animal', 'traffic_cone', 'other'
 ]
 
 LABEL_NAME_MAPPING = {
@@ -44,7 +44,7 @@ LABEL_NAME_MAPPING = {
     'bicycle'       : 'bicycle',
     'triple_wheel'  : 'tricycle',
     'human'         : 'pedestrian',
-    'animal'        : 'ignore',
+    'animal'        : 'animal',
     'traffic_cone'  : 'traffic_cone',
     'other'         : 'ignore',
 }
@@ -59,10 +59,11 @@ def deserialize_data(file_path):
     return data
 
 
-def point_in_rbbox(pts, bbox, eps=1e-2):
+def point_in_rbbox(pts, bbox, xyz_dim = [0, 1, 2],
+        wlh_dim = [3, 4, 5], theta_dim = -1, eps=1e-2):
     pts_xyz = pts[:, :3].copy()
 
-    rot = -bbox[-1]
+    rot = bbox[-1]
 
     rot_m = np.array([
         np.cos(rot), -np.sin(rot),
@@ -93,7 +94,11 @@ def labeling_point_in_rbbox(pts, gt_bboxes, gt_labels):
     num_bbox = gt_bboxes.shape[0]
     for i in range(num_bbox):
         bbox_label = gt_labels[i]
-        semantic_label = POINTS_CLASS_NAME.index(LABEL_NAME_MAPPING[BBOX_CLASS_NAME[bbox_label]])
+        try:
+            semantic_label = POINTS_CLASS_NAME.index(LABEL_NAME_MAPPING[BBOX_CLASS_NAME[bbox_label]])
+        except:
+            import ipdb
+            ipdb.set_trace()
 
         in_flag = point_in_rbbox(pts, gt_bboxes[i])
         pts_semantic_mask[in_flag] = semantic_label
