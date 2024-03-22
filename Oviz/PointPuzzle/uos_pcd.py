@@ -43,7 +43,6 @@ class UOSLidarData:
         except:
             self.lidar_metadata = None
 
-
     def get_pcd_filepath(self, sensor_id, frame_id):
         fname = "ml_lidar_raw_%d_%s.pcd"%(sensor_id + 1, str(frame_id).zfill(6))
 
@@ -134,6 +133,7 @@ class UosPCD:
         self.key_frame_step = sample_frame_step
         self.scene_step = scene_frame_step
         self.roi_frame_range = roi_range
+        self.patch_mask_meta = {}
 
         self.ready_labeling_workspace(os.path.join(pcd_path, "useg_labeling"))
         # maybe add a pipeline meta to record per step
@@ -441,8 +441,6 @@ class UosPCD:
                         scene_name = "",
                         roi_navi_state = None, roi_image_state = None,
                         split_dist = None):
-        patch_mask_metadata_fname = os.path.join(self.labeling_cloudmap_patch_dir, "cloud_mask_metadata.pkl")
-        patch_mask = {}
         mask_any = np.ones(len(cloud_map), dtype=bool)
 
         for i, navi in enumerate(roi_navi_state):
@@ -470,10 +468,10 @@ class UosPCD:
             scene_patch_name = scene_name + "_" + str(i).zfill(4)
 
             patch_pcd_fname = os.path.join(self.labeling_cloudmap_patch_dir, scene_patch_name + ".pcd")
-            if scene_name not in patch_mask.keys():
-                patch_mask[scene_name] = {}
+            if scene_name not in self.patch_mask_meta.keys():
+                self.patch_mask_meta[scene_name] = {}
 
-            patch_mask[scene_name][scene_patch_name] = mask
+            self.patch_mask_meta[scene_name][scene_patch_name] = mask
 
             if cloud_map_frame_id is None:
                 write_pcd(patch_pcd_fname, cloud,
@@ -501,13 +499,12 @@ class UosPCD:
                     dst_img_name = os.path.join(target_img_dir, scene_patch_name + fi[-4:])
                     os.system("cp -r %s %s"%(fi, dst_img_name))
             # self.update_progress("split", i,  int(curr_dist_max / split_dist) + 1)
-        serialize_data(patch_mask, patch_mask_metadata_fname)
+
 
 
     def revert(self):
         patch_mask_metadata_fname = os.path.join(self.labeling_cloudmap_patch_dir, "cloud_mask_metadata.pkl")
         patch_mask_metadata = deserialize_data(patch_mask_metadata_fname)
-
         for scene_name in tqdm(patch_mask_metadata.keys()):
             gts_cloudmap = scene_name + ".pcd"
             gts_cloudmap_path = os.path.join(self.labeling_cloudmap_dir, gts_cloudmap)
@@ -591,6 +588,8 @@ class UosPCD:
 
         write_json(self.info_ego_pos_list, self.ego_pos_list_fname)
         write_json(self.info_sample_list, self.sample_fname)
+        patch_mask_metadata_fname = os.path.join(self.labeling_cloudmap_patch_dir, "cloud_mask_metadata.pkl")
+        serialize_data(self.patch_mask_meta, patch_mask_metadata_fname)
 
     def show_3d_trajectory(self):
         fig = plt.figure()
