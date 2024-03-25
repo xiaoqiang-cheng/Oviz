@@ -122,7 +122,7 @@ class Controller():
 
         for key, val in self.view.color_id_button_dict.items():
             val.clicked.connect(partial(self.trigger_labeled_button, key))
-
+        self.view.triggerLastLabeled.connect(self.trigger_labeled_button)
         self.view.lassoSelected.connect(self.update_lasso_selected_area)
         self.view.updateFilterHide.connect(self.filtr_hide_color)
         self.view.dock_filter_hide_box.filterHideChange.connect(self.filter_hide_frame)
@@ -218,7 +218,8 @@ class Controller():
 
     def trigger_labeled_button(self, button_id):
         if self.last_selected_mask is None: return
-
+        if button_id == -1: return
+        print(button_id)
         self.selected_button_id = int(button_id)
         pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
         pointclouds[0][self.last_selected_mask, self.pointcloud_setting.color_dims] = self.selected_button_id
@@ -226,6 +227,7 @@ class Controller():
         self.update_buffer_vis()
         self.model.dump_labeled_bin_results(self.curr_frame_key,
                 pointclouds[0][:, self.pointcloud_setting.color_dims])
+        self.view.last_labeled_button_id = self.selected_button_id
 
     def show_uos_3d_trajectory(self):
         cloudmap_setting = CloudmapSetting(*self.view.get_cloudmap_setting())

@@ -19,6 +19,7 @@ class View(QMainWindow):
     addImageDock = Signal(int)
     lassoSelected = Signal(list)
     updateFilterHide = Signal()
+    triggerLastLabeled = Signal(int)
 
     def __init__(self) -> None:
         super().__init__()
@@ -40,6 +41,7 @@ class View(QMainWindow):
         self.record_image_start_time = None
         self.record_screen_save_dir = None
         self.label_mode_enable = False
+        self.last_labeled_button_id = -1
 
         self.installEventFilter(self)  # 将事件过滤器安装到UI对象上
 
@@ -246,6 +248,8 @@ class View(QMainWindow):
         elif q.text() == "下一帧":
             self.dock_range_slide.stop_auto_play()
             self.dock_range_slide.next_frame()
+        elif q.text() == "标注":
+            self.triggerLastLabeled.emit(self.last_labeled_button_id)
 
     def create_color_map_widget2(self):
         color_id_map_list = QListWidget()

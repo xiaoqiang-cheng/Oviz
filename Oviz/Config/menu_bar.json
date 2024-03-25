@@ -24,7 +24,8 @@
             "保存": "Ctrl+S",
             "自动播放": "Ctrl+P",
             "上一帧": "q",
-            "下一帧": "e"
+            "下一帧": "e",
+            "标注": "Space"
         },
         "self.menu_bar_trigger_operation"
     ]
