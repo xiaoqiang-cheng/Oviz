@@ -314,6 +314,11 @@ class View(QMainWindow):
             self.lassoSelected.emit([None, mouse_type])
             return None
 
+        if mouse_type in [CanvasMouseEvent.RestorePress]:
+            self.lassoSelected.emit([None, mouse_type])
+            return None
+
+
     def get_focus_pos(self):
         return self.canvas.focus_points_pos
 
@@ -425,17 +430,27 @@ class View(QMainWindow):
             color_label = self.color_show_label[c]
             self.color_id_button_dict[c] = QPushButton(color_label)
             self.color_id_button_dict[c].setMinimumWidth(100)
+            self.color_id_button_dict[c].setMinimumHeight(25)
             # self.color_id_button_dict[c].setStyleSheet("color: black")
             # self.color_id_button_dict[c].setStyleSheet("background-color:%s"%val)
 
             self.color_id_button_dict[c].setStyleSheet(
-                '''QPushButton{ background: %s; border-radius:5px; font-size:blod 15px;  color: rgb(0,0,0);}'''%val
+                '''QPushButton{ background: %s; border-radius:5px; font: 25 14pt "Microsoft YaHei"; color: rgb(0,0,0);}'''%val
             )
 
 
             self.color_pts_num_dict[c] = QLabel("0")
+
+            self.color_pts_num_dict[c].setStyleSheet(
+                '''QLabel{font-size:blod 40px }'''
+            )
+
             self.color_pts_num_dict[c].setMinimumWidth(60)
             self.color_checkbox_dict[c] = QCheckBox(c)
+            self.color_checkbox_dict[c].setStyleSheet(
+                ''' QCheckBox{ font-size:blod 40px }'''
+            )
+
             self.reverse_color_checkbox_dict[c] = QCheckBox('~')
             self.color_checkbox_dict[c].setChecked(True)
 
