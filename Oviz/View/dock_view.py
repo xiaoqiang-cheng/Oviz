@@ -384,16 +384,34 @@ class RangeSlideDockWidget(QDockWidget):
     def set_frame_text(self, index):
         self.frame.setText(str(index))
 
+    def check_end(self):
+        reply = QMessageBox.warning(
+                self, "注意:",
+                "当前为最后/最前一帧, 是否跳转到下一轮",
+                QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+        if reply == QMessageBox.Yes:
+            return True
+        else:
+            return False
+
     def next_frame(self):
         self.curr_index += 1
         if self.curr_index >= self.frame_range:
-            self.curr_index = 0
+            if self.check_end():
+                self.curr_index = 0
+            else:
+                self.curr_index -= 1
+                return
         self.set_frame_text(self.curr_index)
 
     def last_frame(self):
         self.curr_index -= 1
         if self.curr_index < 0:
-            self.curr_index = self.frame_range - 1
+            if self.check_end():
+                self.curr_index = self.frame_range - 1
+            else:
+                self.curr_index = 0
+                return
         self.set_frame_text(self.curr_index)
 
     def get_curr_index(self):
