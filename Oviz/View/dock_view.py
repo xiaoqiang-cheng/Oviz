@@ -305,7 +305,7 @@ class RangeSlideDockWidget(QDockWidget):
 
         self.frame.textChanged.connect(self.set_bar)
         self.range_slider.valueChanged.connect(self.change_bar)
-        self.search_text.textChanged.connect(self.search_change)
+        self.search_text.returnPressed.connect(self.search_change)
         self.auto.stateChanged.connect(self.auto_ctrl)
 
     def set_completer(self, frame_name_list):
@@ -353,8 +353,9 @@ class RangeSlideDockWidget(QDockWidget):
     def set_frame_cnt(self, cnt):
         self.frame_cnt.setText("/" + str(cnt))
 
-    def search_change(self, text):
+    def search_change(self):
         index = -1
+        text = self.search_text.text()
         try:
             index = self.listname.index(text)
             self.set_frame_text(index)
