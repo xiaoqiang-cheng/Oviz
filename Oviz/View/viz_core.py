@@ -360,6 +360,10 @@ class Canvas(QObject, scene.SceneCanvas):
             self.MouseMotionEvent.emit([CanvasMouseEvent.MiddlePress, event])
             return
 
+        if (vispy_key.CONTROL in event.modifiers) and event.key == vispy_key.Key('y'):
+            self.MouseMotionEvent.emit([CanvasMouseEvent.RestorePress, event])
+            return
+
         if event.key == vispy_key.Key('v'):
             self.MouseMotionEvent.emit([CanvasMouseEvent.VisionPress, event])
             return

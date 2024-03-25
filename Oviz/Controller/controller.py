@@ -47,6 +47,9 @@ class Controller():
         self.selected_button_id = 0
         self.last_selected_mask = None
         self.last_selected_label = None
+
+        self.stage_selected_mask = None
+        self.stage_selected_label = None
         # self.lasso_select_enabled = False
         self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
 
@@ -178,7 +181,7 @@ class Controller():
                 if (self.last_selected_mask is not None) and (selected_mask is not None):
                     self.last_selected_mask &= ~selected_mask
                     pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = self.last_selected_label[selected_mask].reshape(-1)
-
+            self.stage_selected_mask = self.last_selected_mask
             self.update_buffer_vis(field=[POINTCLOUD])
             return
 
@@ -199,8 +202,14 @@ class Controller():
                         pointclouds[0][:, self.pointcloud_setting.color_dims])
             return
 
-    def filter_hide_frame(self, valid_frame = [], dim = None):
+        if self.lasso_mouse_type == CanvasMouseEvent.RestorePress:
+            pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
+            pointclouds[0][self.stage_selected_mask, self.pointcloud_setting.color_dims] = -1
+            self.last_selected_mask = self.stage_selected_mask
+            self.update_buffer_vis()
+            return
 
+    def filter_hide_frame(self, valid_frame = [], dim = None):
         pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
         keep_mask = np.zeros(pointclouds[0].shape[0], dtype=bool)
         if len(valid_frame) == 0:
@@ -213,16 +222,15 @@ class Controller():
             self.pointcloud_hide_mask = ~keep_mask
 
         self.pointcloud_legacy_mask = ~(self.pointcloud_hide_color_mask | self.pointcloud_hide_mask)
-
         self.update_buffer_vis([POINTCLOUD])
 
     def trigger_labeled_button(self, button_id):
         if self.last_selected_mask is None: return
         if button_id == -1: return
-        print(button_id)
         self.selected_button_id = int(button_id)
         pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
         pointclouds[0][self.last_selected_mask, self.pointcloud_setting.color_dims] = self.selected_button_id
+
         self.last_selected_mask = None
         self.update_buffer_vis()
         self.model.dump_labeled_bin_results(self.curr_frame_key,
