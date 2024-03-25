@@ -114,6 +114,7 @@ def points_in_polygon(polygon, pts):
     # Filter vertices out of the polygon's bounding box, this serve as an early optimization whenever number of vertices
     # to filter out is huge.
     x1, x2, y1, y2 = min(polygon[:, 0]), max(polygon[:, 0]), min(polygon[:, 1]), max(polygon[:, 1])
+
     selection_mask = (x1 < pts[:, 0]) & (pts[:, 0] < x2) & (y1 < pts[:, 1]) & (pts[:, 1] < y2)
     pts_in_bbox = pts[selection_mask]
 
