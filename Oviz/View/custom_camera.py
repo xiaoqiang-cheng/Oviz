@@ -200,16 +200,19 @@ class CustomCamera(Base3DRotationCamera):
 
     def _dist_to_trans(self, dist):
         """Convert mouse x, y movement into x, y, z translations"""
-        rae = np.array([self.roll, self.azimuth, self.elevation]) * np.pi / 180
-        sro, saz, sel = np.sin(rae)
-        cro, caz, cel = np.cos(rae)
-        d0, d1 = dist[0], dist[1]
-        dx = (+ d0 * (cro * caz + sro * sel * saz)
-              + d1 * (sro * caz - cro * sel * saz)) * self.translate_speed
-        dy = (+ d0 * (cro * saz - sro * sel * caz)
-              + d1 * (sro * saz + cro * sel * caz)) * self.translate_speed
-        dz = (- d0 * sro * cel + d1 * cro * cel) * self.translate_speed
-        return dx, dy, dz
+        return (np.linalg.inv(self._get_rotation_tr()) @ transforms.translate([dist[0], 0, dist[1]]) @ self._get_rotation_tr())[3,:3]
+
+        # rae = np.array([self.roll, self.azimuth, self.elevation]) * np.pi / 180
+        # sro, saz, sel = np.sin(rae)
+        # cro, caz, cel = np.cos(rae)
+        # d0, d1 = dist[0], dist[1]
+        # dx = (+ d0 * (cro * caz + sro * sel * saz)
+        #       + d1 * (sro * caz - cro * sel * saz)) * self.translate_speed
+        # dy = (+ d0 * (cro * saz - sro * sel * caz)
+        #       + d1 * (sro * saz + cro * sel * caz)) * self.translate_speed
+        # dz = (- d0 * sro * cel + d1 * cro * cel) * self.translate_speed
+        # print(dx, dy, dz)
+        # return dx, dy, dz
 
 
     def viewbox_mouse_event(self, event):
