@@ -93,6 +93,7 @@ class UOSLidarData:
         multi_pcd_list = []
         for i, sensor_key in enumerate(self.sensor2ego_mat.keys()):
             pcd_file = self.get_pcd_filepath(i, frame_id)
+            if not os.path.exists(pcd_file): continue
             sensor_pcd = read_pcd(pcd_file)
             sensor2ego = self.sensor2ego_mat[sensor_key]
             ego_pcd = self.trans_coord(sensor2ego, sensor_pcd)
