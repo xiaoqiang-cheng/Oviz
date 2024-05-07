@@ -54,6 +54,10 @@ class Controller():
         self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
 
         self.revert_user_config()
+
+        self.model.hasNewMsg.connect(self.update_buffer_vis)
+        self.view.dock_range_slide.frameChanged.connect(self.update_system_vis)
+
         send_log_msg(NORMAL, "Oviz 系統开始运行！")
 
     def global_box_signal_connect(self):
@@ -97,8 +101,6 @@ class Controller():
         self.view.image_dock[index].SelectDone.connect(self.select_image)
 
     def signal_connect(self):
-        self.model.hasNewMsg.connect(self.update_buffer_vis)
-        self.view.dock_range_slide.frameChanged.connect(self.update_system_vis)
         for val in self.view.image_dock:
             val.SelectDone.connect(self.select_image)
 
@@ -115,11 +117,9 @@ class Controller():
         self.view.dock_mapping_control_box_layout_dict["uos_pcd_setting"]["pcd_path"].SelectDone.connect(self.select_pointcloud_sub)
 
         for key, val in self.view.color_checkbox_dict.items():
-            # val.stateChanged.connect(partial(self.update_buffer_vis, [POINTCLOUD]))
             val.stateChanged.connect(self.filtr_hide_color)
 
         for key, val in self.view.reverse_color_checkbox_dict.items():
-            # val.stateChanged.connect(partial(self.update_buffer_vis, [POINTCLOUD]))
             val.stateChanged.connect(self.filtr_hide_color)
 
 
@@ -327,8 +327,9 @@ class Controller():
     def revert_user_config(self):
         try:
             self.update_pointsetting_dims()
+            self.curr_frame_index = self.view.layout_config["last_slide_num"]
             self.view.revet_layout_config()
-            self.update_system_vis(self.view.layout_config["last_slide_num"])
+            # self.update_system_vis(self.view.layout_config["last_slide_num"])
         except:
             print("ERROR REVERT")
             pass
