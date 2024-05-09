@@ -113,10 +113,13 @@ class UosPCD:
             pc_range = [-32.0, -50.0, -3.0, 32.0, 70.0, 10.0],
             veh_range = [-2, -2, -1, 2, 5, 3],
             mode = "build") -> None:
+
         self.pcd_path = pcd_path
         if not os.path.exists(pcd_path):
             print("ERROR PCD path not exist!")
             return
+
+        self.ready_labeling_workspace(os.path.join(pcd_path, "useg_labeling"))
 
         if mode == "build":
             self.uos_lidar_data = UOSLidarData(self.pcd_path, image_path)
@@ -126,41 +129,52 @@ class UosPCD:
                 self.sensor_cnt = self.uos_lidar_data.sensor_cnt
                 self.enable_icp = True
 
-        self.info_ego_pos_list = []
-        self.info_sample_list = []
+            self.pc_range = pc_range
+            self.veh_range = veh_range
+            self.key_frame_step = sample_frame_step
+            self.scene_step = scene_frame_step
+            self.roi_frame_range = roi_range
 
-        self.pc_range = pc_range
-        self.veh_range = veh_range
-        self.key_frame_step = sample_frame_step
-        self.scene_step = scene_frame_step
-        self.roi_frame_range = roi_range
-        self.patch_mask_meta = {}
+            self.info_ego_pos_list = []
+            self.info_sample_list = []
+            self.patch_mask_meta = {}
 
-        self.ready_labeling_workspace(os.path.join(pcd_path, "useg_labeling"))
-        # maybe add a pipeline meta to record per step
+            self.patch_mask_meta['system'] = {}
+            self.patch_mask_meta['system']['pc_range'] = self.pc_range
+            self.patch_mask_meta['system']['veh_range'] = self.veh_range
+            self.patch_mask_meta['system']['key_frame_step'] = self.key_frame_step
+            self.patch_mask_meta['system']['scene_step'] = self.scene_step
+            self.patch_mask_meta['system']['roi_frame_range'] = self.roi_frame_range
+
+        else:
+            patch_mask_metadata_fname = os.path.join(self.labeling_cloudmap_patch_dir, "cloud_mask_metadata.pkl")
+            self.patch_mask_meta = deserialize_data(patch_mask_metadata_fname)
+
+            self.pc_range = self.patch_mask_meta['system']['pc_range']
+            self.veh_range = self.patch_mask_meta['system']['veh_range']
+            self.key_frame_step = self.patch_mask_meta['system']['key_frame_step']
+            self.scene_step = self.patch_mask_meta['system']['scene_step']
+            self.roi_frame_range = self.patch_mask_meta['system']['roi_frame_range']
+
+            self.patch_mask_meta.pop('system')
 
     def ready_labeling_workspace(self, save_dir):
         self.labeling_cloudmap_dir = os.path.join(save_dir, "cloudmap")
-        self.labeling_cloudmap_fidx_dir = os.path.join(save_dir, "cloudmap_fidx")
         self.labeling_cloudmap_patch_dir = os.path.join(save_dir, "patch_for_anno", "cloudmap")
         self.labeling_image_patch_dir = os.path.join(save_dir, "patch_for_anno", "image_align")
-        # self.labeling_cloud_filter = os.path.join(save_dir, "cloud_filter")
+
         self.labeling_key_frame_sample = os.path.join(save_dir, "sample", "lidar")
         self.labeling_sweep_frame_sample = os.path.join(save_dir, "sweep", "lidar")
         self.labeling_key_frame_sample_camera = os.path.join(save_dir, "sample", "camera")
         self.labeling_sweep_frame_sample_camera = os.path.join(save_dir, "sweep", "camera")
-
         self.labeling_info_dir = os.path.join(save_dir, "info")
-
         self.labeled_ground_truth_dir = os.path.join(save_dir, "cloudmap_labeled")
-
         self.ego_pos_list_fname = os.path.join(save_dir, "info", "ego_pos_list.json")
         self.sample_fname = os.path.join(save_dir, "info", "sample.json")
         self.revert_seg_ins_label_dir = os.path.join(save_dir, "sample_labeled")
 
 
         if_not_exist_create(self.labeling_cloudmap_dir)
-        if_not_exist_create(self.labeling_cloudmap_fidx_dir)
         if_not_exist_create(self.labeling_cloudmap_patch_dir)
         if_not_exist_create(self.labeling_image_patch_dir)
 
@@ -181,11 +195,6 @@ class UosPCD:
         return self.uos_lidar_data.get_frame_image(frame_id=frame_id, camera_id=camera_id)
 
     def only_pcd2bin(self):
-        # for i in tqdm(range(self.framecnt)):
-        #     ego_pcd = self.get_frame_pcd(i)
-        #     ego_pcd_fname = os.path.join(self.labeling_key_frame_sample, str(i).zfill(6) + ".bin")
-        #     ego_pcd.tofile(ego_pcd_fname)
-        #     self.update_progress("pcd2bin", i, self.framecnt)
         if self.uos_lidar_data.lidar_metadata is None:
             pcd_files = os.listdir(self.uos_lidar_data.pcd_path)
             for i, f in enumerate(pcd_files):
@@ -473,6 +482,7 @@ class UosPCD:
                 self.patch_mask_meta[scene_name] = {}
 
             self.patch_mask_meta[scene_name][scene_patch_name] = mask
+            self.patch_mask_meta[scene_name]['frame_idx'] = cloud_map_frame_id
 
             if cloud_map_frame_id is None:
                 write_pcd(patch_pcd_fname, cloud,
@@ -504,15 +514,16 @@ class UosPCD:
 
 
     def revert(self):
-        patch_mask_metadata_fname = os.path.join(self.labeling_cloudmap_patch_dir, "cloud_mask_metadata.pkl")
-        patch_mask_metadata = deserialize_data(patch_mask_metadata_fname)
+        patch_mask_metadata = self.patch_mask_meta
         for scene_name in tqdm(patch_mask_metadata.keys()):
             gts_cloudmap = scene_name + ".pcd"
             gts_cloudmap_path = os.path.join(self.labeling_cloudmap_dir, gts_cloudmap)
-            gts_cloudmap_frame_idx_path = os.path.join(self.labeling_cloudmap_fidx_dir,
-                        gts_cloudmap.replace(".pcd", ".bin"))
 
             ground_truth_pcd = read_pcd(gts_cloudmap_path)
+
+            # read from metadata
+            frame_idx_array = patch_mask_metadata[scene_name].pop('frame_idx')
+            frame_list = np.unique(frame_idx_array)
 
             for gt_patch_name in tqdm(patch_mask_metadata[scene_name].keys()):
                 mask = patch_mask_metadata[scene_name][gt_patch_name]
@@ -520,9 +531,6 @@ class UosPCD:
                 ground_truth_patch_pcd = read_pcd(gt_patch_pcd_fname)
                 ground_truth_pcd[mask] = ground_truth_patch_pcd
 
-            frame_idx_array = np.fromfile(gts_cloudmap_frame_idx_path, dtype=np.int32)
-
-            frame_list = np.unique(frame_idx_array)
             for f in frame_list:
                 sample_name = str(f).zfill(6)
                 sample_path = os.path.join(self.labeling_key_frame_sample, sample_name  + ".bin")
@@ -569,8 +577,6 @@ class UosPCD:
             scene_range_name = str(scene_frame_range[0]).zfill(6) + "_" + str(scene_frame_range[1]).zfill(6)
             cloudmap_fname = os.path.join(self.labeling_cloudmap_dir,
                         scene_range_name + ".pcd")
-            cloudmap_idx_fname = os.path.join(self.labeling_cloudmap_fidx_dir,
-                        scene_range_name + ".bin")
 
             if self.enable_icp:
                 self.odometry = CustomKissICP()
@@ -583,7 +589,7 @@ class UosPCD:
                             ('z', np.float32),
                             ('label', np.int32),
                             ('object', np.int32)])
-            cloudmap_frame.tofile(cloudmap_idx_fname)
+            # cloudmap_frame.tofile(cloudmap_idx_fname)
             self.split_cloud_map(cloudmap, cloudmap_frame,
                     scene_range_name, roi_navi_state, roi_image_state, split_dist)
 
