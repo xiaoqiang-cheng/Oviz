@@ -104,7 +104,7 @@ def write_pcd(path, nparray,
     out = np.rec.fromarrays(new_bin, dtype=dtype)
 
     pc = pypcd.PointCloud.from_array(out)
-    pypcd.save_point_cloud(pc, path)
+    pypcd.save_point_cloud_bin(pc, path)
 
 def rotation_mat(theta):
    """ same as Rotation.from_euler('xyz', rot).as_matrix() """

@@ -25,7 +25,7 @@ class Model(QObject):
     def check_labeled_results_exist(self, key):
         if self.pc_path is not None:
             self.sementic_labeled_results_path = os.path.join(self.pc_path, "internal", "bins")
-            if_not_exist_create(self.sementic_labeled_results_path)
+            # if_not_exist_create(self.sementic_labeled_results_path)
             labeled_fpath = os.path.join(self.sementic_labeled_results_path, key + ".bin")
             if os.path.exists(labeled_fpath):
                 label = read_bin(labeled_fpath, dt=np.int8).astype(np.int32).reshape(-1, 1)
