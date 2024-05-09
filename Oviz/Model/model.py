@@ -85,6 +85,8 @@ class Model(QObject):
             pc = read_pcd(pc_path)
         elif pc_path.endswith(".bin"):
             pc = read_bin(pc_path)
+        elif pc_path.endswith(".txt"):
+            pc = np.loadtxt(pc_path, dtype=np.float32, delimiter=',')
         return pc
 
     def smart_read_image(self, image_path):
@@ -96,7 +98,7 @@ class Model(QObject):
         return cnt
 
     def deal_pointcloud_folder(self, group, folder_path, ele_index):
-        cnt = self.deal_folder(group, folder_path, ele_index, POINTCLOUD, [".pcd", ".bin"])
+        cnt = self.deal_folder(group, folder_path, ele_index, POINTCLOUD, [".pcd", ".bin", ".txt"])
         return cnt
 
     def deal_bbox3d_folder(self, group, folder_path, ele_index):
