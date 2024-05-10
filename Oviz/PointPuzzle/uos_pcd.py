@@ -137,7 +137,34 @@ class UosPCD:
 
             self.info_ego_pos_list = []
             self.info_sample_list = []
+
+            '''
+                meta
+                {
+                    "system":{
+                        range, frame range...
+                    },
+
+                    "sence_x":
+                    {
+                        "frame_idx": map to frame mask
+                        "split_patch": split patch mask
+                        {
+                            patch1:mask
+                            patch2:mask
+                        }
+                    },
+
+                    "frame_filter" save filter mask:
+                    {
+                        frame_id: mask...
+                        ...
+                    }
+                }
+            '''
+
             self.patch_mask_meta = {}
+            self.patch_mask_meta['frame_filter'] = {}
 
             self.patch_mask_meta['system'] = {}
             self.patch_mask_meta['system']['pc_range'] = self.pc_range
@@ -270,10 +297,10 @@ class UosPCD:
             (z >= min_z) & (z <= max_z)
         ) & vel_mask
 
-        # 根据布尔索引过滤点
-        filtered_points = points[within_range]
+        # # 根据布尔索引过滤点
+        # filtered_points = points[within_range]
 
-        return filtered_points, ~within_range
+        return within_range
 
     def mark_points_by_bboxes(self, points, bboxes_path = ""):
         try:
@@ -319,9 +346,9 @@ class UosPCD:
         return points
 
     def filter(self, points):
-        range_points, out_range_mask = self.filter_points_by_range(points, self.veh_range, self.pc_range)
+        points_mask = self.filter_points_by_range(points, self.veh_range, self.pc_range)
 
-        return range_points, points[out_range_mask]
+        return points_mask
 
     def voxelize(self, points, voxel_size=0.1):
         pc_range = np.array(self.pc_range)
@@ -358,11 +385,14 @@ class UosPCD:
         roi_image_state = [self.get_frame_image(frame_range[0], camera_id_list)]
 
         for i in tqdm(range(*frame_range)):
-            ego_pcd = self.get_frame_pcd(i)
+            ori_ego_pcd = self.get_frame_pcd(i)
             curr_navi_state = self.navi_list[i].copy()
 
+            valid_pts_mask = self.filter(ori_ego_pcd)
+            roi_ego_points = ori_ego_pcd[valid_pts_mask]
+
             if self.enable_icp:
-                icp_pose_mat = self.odometry.run_icp(ego_pcd, curr_navi_state[0])
+                icp_pose_mat = self.odometry.run_icp(roi_ego_points, curr_navi_state[0])
 
             self.info_ego_pos_list.append(
                 {
@@ -377,8 +407,6 @@ class UosPCD:
 
             # is key frame
             if (i - frame_range[0]) % self.key_frame_step == 0:
-                ego_pcd, filter_pcd = self.filter(ego_pcd)
-
                 key_frame_sample_fname = os.path.join(self.labeling_key_frame_sample,
                                                 str(i).zfill(6) + ".bin")
 
@@ -388,8 +416,7 @@ class UosPCD:
                     dst_img_name = os.path.join(target_img_dir, str(i).zfill(6) + img_path[-4:])
                     os.system("cp -r %s %s"%(img_path, dst_img_name))
 
-                resort_ego_pcd = np.concatenate((ego_pcd, filter_pcd))
-                resort_ego_pcd.tofile(key_frame_sample_fname)
+                ori_ego_pcd.tofile(key_frame_sample_fname)
 
                 self.info_sample_list.append(
                     {
@@ -402,9 +429,9 @@ class UosPCD:
                 )
 
                 # ego pcd from x y z i to x y z label object
-                ego_pcd_for_label = np.hstack((ego_pcd[:, :3],
-                                            np.zeros((ego_pcd.shape[0], 1), dtype=np.float32),
-                                            np.ones((ego_pcd.shape[0], 1), dtype=np.float32) * -1))
+                ego_pcd_for_label = np.hstack((roi_ego_points[:, :3],
+                                            np.zeros((roi_ego_points.shape[0], 1), dtype=np.float32),
+                                            np.ones((roi_ego_points.shape[0], 1), dtype=np.float32) * -1))
                 bboxes_path = os.path.join(bbox_root_path, str(i).zfill(6) + ".txt")
                 # mark ego pcd
                 ego_pcd_for_label = self.mark(ego_pcd_for_label, bboxes_path=bboxes_path, height_range=height_range)
@@ -426,10 +453,11 @@ class UosPCD:
 
                 world_pcd_list.append(world_pcd)
                 world_pcd_frame_list.append(np.ones(len(world_pcd), dtype=np.int32) * i)
+                self.patch_mask_meta['frame_filter'][i] = valid_pts_mask
             else:
                 sweep_frame_fname = os.path.join(self.labeling_sweep_frame_sample,
                                             str(i).zfill(6) + ".bin")
-                ego_pcd.tofile(sweep_frame_fname)
+                ori_ego_pcd.tofile(sweep_frame_fname)
 
                 for im_idx, img_path in enumerate(curr_camera_list):
                     target_img_dir = os.path.join(self.labeling_sweep_frame_sample_camera, str(im_idx))
@@ -480,8 +508,10 @@ class UosPCD:
             patch_pcd_fname = os.path.join(self.labeling_cloudmap_patch_dir, scene_patch_name + ".pcd")
             if scene_name not in self.patch_mask_meta.keys():
                 self.patch_mask_meta[scene_name] = {}
+                self.patch_mask_meta[scene_name]["split_patch"] = {}
 
-            self.patch_mask_meta[scene_name][scene_patch_name] = mask
+
+            self.patch_mask_meta[scene_name]["split_patch"][scene_patch_name] = mask
             self.patch_mask_meta[scene_name]['frame_idx'] = cloud_map_frame_id
 
             if cloud_map_frame_id is None:
@@ -515,6 +545,8 @@ class UosPCD:
 
     def revert(self):
         patch_mask_metadata = self.patch_mask_meta
+        frame_filter_mask_dict = patch_mask_metadata.pop('frame_filter')
+
         for scene_name in tqdm(patch_mask_metadata.keys()):
             gts_cloudmap = scene_name + ".pcd"
             gts_cloudmap_path = os.path.join(self.labeling_cloudmap_dir, gts_cloudmap)
@@ -522,11 +554,11 @@ class UosPCD:
             ground_truth_pcd = read_pcd(gts_cloudmap_path)
 
             # read from metadata
-            frame_idx_array = patch_mask_metadata[scene_name].pop('frame_idx')
+            frame_idx_array = patch_mask_metadata[scene_name]['frame_idx']
             frame_list = np.unique(frame_idx_array)
 
-            for gt_patch_name in tqdm(patch_mask_metadata[scene_name].keys()):
-                mask = patch_mask_metadata[scene_name][gt_patch_name]
+            for gt_patch_name in tqdm(patch_mask_metadata[scene_name]['split_patch'].keys()):
+                mask = patch_mask_metadata[scene_name]['split_patch'][gt_patch_name]
                 gt_patch_pcd_fname = os.path.join(self.labeled_ground_truth_dir, gt_patch_name + ".pcd")
                 ground_truth_patch_pcd = read_pcd(gt_patch_pcd_fname)
                 ground_truth_pcd[mask] = ground_truth_patch_pcd
@@ -543,8 +575,9 @@ class UosPCD:
                 seg_temp = ground_truth_pcd[:, -2][mask].astype(np.int32)
                 ins_temp = ground_truth_pcd[:, -1][mask].astype(np.int32)
 
-                seg_label[:len(seg_temp)] = seg_temp
-                ins_label[:len(ins_temp)] = ins_temp
+                frame_valid_mask = frame_filter_mask_dict[f]
+                seg_label[frame_valid_mask] = seg_temp
+                ins_label[frame_valid_mask] = ins_temp
 
                 label_pcd_path = os.path.join(self.revert_seg_ins_label_dir, sample_name  + ".pcd")
                 label_pcd = np.concatenate([sampe_pts[:, :3],

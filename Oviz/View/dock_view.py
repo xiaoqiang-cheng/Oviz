@@ -302,11 +302,11 @@ class RangeSlideDockWidget(QDockWidget):
 
         self.last.clicked.connect(self.last_frame)
         self.next.clicked.connect(self.next_frame)
-
-        self.frame.textChanged.connect(self.set_bar)
         self.range_slider.valueChanged.connect(self.change_bar)
         self.search_text.returnPressed.connect(self.search_change)
         self.auto.stateChanged.connect(self.auto_ctrl)
+        self.frame.textChanged.connect(self.set_bar)
+        self.toggle_index = 0
 
     def set_completer(self, frame_name_list):
         self.completer = QCompleter(frame_name_list)
@@ -322,7 +322,6 @@ class RangeSlideDockWidget(QDockWidget):
         else:
             self.auto.setCheckState(Qt.Checked)
 
-
     def toggle_hide(self):
         if self.isVisible():
             self.hide()
@@ -330,11 +329,7 @@ class RangeSlideDockWidget(QDockWidget):
             self.show()
 
     def auto_play(self):
-        # if self.update_handled:
-        # self.auto_timer.stop()
         self.next_frame()
-
-        # self.auto_timer.start(100)
 
     def auto_ctrl(self, state):
         hz = int(self.fps.text())
@@ -363,23 +358,30 @@ class RangeSlideDockWidget(QDockWidget):
             pass
 
     def set_bar(self):
+        # try:
+        self.toggle_index  += 1
         try:
+            print(self.toggle_index , "----->", self.frame.text(), self.frame_range)
             self.curr_index = int(self.frame.text())
+
             if self.curr_index < 0:
                 self.curr_index = 0
                 self.set_frame_text(self.curr_index)
-            elif self.curr_index >= self.frame_range:
+            elif (self.curr_index >= self.frame_range) and (self.frame_range > 0):
                 self.curr_index = self.frame_range - 1
                 self.set_frame_text(self.curr_index)
+
             # 如果频繁的按下 next 或者 拖动，可视化会很卡，然后会停不下来
             # 可视化和这些东西还是放入异步线程比较好
-            if self.update_handled:
-                self.update_handled = False
-                self.frameChanged.emit(self.curr_index)
+            if self.frame_range <= 0: return
+
+            self.frameChanged.emit(self.curr_index)
+
+            self.range_slider.setValue(self.curr_index)
+            self.set_filename(self.listname[self.curr_index])
         except:
             print("输入不合法")
-        self.range_slider.setValue(self.curr_index)
-        self.set_filename(self.listname[self.curr_index])
+
 
     def set_frame_text(self, index):
         self.frame.setText(str(index))
@@ -392,6 +394,7 @@ class RangeSlideDockWidget(QDockWidget):
         if reply == QMessageBox.Yes:
             return True
         else:
+            self.stop_auto_play()
             return False
 
     def next_frame(self):

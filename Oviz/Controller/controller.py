@@ -406,6 +406,8 @@ class Controller():
 
     def select_done_update_range_and_vis(self):
         self.view.set_data_range(self.model.data_frame_list)
+        if self.curr_frame_index > len(self.model.data_frame_list):
+            self.curr_frame_index = 0
         if self.model.offline_frame_cnt:
             self.update_system_vis(self.curr_frame_index)
 
@@ -466,6 +468,7 @@ class Controller():
             data_dict = self.exec_magic_pipeline(data_dict)
 
         if event == 1:
+            print(self.curr_frame_key)
             prelabel = self.model.check_labeled_results_exist(self.curr_frame_key)
             if 'template' not in self.model.curr_frame_data.keys(): return
 
