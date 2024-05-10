@@ -296,6 +296,7 @@ class View(QMainWindow):
                 self.set_lasso_traj(traj)
                 self.lassoSelected.emit([traj, mouse_type, self.canvas.event_mark_mode])
                 self.set_lasso_traj(np.empty((1, 2)))
+                self.canvas.event_pos_traj = []
                 return
 
         if mouse_type == CanvasMouseEvent.VisionPress:
