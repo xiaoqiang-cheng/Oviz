@@ -353,10 +353,9 @@ class UosPCD:
     def voxelize(self, points, voxel_size=0.1):
         pc_range = np.array(self.pc_range)
         res_coors = np.floor((points[:, :3] - pc_range[None, :3]) / voxel_size).astype(np.int32)
-        unique_val, uni_index, uni_inv = np.unique(res_coors, return_index = True, return_inverse=True, axis=0)
-        points[uni_index, :3] = (unique_val + 0.5) * voxel_size + pc_range[None, :3]
-
-        return points[uni_index]
+        _, uni_index, uni_inv = np.unique(res_coors, return_index = True, return_inverse=True, axis=0)
+        # points[uni_index, :3] = (unique_val + 0.5) * voxel_size + pc_range[None, :3]
+        return uni_index, uni_inv
 
     def update_progress(self, title, idx, length):
         return sg.one_line_progress_meter(title , idx + 1, length, orientation='h')
@@ -478,7 +477,8 @@ class UosPCD:
                         cloud_map_frame_id = None,
                         scene_name = "",
                         roi_navi_state = None, roi_image_state = None,
-                        split_dist = None):
+                        split_dist = None,
+                        voxel_coor_inv = None):
         mask_any = np.ones(len(cloud_map), dtype=bool)
 
         for i, navi in enumerate(roi_navi_state):
@@ -506,13 +506,8 @@ class UosPCD:
             scene_patch_name = scene_name + "_" + str(i).zfill(4)
 
             patch_pcd_fname = os.path.join(self.labeling_cloudmap_patch_dir, scene_patch_name + ".pcd")
-            if scene_name not in self.patch_mask_meta.keys():
-                self.patch_mask_meta[scene_name] = {}
-                self.patch_mask_meta[scene_name]["split_patch"] = {}
-
 
             self.patch_mask_meta[scene_name]["split_patch"][scene_patch_name] = mask
-            self.patch_mask_meta[scene_name]['frame_idx'] = cloud_map_frame_id
 
             if cloud_map_frame_id is None:
                 write_pcd(patch_pcd_fname, cloud,
@@ -557,12 +552,18 @@ class UosPCD:
             frame_idx_array = patch_mask_metadata[scene_name]['frame_idx']
             frame_list = np.unique(frame_idx_array)
 
+            # 分块恢复整帧
             for gt_patch_name in tqdm(patch_mask_metadata[scene_name]['split_patch'].keys()):
                 mask = patch_mask_metadata[scene_name]['split_patch'][gt_patch_name]
                 gt_patch_pcd_fname = os.path.join(self.labeled_ground_truth_dir, gt_patch_name + ".pcd")
                 ground_truth_patch_pcd = read_pcd(gt_patch_pcd_fname)
                 ground_truth_pcd[mask] = ground_truth_patch_pcd
 
+            # Voxel恢复原始连续帧
+            # ori_frame_idx_array = frame_idx_array[patch_mask_metadata[scene_name]['voxel_coor_inv']]
+            ori_ground_truth_pcd = ground_truth_pcd[patch_mask_metadata[scene_name]['voxel_coor_inv']]
+
+            # 连续帧恢复至单帧
             for f in frame_list:
                 sample_name = str(f).zfill(6)
                 sample_path = os.path.join(self.labeling_key_frame_sample, sample_name  + ".bin")
@@ -572,8 +573,8 @@ class UosPCD:
 
                 mask = (frame_idx_array == f)
 
-                seg_temp = ground_truth_pcd[:, -2][mask].astype(np.int32)
-                ins_temp = ground_truth_pcd[:, -1][mask].astype(np.int32)
+                seg_temp = ori_ground_truth_pcd[:, -2][mask].astype(np.int32)
+                ins_temp = ori_ground_truth_pcd[:, -1][mask].astype(np.int32)
 
                 frame_valid_mask = frame_filter_mask_dict[f]
                 seg_label[frame_valid_mask] = seg_temp
@@ -611,20 +612,34 @@ class UosPCD:
             cloudmap_fname = os.path.join(self.labeling_cloudmap_dir,
                         scene_range_name + ".pcd")
 
+            # 单帧到连续帧
             if self.enable_icp:
                 self.odometry = CustomKissICP()
             cloudmap, cloudmap_frame, roi_navi_state, roi_image_state = self.mapping(scene_frame_range, roi_frame_range[-1],
                         bbox_root_path, height_range=height_range, split_dist = split_dist)
 
-            write_pcd(cloudmap_fname, cloudmap,
+            # 连续帧 到 Voxel
+            voxel_coor_index, voxel_coor_inv = self.voxelize(cloudmap)
+            voxel_cloudmap = cloudmap[voxel_coor_index]
+            voxel_cloudmap_frame = cloudmap_frame[voxel_coor_index]
+
+            write_pcd(cloudmap_fname, voxel_cloudmap,
                     filed = [('x', np.float32) ,
                             ('y', np.float32),
                             ('z', np.float32),
                             ('label', np.int32),
                             ('object', np.int32)])
+
+            if scene_range_name not in self.patch_mask_meta.keys():
+                self.patch_mask_meta[scene_range_name] = {}
+                self.patch_mask_meta[scene_range_name]["split_patch"] = {}
+                self.patch_mask_meta[scene_range_name]['frame_idx'] = cloudmap_frame
+                self.patch_mask_meta[scene_range_name]['voxel_coor_inv'] = voxel_coor_inv
+
             # cloudmap_frame.tofile(cloudmap_idx_fname)
-            self.split_cloud_map(cloudmap, cloudmap_frame,
-                    scene_range_name, roi_navi_state, roi_image_state, split_dist)
+            self.split_cloud_map(voxel_cloudmap, voxel_cloudmap_frame,
+                    scene_range_name, roi_navi_state, roi_image_state,
+                    split_dist, voxel_coor_inv)
 
         write_json(self.info_ego_pos_list, self.ego_pos_list_fname)
         write_json(self.info_sample_list, self.sample_fname)
