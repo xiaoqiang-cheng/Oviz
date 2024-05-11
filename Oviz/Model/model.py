@@ -93,7 +93,6 @@ class Model(QObject):
 
 
     def online_callback(self, msg):
-        # print(msg)
         self.curr_frame_data = msg['data']
         self.hasNewMsg.emit(msg['timestamp'])
 

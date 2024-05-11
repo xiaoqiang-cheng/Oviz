@@ -139,7 +139,7 @@ class Controller():
                     self.pointcloud_setting.points_dim)
 
 
-    def filtr_hide_color(self, is_update_buff = True):
+    def filtr_hide_color(self, state=False, is_update_buff = True):
         pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
         prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32).reshape(-1)
         self.pointcloud_hide_color_mask = np.zeros(pointclouds[0].shape[0], dtype=bool)
@@ -160,19 +160,14 @@ class Controller():
     def update_lasso_selected_area(self, infos):
         self.lasso_mouse_type = infos[1]
         if self.lasso_mouse_type == CanvasMouseEvent.CtrlRelease:
-            print("1", time.perf_counter())
             self.lasso_polygon_vertices = infos[0]
             mode = infos[2]
             if (self.lasso_polygon_vertices is None) or (self.lasso_polygon_vertices.shape[0] <= 1): return
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
-            print("2", time.perf_counter())
             local_selected_mask = self.view.get_lasso_select(self.lasso_polygon_vertices,
                                 pointclouds[0][self.pointcloud_legacy_mask][:, self.pointcloud_setting.xyz_dims])
-
-            print("3", time.perf_counter())
             selected_mask = self.pointcloud_legacy_mask.copy()
             selected_mask[np.where(self.pointcloud_legacy_mask == True)] &= local_selected_mask
-            print("4", time.perf_counter())
             if mode:
                 if self.last_selected_mask is None:
                     self.last_selected_mask = selected_mask
@@ -185,11 +180,8 @@ class Controller():
                 if (self.last_selected_mask is not None) and (selected_mask is not None):
                     self.last_selected_mask &= ~selected_mask
                     pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = self.last_selected_label[selected_mask].reshape(-1)
-
-            print("5", time.perf_counter())
             self.stage_selected_mask = self.last_selected_mask
             self.update_buffer_vis(field=[POINTCLOUD])
-            print("6", time.perf_counter())
             return
 
         if self.lasso_mouse_type == CanvasMouseEvent.VisionPress:
@@ -240,7 +232,7 @@ class Controller():
         pointclouds[0][self.last_selected_mask, self.pointcloud_setting.color_dims] = self.selected_button_id
 
         self.last_selected_mask = None
-        self.update_buffer_vis()
+        self.update_buffer_vis([POINTCLOUD])
         self.model.dump_labeled_bin_results(self.curr_frame_key,
                 pointclouds[0][:, self.pointcloud_setting.color_dims])
         self.view.last_labeled_button_id = self.selected_button_id
@@ -477,7 +469,6 @@ class Controller():
             data_dict = self.exec_magic_pipeline(data_dict)
 
         if event == 1:
-            print(self.curr_frame_key)
             prelabel = self.model.check_labeled_results_exist(self.curr_frame_key)
             if 'template' not in self.model.curr_frame_data.keys(): return
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
