@@ -264,14 +264,14 @@ class Canvas(QObject, scene.SceneCanvas):
     def lasso_select(self,vis_name, polygon_vertices, points, ):
         selected_mask = np.zeros(points.shape[0], dtype=bool)
         if polygon_vertices is not None:
-            clip_coor_pts = self.vis_module['template_point_cloud'].get_transform('visual', 'render').map(points)
+            clip_coor_pts = self.vis_module['template_point_cloud'].get_transform('visual', 'render').simplified.map(points)
             clip_coor_pts /= clip_coor_pts[:, 3:]
             clip_coor_pts = abs(clip_coor_pts)
             selected_mask = (clip_coor_pts[:, 0] < 1) & (clip_coor_pts[:, 1] < 1) & (clip_coor_pts[:, 2] < 1)
-
-            points2 = self.vis_module['template_point_cloud'].get_transform('visual', 'canvas').map(points[selected_mask])
-            points2 /= points2[:,3:]
+            points2 = self.vis_module['template_point_cloud'].get_transform('visual', 'canvas').simplified.map(points[selected_mask])
+            points2 /= points2[:, 3:]
             clip_selected_mask = points_in_polygon(polygon_vertices, points2)
+
             selected_mask[np.where(selected_mask == True)] &= clip_selected_mask
         return selected_mask
 
