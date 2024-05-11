@@ -139,7 +139,7 @@ class Controller():
                     self.pointcloud_setting.points_dim)
 
 
-    def filtr_hide_color(self):
+    def filtr_hide_color(self, is_update_buff = True):
         pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
         prelabel = pointclouds[0][:, self.pointcloud_setting.color_dims].astype(np.int32).reshape(-1)
         self.pointcloud_hide_color_mask = np.zeros(pointclouds[0].shape[0], dtype=bool)
@@ -154,21 +154,25 @@ class Controller():
                 self.pointcloud_hide_color_mask = (prelabel == int(id)) | self.pointcloud_hide_color_mask
 
         self.pointcloud_legacy_mask = ~(self.pointcloud_hide_color_mask | self.pointcloud_hide_mask)
-        self.update_buffer_vis([POINTCLOUD])
+        if is_update_buff:
+            self.update_buffer_vis([POINTCLOUD])
 
     def update_lasso_selected_area(self, infos):
         self.lasso_mouse_type = infos[1]
         if self.lasso_mouse_type == CanvasMouseEvent.CtrlRelease:
+            print("1", time.perf_counter())
             self.lasso_polygon_vertices = infos[0]
             mode = infos[2]
             if (self.lasso_polygon_vertices is None) or (self.lasso_polygon_vertices.shape[0] <= 1): return
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
-
+            print("2", time.perf_counter())
             local_selected_mask = self.view.get_lasso_select(self.lasso_polygon_vertices,
                                 pointclouds[0][self.pointcloud_legacy_mask][:, self.pointcloud_setting.xyz_dims])
+
+            print("3", time.perf_counter())
             selected_mask = self.pointcloud_legacy_mask.copy()
             selected_mask[np.where(self.pointcloud_legacy_mask == True)] &= local_selected_mask
-
+            print("4", time.perf_counter())
             if mode:
                 if self.last_selected_mask is None:
                     self.last_selected_mask = selected_mask
@@ -181,8 +185,11 @@ class Controller():
                 if (self.last_selected_mask is not None) and (selected_mask is not None):
                     self.last_selected_mask &= ~selected_mask
                     pointclouds[0][selected_mask, self.pointcloud_setting.color_dims] = self.last_selected_label[selected_mask].reshape(-1)
+
+            print("5", time.perf_counter())
             self.stage_selected_mask = self.last_selected_mask
             self.update_buffer_vis(field=[POINTCLOUD])
+            print("6", time.perf_counter())
             return
 
         if self.lasso_mouse_type == CanvasMouseEvent.VisionPress:
@@ -206,10 +213,10 @@ class Controller():
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
             pointclouds[0][self.stage_selected_mask, self.pointcloud_setting.color_dims] = -1
             self.last_selected_mask = self.stage_selected_mask
-            self.update_buffer_vis()
+            self.update_buffer_vis(field=[POINTCLOUD])
             return
 
-    def filter_hide_frame(self, valid_frame = [], dim = None):
+    def filter_hide_frame(self, valid_frame = [], dim = None, is_update_buff = True):
         pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
         keep_mask = np.zeros(pointclouds[0].shape[0], dtype=bool)
         if len(valid_frame) == 0:
@@ -222,7 +229,8 @@ class Controller():
             self.pointcloud_hide_mask = ~keep_mask
 
         self.pointcloud_legacy_mask = ~(self.pointcloud_hide_color_mask | self.pointcloud_hide_mask)
-        self.update_buffer_vis([POINTCLOUD])
+        if is_update_buff:
+            self.update_buffer_vis([POINTCLOUD])
 
     def trigger_labeled_button(self, button_id):
         if self.last_selected_mask is None: return
@@ -412,6 +420,7 @@ class Controller():
             self.update_system_vis(self.curr_frame_index)
 
     def update_pointsetting_dims(self):
+
         try:
             curr_tab_key = self.view.get_curr_control_box_name()
             curr_sub_ele_index = self.view.get_curr_sub_element_index(curr_tab_key, POINTCLOUD)
@@ -471,12 +480,10 @@ class Controller():
             print(self.curr_frame_key)
             prelabel = self.model.check_labeled_results_exist(self.curr_frame_key)
             if 'template' not in self.model.curr_frame_data.keys(): return
-
             pointclouds = self.model.curr_frame_data['template'][POINTCLOUD]
 
             if len(pointclouds) == 0: return
             pointclouds[0] = self.check_pointcloud_shape(pointclouds[0])
-
             if prelabel is None:
                 if max(self.pointcloud_setting.color_dims) >= pointclouds[0].shape[1]:
                     prelabel = np.zeros(pointclouds[0].shape[0], dtype=np.int32).reshape(-1, 1)
@@ -491,7 +498,6 @@ class Controller():
                 if max(self.pointcloud_setting.color_dims) >= pointclouds[0].shape[1]:
                     tmp = np.zeros(pointclouds[0].shape[0], dtype=np.int32).reshape(-1, 1)
                     pointclouds[0] = np.concatenate([pointclouds[0], tmp], axis=1)
-
             self.last_selected_mask = None
             self.last_selected_label = None
             pointclouds[0][:, self.pointcloud_setting.color_dims] = prelabel
@@ -502,12 +508,10 @@ class Controller():
                 self.view.create_frame_idx_hide_widget(pointclouds[0][:, dim])
             else:
                 self.view.create_frame_idx_hide_widget()
-
             self.pointcloud_hide_mask = np.zeros((pointclouds[0].shape[0]), dtype=bool)
             self.pointcloud_hide_color_mask = np.zeros((pointclouds[0].shape[0]), dtype=bool)
-            self.filter_hide_frame()
-            self.filtr_hide_color()
-
+            self.filter_hide_frame(is_update_buff=False)
+            self.filtr_hide_color(is_update_buff=False)
         for group, value in data_dict.items():
             collect_frame_data = {}
             self.clear_buffer_vis(group)
@@ -528,6 +532,7 @@ class Controller():
     def update_system_vis(self, index):
         print(index)
         self.curr_frame_index = index
+
         self.curr_frame_key = self.model.get_curr_frame_data(index)
         self.update_buffer_vis(event=1)
         self.view.send_update_vis_flag()
@@ -618,23 +623,12 @@ class Controller():
             else:
                 msg = np.frombuffer(msg.data, dtype = np.dtype(self.pointcloud_setting.points_type))[:-surplus].reshape(-1, self.pointcloud_setting.points_dim)
                 send_log_msg(ERROR, "your point dim [%d] is error, please check it"%self.pointcloud_setting.points_dim)
-
         return msg
 
     def pointcloud_callback(self, msg, topic, ele_index, group):
         pointcloud_setting = self.pointcloud_setting_dict[group][ele_index]
-
         self.check_pointcloud_shape(msg)
-        # if len(msg.shape) == 1:
-        #     try:
-        #         surplus = msg.shape[-1] % pointcloud_setting.points_dim
-        #         if surplus == 0:
-        #             msg = np.frombuffer(msg.data, dtype = np.dtype(pointcloud_setting.points_type)).reshape(-1, pointcloud_setting.points_dim)
-        #         else:
-        #             msg = np.frombuffer(msg.data, dtype = np.dtype(pointcloud_setting.points_type))[:-surplus].reshape(-1, pointcloud_setting.points_dim)
-        #             send_log_msg(ERROR, "your point dim [%d] is error, please check it"%pointcloud_setting.points_dim)
-        #     except:
-        #         return
+
         max_dim = msg.shape[-1]
         if max(pointcloud_setting.xyz_dims) >= max_dim:
             send_log_msg(ERROR, "xyz维度无效:%s,最大维度为%d"%(str(pointcloud_setting.xyz_dims), max_dim))
@@ -646,7 +640,6 @@ class Controller():
             color_id_list = -1
         else:
             color_id_list = msg[..., pointcloud_setting.color_dims]
-
         real_color, state = self.view.color_id_to_color_list(color_id_list)
 
         # if not state:
@@ -661,6 +654,7 @@ class Controller():
                 w = msg[..., pointcloud_setting.wlh_dims[0]]
                 l = msg[..., pointcloud_setting.wlh_dims[1]]
                 h = msg[..., pointcloud_setting.wlh_dims[2]]
+
         if isinstance(real_color, str):
             real_color = np.array([color_str_to_rgb(real_color)] * len(points))
 
@@ -678,17 +672,10 @@ class Controller():
     def update_pointcloud_vis(self, data, group):
         points = []
         real_color = []
-        w = []
-        l = []
-        h = []
-        show_voxel = False
+
         for sub_data in data.values():
             points.append(sub_data[0])
             real_color.append(sub_data[1])
-            w.append(sub_data[2])
-            l.append(sub_data[3])
-            h.append(sub_data[4])
-            show_voxel |= sub_data[5]
 
         points = np.concatenate(points)
 
@@ -702,14 +689,5 @@ class Controller():
         else:
             real_color = np.concatenate(real_color)
 
-        try:
-            w = np.concatenate(w)
-            l = np.concatenate(l)
-            h = np.concatenate(h)
-        except:
-            pass
-        if show_voxel:
-            self.view.set_point_voxel(points, w, l, h, real_color, group)
-        else:
-            self.view.set_point_cloud(points, color = real_color, group=group, legacy_mask = self.pointcloud_legacy_mask)
-        self.view.set_voxel_mode(show_voxel, group)
+        self.view.set_point_cloud(points, color = real_color, group=group, legacy_mask = self.pointcloud_legacy_mask)
+        self.view.set_voxel_mode(False, group)

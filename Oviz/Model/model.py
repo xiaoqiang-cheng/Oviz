@@ -115,7 +115,6 @@ class Model(QObject):
                         print(topic_type, ":",data_path)
                         parse_data = eval("self.smart_read_%s"%topic_type)(data_path)
                         self.curr_frame_data[group][topic_type].append(parse_data)
-        print("==================")
 
         return key
 

@@ -361,7 +361,6 @@ class RangeSlideDockWidget(QDockWidget):
         # try:
         self.toggle_index  += 1
         try:
-            print(self.toggle_index , "----->", self.frame.text(), self.frame_range)
             self.curr_index = int(self.frame.text())
 
             if self.curr_index < 0:

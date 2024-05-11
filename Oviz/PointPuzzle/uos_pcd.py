@@ -121,6 +121,13 @@ class UosPCD:
 
         self.ready_labeling_workspace(os.path.join(pcd_path, "useg_labeling"))
 
+        self.use_bin_format = False
+
+        if self.use_bin_format:
+            self.data_ext = ".bin"
+        else:
+            self.data_ext = ".pcd"
+
         if mode == "build":
             self.uos_lidar_data = UOSLidarData(self.pcd_path, image_path)
             if self.uos_lidar_data.lidar_metadata is not None:
@@ -505,12 +512,12 @@ class UosPCD:
             # cloud[:, [0,1,2]] -= navi[[1,2,3]]
             scene_patch_name = scene_name + "_" + str(i).zfill(4)
 
-            patch_pcd_fname = os.path.join(self.labeling_cloudmap_patch_dir, scene_patch_name + ".pcd")
+            patch_pcd_fname = os.path.join(self.labeling_cloudmap_patch_dir, scene_patch_name + self.data_ext)
 
             self.patch_mask_meta[scene_name]["split_patch"][scene_patch_name] = mask
 
             if cloud_map_frame_id is None:
-                write_pcd(patch_pcd_fname, cloud,
+                self.write_data(patch_pcd_fname, cloud,
                                 filed = [('x', np.float32) ,
                                 ('y', np.float32),
                                 ('z', np.float32),
@@ -519,7 +526,7 @@ class UosPCD:
             else:
                 cloud_idx = cloud_map_frame_id[mask].reshape(-1, 1)
                 cloud_with_frame = np.concatenate([cloud, cloud_idx], axis=1)
-                write_pcd(patch_pcd_fname, cloud_with_frame,
+                self.write_data(patch_pcd_fname, cloud_with_frame,
                                 filed = [('x', np.float32) ,
                                 ('y', np.float32),
                                 ('z', np.float32),
@@ -536,17 +543,27 @@ class UosPCD:
                     os.system("cp -r %s %s"%(fi, dst_img_name))
             # self.update_progress("split", i,  int(curr_dist_max / split_dist) + 1)
 
+    def write_data(self, fname, data, filed):
+        if self.use_bin_format:
+            data.astype(np.float32).tofile(fname)
+        else:
+            write_pcd(fname, data, filed=filed)
 
+    def read_data(self, fname):
+        if self.use_bin_format:
+            return read_bin(fname)
+        else:
+            return read_pcd(fname)
 
     def revert(self):
         patch_mask_metadata = self.patch_mask_meta
         frame_filter_mask_dict = patch_mask_metadata.pop('frame_filter')
 
         for scene_name in tqdm(patch_mask_metadata.keys()):
-            gts_cloudmap = scene_name + ".pcd"
+            gts_cloudmap = scene_name + self.data_ext
             gts_cloudmap_path = os.path.join(self.labeling_cloudmap_dir, gts_cloudmap)
 
-            ground_truth_pcd = read_pcd(gts_cloudmap_path)
+            ground_truth_pcd = self.read_data(gts_cloudmap_path)
 
             # read from metadata
             frame_idx_array = patch_mask_metadata[scene_name]['frame_idx']
@@ -555,8 +572,8 @@ class UosPCD:
             # 分块恢复整帧
             for gt_patch_name in tqdm(patch_mask_metadata[scene_name]['split_patch'].keys()):
                 mask = patch_mask_metadata[scene_name]['split_patch'][gt_patch_name]
-                gt_patch_pcd_fname = os.path.join(self.labeled_ground_truth_dir, gt_patch_name + ".pcd")
-                ground_truth_patch_pcd = read_pcd(gt_patch_pcd_fname)
+                gt_patch_pcd_fname = os.path.join(self.labeled_ground_truth_dir, gt_patch_name + self.data_ext)
+                ground_truth_patch_pcd = self.read_data(gt_patch_pcd_fname)
                 ground_truth_pcd[mask] = ground_truth_patch_pcd
 
             # Voxel恢复原始连续帧
@@ -610,7 +627,7 @@ class UosPCD:
             scene_frame_range = [frame, end_frame]
             scene_range_name = str(scene_frame_range[0]).zfill(6) + "_" + str(scene_frame_range[1]).zfill(6)
             cloudmap_fname = os.path.join(self.labeling_cloudmap_dir,
-                        scene_range_name + ".pcd")
+                        scene_range_name + self.data_ext)
 
             # 单帧到连续帧
             if self.enable_icp:
@@ -623,7 +640,7 @@ class UosPCD:
             voxel_cloudmap = cloudmap[voxel_coor_index]
             voxel_cloudmap_frame = cloudmap_frame[voxel_coor_index]
 
-            write_pcd(cloudmap_fname, voxel_cloudmap,
+            self.write_data(cloudmap_fname, voxel_cloudmap,
                     filed = [('x', np.float32) ,
                             ('y', np.float32),
                             ('z', np.float32),

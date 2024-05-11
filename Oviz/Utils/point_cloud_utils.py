@@ -5,7 +5,8 @@ import numpy as np
 from .navi_state import GPSstate, NaviState, CANstate
 from scipy.spatial.transform import Rotation
 import Oviz.Utils.pypcd as pypcd
-
+from numpy.lib import recfunctions as rfn
+import time
 def crop_cloud_height(points, min=-0.5, max=4, return_idx=False):
     idx = (points[:, 2] > min) & (points[:, 2] < max)
     if return_idx:
@@ -65,8 +66,8 @@ def get_metadata(pcd_path):
 def read_pcd(path):
     points = pypcd.PointCloud.from_path(path)
     new_dtype =  np.dtype([(name, '<f4') for name in points.pc_data.dtype.names])
-    points_float32 = points.pc_data.astype(new_dtype).view(np.float32).reshape(points.pc_data.shape + (-1,))
-    return points_float32
+    # points_float32 = rfn.structured_to_unstructured(points.pc_data).astype(np.float32)
+    return points.pc_data.astype(new_dtype).view((np.float32, len(new_dtype)))
 
 def read_origin_pcd(path):
     points = pypcd.PointCloud.from_path(path)

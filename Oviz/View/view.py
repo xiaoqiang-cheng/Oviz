@@ -82,6 +82,10 @@ class View(QMainWindow):
             self.color_map_label[str(index)] = setting['label']
             self.color_show_label[str(index)] = setting['show_label']
 
+        self.rgb_color_map = {}
+        for key, value in self.color_map.items():
+            self.rgb_color_map[key] = color_str_to_rgb(value)
+
 
     def create_central_widget(self):
         self.canvas_cfg_set = {}
@@ -861,45 +865,16 @@ class View(QMainWindow):
 
     def color_id_to_color_list(self, id_list):
         try:
-            if id_list.shape[-1] == 1:
-                id_list = id_list.reshape(-1).astype(np.int32)
-                color_dim = 3
-                rgb_color_map = {}
-                for key, value in self.color_map.items():
-                    rgb_color_map[key] = color_str_to_rgb(value)
-                    color_dim = len(rgb_color_map[key])
-                ret_color = np.zeros((len(id_list), color_dim))
-                ret_color[:, 0] = 1.0
-                for key, value in rgb_color_map.items():
-                    # TODO bug if key is not int str
-                    mask = id_list == int(key)
-                    self.color_pts_num_dict[key].setText(str(len(ret_color[mask])))
-                    ret_color[mask] = value
-                    # if not self.color_checkbox_dict[key].isChecked():
-                    #     ret_color[mask, -1] = 0.0
+            id_list = id_list.ravel().astype(np.int32)
+            ret_color = np.zeros((len(id_list), 4))
+            ret_color[:, 0] = 1
+            for key, value in self.rgb_color_map.items():
+                mask = id_list == int(key)
+                count = np.sum(mask)
+                ret_color[mask] = value
+                self.color_pts_num_dict[key].setText(str(count))
 
-                return ret_color, True
-            elif (id_list.shape[-1] == 2):
-                color_dim = 3
-                rgb_color_map = {}
-                for key, value in self.color_map.items():
-                    rgb_color_map[key] = color_str_to_rgb(value)
-                    color_dim = len(rgb_color_map[key])
-                ret_color = np.zeros((len(id_list), color_dim))
-                for key, value in rgb_color_map.items():
-                    mask = (id_list[:, 0].astype(np.uint8) == int(key))
-                    ret_color[mask] = value
-                    ret_color[mask, -1] = np.clip(id_list[mask, -1], 0.0, 1.0)
-                return ret_color, True
-            elif (id_list.shape[-1] == 3):
-                ret_color = np.ones((len(id_list), 4))
-                ret_color[:, :3] = np.clip(id_list, 0.0, 1.0)
-                return ret_color, True
-            elif (id_list.shape[-1] == 4):
-                # you must supply normal rgb|a array
-                return np.clip(id_list, 0.0, 1.0), True
-            else:
-                return self.color_map_cfg["default"], True
+            return ret_color, True
         except:
             return self.color_map_cfg["default"], False
 

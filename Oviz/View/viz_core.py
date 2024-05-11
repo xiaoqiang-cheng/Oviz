@@ -267,7 +267,6 @@ class Canvas(QObject, scene.SceneCanvas):
             clip_coor_pts = self.vis_module['template_point_cloud'].get_transform('visual', 'render').map(points)
             clip_coor_pts /= clip_coor_pts[:, 3:]
             clip_coor_pts = abs(clip_coor_pts)
-
             selected_mask = (clip_coor_pts[:, 0] < 1) & (clip_coor_pts[:, 1] < 1) & (clip_coor_pts[:, 2] < 1)
 
             points2 = self.vis_module['template_point_cloud'].get_transform('visual', 'canvas').map(points[selected_mask])
