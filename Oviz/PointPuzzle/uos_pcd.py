@@ -361,7 +361,6 @@ class UosPCD:
         pc_range = np.array(self.pc_range)
         res_coors = np.floor((points[:, :3] - pc_range[None, :3]) / voxel_size).astype(np.int32)
         _, uni_index, uni_inv = np.unique(res_coors, return_index = True, return_inverse=True, axis=0)
-        # points[uni_index, :3] = (unique_val + 0.5) * voxel_size + pc_range[None, :3]
         return uni_index, uni_inv
 
     def update_progress(self, title, idx, length):
@@ -369,7 +368,6 @@ class UosPCD:
 
     def trans_coord(self, mat, points, dim=[0, 1, 2]):
         return self.uos_lidar_data.trans_coord(mat, points, dim)
-
 
     def mapping(self, frame_range = [0, 200], max_frame = -1,
                 bbox_root_path = "", seg_root_path = "", height_range=[-0.6, 0.2],
