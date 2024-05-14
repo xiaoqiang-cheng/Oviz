@@ -248,7 +248,7 @@ class RangeSlideDockWidget(QDockWidget):
         # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
         self.setObjectName(titie)
         self.setWindowFlags(Qt.FramelessWindowHint)
-        # self.setMaximumHeight(70)
+        self.setMaximumHeight(100)
 
         widget = QWidget()
         layout = QVBoxLayout()
@@ -754,7 +754,7 @@ class FilterHideDock(QDockWidget):
         self.setObjectName(title)
         self.setWindowFlags(Qt.FramelessWindowHint)
         # self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.butt)
-        # self.setMaximumHeight(70)
+        self.setMaximumHeight(100)
         self.widget_dict = {}
         self.mainwidget_area = QScrollArea()
         self.mainwidget_area.setWidgetResizable(True)

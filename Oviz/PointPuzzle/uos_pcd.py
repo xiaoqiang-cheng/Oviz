@@ -479,7 +479,6 @@ class UosPCD:
         return math.sqrt((pos[1] ** 2 + pos[2] ** 2))
 
     def split_cloud_map(self, cloud_map,
-                        cloud_map_frame_id = None,
                         scene_name = "",
                         roi_navi_state = None, roi_image_state = None,
                         split_dist = None,
@@ -503,35 +502,20 @@ class UosPCD:
 
             cloud = local_pcd[mask]
             if len(cloud) == 0:
-                # import ipdb
-                # ipdb.set_trace()
                 continue
 
-            # cloud[:, [0,1,2]] -= navi[[1,2,3]]
             scene_patch_name = scene_name + "_" + str(i).zfill(4)
-
             patch_pcd_fname = os.path.join(self.labeling_cloudmap_patch_dir, scene_patch_name + self.data_ext)
-
             self.patch_mask_meta[scene_name]["split_patch"][scene_patch_name] = mask
 
-            if cloud_map_frame_id is None:
-                self.write_data(patch_pcd_fname, cloud,
-                                filed = [('x', np.float32) ,
-                                ('y', np.float32),
-                                ('z', np.float32),
-                                ('label', np.int32),
-                                ('object', np.int32)])
-            else:
-                cloud_idx = cloud_map_frame_id[mask].reshape(-1, 1)
-                cloud_with_frame = np.concatenate([cloud, cloud_idx], axis=1)
-                self.write_data(patch_pcd_fname, cloud_with_frame,
-                                filed = [('x', np.float32) ,
-                                ('y', np.float32),
-                                ('z', np.float32),
-                                ('label', np.int32),
-                                ('object', np.int32),
-                                ('frame', np.int32),])
-                # copy img
+            self.write_data(patch_pcd_fname, cloud,
+                            filed = [('x', np.float32) ,
+                            ('y', np.float32),
+                            ('z', np.float32),
+                            ('label', np.int32),
+                            ('object', np.int32),
+                            ('frame', np.int32),])
+            # copy img
             image_list = roi_image_state[i]
             for ix, fi in enumerate(image_list):
                 if fi is not None:
@@ -561,7 +545,7 @@ class UosPCD:
             gts_cloudmap = scene_name + self.data_ext
             gts_cloudmap_path = os.path.join(self.labeling_cloudmap_dir, gts_cloudmap)
 
-            ground_truth_pcd = self.read_data(gts_cloudmap_path)
+            ground_truth_pcd = self.read_data(gts_cloudmap_path)[:, :-1]
 
             # read from metadata
             frame_idx_array = patch_mask_metadata[scene_name]['frame_idx']
@@ -638,12 +622,14 @@ class UosPCD:
             voxel_cloudmap = cloudmap[voxel_coor_index]
             voxel_cloudmap_frame = cloudmap_frame[voxel_coor_index]
 
-            self.write_data(cloudmap_fname, voxel_cloudmap,
+            voxel_cloudmap_with_frame = np.concatenate([voxel_cloudmap, voxel_cloudmap_frame.reshape(-1, 1)], axis=1)
+            self.write_data(cloudmap_fname, voxel_cloudmap_with_frame,
                     filed = [('x', np.float32) ,
                             ('y', np.float32),
                             ('z', np.float32),
                             ('label', np.int32),
-                            ('object', np.int32)])
+                            ('object', np.int32),
+                            ('frame', np.int32)])
 
             if scene_range_name not in self.patch_mask_meta.keys():
                 self.patch_mask_meta[scene_range_name] = {}
@@ -651,8 +637,8 @@ class UosPCD:
                 self.patch_mask_meta[scene_range_name]['frame_idx'] = cloudmap_frame
                 self.patch_mask_meta[scene_range_name]['voxel_coor_inv'] = voxel_coor_inv
 
-            # cloudmap_frame.tofile(cloudmap_idx_fname)
-            self.split_cloud_map(voxel_cloudmap, voxel_cloudmap_frame,
+
+            self.split_cloud_map(voxel_cloudmap_with_frame,
                     scene_range_name, roi_navi_state, roi_image_state,
                     split_dist, voxel_coor_inv)
 
