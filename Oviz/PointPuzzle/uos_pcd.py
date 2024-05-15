@@ -42,6 +42,16 @@ class UOSLidarData:
             self.sensor_cnt = len(self.lidar_metadata.keys())
         except:
             self.lidar_metadata = None
+            self.database = {}
+            datanames = os.listdir(pcd_path)
+            datanames.sort()
+            for i, f in enumerate(datanames):
+                key, ext = os.path.splitext(f)
+                if ext in [".bin"]:
+                    self.database[i] = os.path.join(pcd_path, f)
+            self.framecnt = len(self.database)
+
+
 
     def get_pcd_filepath(self, sensor_id, frame_id):
         fname = "ml_lidar_raw_%d_%s.pcd"%(sensor_id + 1, str(frame_id).zfill(6))
@@ -90,16 +100,19 @@ class UOSLidarData:
 
 
     def get_frame_pcd(self, frame_id):
-        multi_pcd_list = []
-        for i, sensor_key in enumerate(self.sensor2ego_mat.keys()):
-            pcd_file = self.get_pcd_filepath(i, frame_id)
-            if not os.path.exists(pcd_file): continue
-            sensor_pcd = read_pcd(pcd_file)
-            sensor2ego = self.sensor2ego_mat[sensor_key]
-            ego_pcd = self.trans_coord(sensor2ego, sensor_pcd)
-            multi_pcd_list.append(ego_pcd)
+        if self.lidar_metadata is not None:
+            multi_pcd_list = []
+            for i, sensor_key in enumerate(self.sensor2ego_mat.keys()):
+                pcd_file = self.get_pcd_filepath(i, frame_id)
+                if not os.path.exists(pcd_file): continue
+                sensor_pcd = read_pcd(pcd_file)
+                sensor2ego = self.sensor2ego_mat[sensor_key]
+                ego_pcd = self.trans_coord(sensor2ego, sensor_pcd)
+                multi_pcd_list.append(ego_pcd)
 
-        curr_frame_ego_pcd = np.concatenate(multi_pcd_list)
+            curr_frame_ego_pcd = np.concatenate(multi_pcd_list)
+        else:
+            curr_frame_ego_pcd = np.fromfile(self.database[frame_id], dtype=np.float32).reshape(-1, 4)
         return curr_frame_ego_pcd.astype(np.float32)
 
 
@@ -132,9 +145,9 @@ class UosPCD:
             self.uos_lidar_data = UOSLidarData(self.pcd_path, image_path)
             if self.uos_lidar_data.lidar_metadata is not None:
                 self.navi_list = self.uos_lidar_data.navi_list
-                self.framecnt = self.uos_lidar_data.framecnt
                 self.sensor_cnt = self.uos_lidar_data.sensor_cnt
-                self.enable_icp = True
+            self.framecnt = self.uos_lidar_data.framecnt
+            self.enable_icp = True
 
             self.pc_range = pc_range
             self.veh_range = veh_range
@@ -332,7 +345,9 @@ class UosPCD:
         points[:, -1] = pts_instance_label
         return points
 
-    def mark_points_by_seg(self, points, seg_path = ""):
+    def mark_points_by_seg(self, points, seg_path = "", valid_pts_mask = None):
+        seg_label = np.fromfile(seg_path, dtype=np.int32).ravel()
+        points[:, -2] = seg_label[valid_pts_mask]
         return points
 
     def mark_points_by_height(self, points, height_range = [-0.6, 0.2], cls_id = 11):
@@ -341,9 +356,9 @@ class UosPCD:
 
         return points
 
-    def mark(self, points, bboxes_path = "", seg_path = "", height_range=[-0.6, 0.2]):
+    def mark(self, points, bboxes_path = "", seg_path = "", height_range=[-0.6, 0.2], valid_pts_mask = None):
         if os.path.exists(seg_path):
-            points = self.mark_points_by_seg(points)
+            points = self.mark_points_by_seg(points, seg_path, valid_pts_mask)
         else:
             points = self.mark_points_by_height(points, height_range)
 
@@ -369,6 +384,14 @@ class UosPCD:
     def trans_coord(self, mat, points, dim=[0, 1, 2]):
         return self.uos_lidar_data.trans_coord(mat, points, dim)
 
+    def get_rotate_theta(self, rot_mat):
+        theta_x = np.arctan2(rot_mat[2,1], rot_mat[2,2])
+        theta_y = np.arctan2(-rot_mat[2,0], \
+            np.sqrt(rot_mat[2,1]*rot_mat[2,1]+rot_mat[2,2]*rot_mat[2,2]))
+        theta_z = np.arctan2(rot_mat[1,0], rot_mat[0,0])
+        return theta_x, theta_y, theta_z
+
+    temp_timestamp = 0.0
     def mapping(self, frame_range = [0, 200], max_frame = -1,
                 bbox_root_path = "", seg_root_path = "", height_range=[-0.6, 0.2],
                 split_dist = 10):
@@ -390,13 +413,20 @@ class UosPCD:
 
         for i in tqdm(range(*frame_range)):
             ori_ego_pcd = self.get_frame_pcd(i)
-            curr_navi_state = self.navi_list[i].copy()
 
             valid_pts_mask = self.filter(ori_ego_pcd)
             roi_ego_points = ori_ego_pcd[valid_pts_mask]
 
-            if self.enable_icp:
-                icp_pose_mat = self.odometry.run_icp(roi_ego_points, curr_navi_state[0])
+            if self.uos_lidar_data.lidar_metadata is None:
+                icp_pose_mat = self.odometry.run_icp(roi_ego_points, self.temp_timestamp)
+                x,y,z = icp_pose_mat[:, -1][:3]
+                _, _, yaw = self.get_rotate_theta(icp_pose_mat)
+                curr_navi_state = np.array([self.temp_timestamp, x, y, z, yaw, 1])
+                self.temp_timestamp += 0.5
+            else:
+                curr_navi_state = self.navi_list[i].copy()
+                if self.enable_icp:
+                    icp_pose_mat = self.odometry.run_icp(roi_ego_points, curr_navi_state[0])
 
             self.info_ego_pos_list.append(
                 {
@@ -436,9 +466,19 @@ class UosPCD:
                 ego_pcd_for_label = np.hstack((roi_ego_points[:, :3],
                                             np.zeros((roi_ego_points.shape[0], 1), dtype=np.float32),
                                             np.ones((roi_ego_points.shape[0], 1), dtype=np.float32) * -1))
-                bboxes_path = os.path.join(bbox_root_path, str(i).zfill(6) + ".txt")
+
+                if self.uos_lidar_data.lidar_metadata is not None:
+                    bboxes_path = os.path.join(bbox_root_path, str(i).zfill(6) + ".txt")
+                    seg_path = os.path.join(seg_root_path, str(i).zfill(6) + ".bin")
+                else:
+                    basename = os.path.basename(self.uos_lidar_data.database[i])
+                    fname = os.path.splitext(basename)[0]
+                    bboxes_path = os.path.join(bbox_root_path, fname + ".txt")
+                    seg_path = os.path.join(seg_root_path, fname + ".bin")
+
                 # mark ego pcd
-                ego_pcd_for_label = self.mark(ego_pcd_for_label, bboxes_path=bboxes_path, height_range=height_range)
+                ego_pcd_for_label = self.mark(ego_pcd_for_label, bboxes_path=bboxes_path,
+                            seg_path=seg_path, height_range=height_range, valid_pts_mask=valid_pts_mask)
 
                 if self.enable_icp:
                     world_pcd = self.trans_coord(icp_pose_mat, ego_pcd_for_label)
@@ -470,6 +510,14 @@ class UosPCD:
                     os.system("cp -r %s %s"%(img_path, dst_img_name))
             if not self.update_progress("build", i, max_frame):
                 break
+
+        if self.enable_icp:
+            roi_navi_state.append(icp_pose_mat)
+            roi_image_state.append(curr_camera_list)
+        else:
+            roi_navi_state.append(curr_navi_state)
+            roi_image_state.append(curr_camera_list)
+
         mapping_pcd = np.concatenate(world_pcd_list)
         frame_idx_bin = np.concatenate(world_pcd_frame_list)
 
@@ -614,8 +662,9 @@ class UosPCD:
             # 单帧到连续帧
             if self.enable_icp:
                 self.odometry = CustomKissICP()
+
             cloudmap, cloudmap_frame, roi_navi_state, roi_image_state = self.mapping(scene_frame_range, roi_frame_range[-1],
-                        bbox_root_path, height_range=height_range, split_dist = split_dist)
+                        bbox_root_path, seg_root_path = seg_root_path,  height_range=height_range, split_dist = split_dist)
 
             # 连续帧 到 Voxel
             voxel_coor_index, voxel_coor_inv = self.voxelize(cloudmap)
