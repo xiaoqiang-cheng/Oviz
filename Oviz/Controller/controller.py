@@ -438,9 +438,9 @@ class Controller():
                 l = np.ones((len(points), 1)) * 0.4
                 h = np.ones((len(points), 1)) * 0.4
             else:
-                w = msg[..., pointcloud_setting.wlh_dims[0]]
-                l = msg[..., pointcloud_setting.wlh_dims[1]]
-                h = msg[..., pointcloud_setting.wlh_dims[2]]
+                w = msg[..., pointcloud_setting.wlh_dims[0]].reshape(-1, 1)
+                l = msg[..., pointcloud_setting.wlh_dims[1]].reshape(-1, 1)
+                h = msg[..., pointcloud_setting.wlh_dims[2]].reshape(-1, 1)
         if isinstance(real_color, str):
             real_color = np.array([color_str_to_rgb(real_color)] * len(points))
         return points, real_color, w, l, h, pointcloud_setting.show_voxel, group
