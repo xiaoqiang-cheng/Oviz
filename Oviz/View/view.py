@@ -71,7 +71,8 @@ class View(QMainWindow):
             self.central_widget.hide()
         else:
             self.central_widget.show()
-            self.central_widget.setMinimumHeight(10)
+            self.central_widget.setMinimumHeight(100)
+            self.central_widget.setMinimumWidth(100)
 
     def create_dock_widget(self):
         self.image_dock = []
@@ -402,7 +403,11 @@ class View(QMainWindow):
             f.flush()
 
     def load_layout(self):
-        p = '%s/layout.ini'%USER_CONFIG_DIR
+        first_layout = '%s/layout.ini'%USER_CONFIG_DIR
+        if os.path.exists(first_layout):
+            p = first_layout
+        else:
+            p = '%s/layout.ini'%OVIZ_CONFIG_DIR
         if os.path.exists(p):
             with open(p, 'rb') as f:
                 s = f.read()
