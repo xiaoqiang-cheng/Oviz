@@ -90,7 +90,7 @@ class Model(QObject):
         elif pc_path.endswith(".bin"):
             pc = read_bin(pc_path)
         elif pc_path.endswith(".txt"):
-            pc = np.loadtxt(pc_path, dtype=np.float32, delimiter=',')
+            pc = np.loadtxt(pc_path, dtype=np.float32)
         return pc
 
     def smart_read_image(self, image_path):
