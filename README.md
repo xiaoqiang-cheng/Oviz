@@ -21,42 +21,43 @@
 
 <div align="center">
 
-English | [简体中文](README_zh.md)
+[English](README_en.md) | 简体中文
 
 </div>
 
 ![](Resources/homepage.jpg)
 
 ---
-## Introduction
+## 介绍
 
-A serious visualization tool, part of the Xiaoqiang Studio trilogy, Do Nothing, Show Anything.
+一个正经的可视化工具，Xiaoqiang Studio三件套之一，Do Nothing, Show Anything。
 
-A lightweight Python visualization tool designed specifically for computer vision tasks, Oviz simplifies complex visualization operations, allowing you to focus on the data itself and break free from cumbersome visualization setups. Whether it's displaying 3D point clouds, rendering 2D images, or showcasing intricate vehicle models, Oviz handles it all effortlessly.
+专为计算机视觉任务设计的轻量级 Python 可视化工具，Oviz 简化了复杂的可视化操作，让你专注于数据本身，从繁重的可视化轮子中解脱出来。无论是 3D 点云展示，2D 图像渲染，还是复杂的车体模型显示，Oviz 都能轻松应对。
 
-### Features
+### 特性
 
-- **Cross-platform Compatibility**: Supports Linux, Windows, and macOS platforms.
-- **Easy Installation**: Available via PyPI and source code installation methods.
-- **Quick Start**: Get started with just one command.
-- **Multi-tasking Support**: Handles 3D elements like point clouds, OCC, bbox, and 2D image visualizations.
-- **User-Friendly**: Shortcut keys, automatic recording, and comprehensive history functionality.
-- **Extensible**: Offers Oviz API and Magic Pipeline for rapid expansion.
+- **跨平台兼容**：支持 Linux、Windows 和 macOS 平台。
+- **简易安装**：提供 pypi 和源码两种安装方式。
+- **快捷启动**：简单的一行命令即可开启 Oviz。
+- **多任务支持**：支持点云、OCC、bbox 等 3D 元素和 2D 图像的可视化。
+- **用户友好**：快捷键操作，自动录屏，历史记录功能一应俱全。
+- **二次开发**：提供Oviz API和Magic Pipeline 两种方式快速扩展。
 
-## Getting Started
+## 快速开始
 
-### Installation & Launch
+### 安装&启动
 
-oviz runs on Linux, Windows, and macOS. It requires Python 3.7 or higher. We recommend using conda to manage your Python environment. Perform the following steps in a compatible Python environment.
+oviz 支持在 Linux，Windows 和 macOS 上运行。它需要>=python3.7环境，建议使用conda 来管理python环境，以下操作默认在符合上述要求的python环境下执行。您可以使用pypi 源安装或源码安装两种方式。
 
-(1) Installation
+(1) 安装
 
-- PyPI Installation
+- pypi安装
 
 ```shell
 pip install oviz
 ```
-- Source Installation
+
+- 源码安装
 
 ```shell
 git clone https://github.com/xiaoqiang-cheng/Oviz.git
@@ -64,148 +65,150 @@ cd Oviz/
 pip install -v -e .
 ```
 
-(2) Launch
+(2) 启动
 
 ```shell
 oviz
 ```
 
-If everything goes smoothly, you'll see the startup interface below. Due to the developer being Chinese, most interface messages during development are in Chinese and will soon adapt to an all-English version.
+如果一切顺利，你将会看到如下启动界面，由于作者是中国人，在开发中大部分界面信息使用了中文，将尽快适配全英文版本。
 
 ![image-20240710183336361](Resources/startup.png)
 
-### Interface Introduction
+### 窗体介绍
 
 - GlobalSetting
-  - Global settings window for adjusting element colors, setting recording, displaying vehicle models, and other common configurations.
-
+  - 全局设置窗，用于调整元素配色，设置录屏，显示车型等公共配置
 - ElementSetting
-  - Element settings window for selecting offline data such as point clouds, bbox, etc.
-
+  - 元素设置窗，用于选择离线数据，如点云、bbox等
 - Progress
-  - Used for switching frames.
-
+  - 用于切换上下帧
 - Image
-  - Image display window for showing images.
+  - 图像显示窗，用于显示图像
 
-These are the main components of oviz, which can be freely shown or hidden through the menu bar->view or shortcut operations.
+以上为oviz的主要组件，通过菜单栏->视图 或者 快捷键操作，可以自由显示或隐藏。
+
+### 显示3D元素
+
+- 显示点云
+
+  - 当前支持的点云文件格式有：.bin / .pcd /.txt
+    - bin格式为二进制的点云格式，请保证其可以通过np.fromfile api解析成N * X 维的array，并在
+    - pcd格式自带解析field，因此无需指定维度
+    - txt点云，请保证txt中各个维度以空格或者逗号间隔，每个点一行
+  - 首先，点击ElementSetting->template->pointcloud->[pointcloud] 按钮，选择要显示的点云文件夹
+  - 据实填写 dim, xyz 维度,  wlh维度（可选，-1为不设置），color维度（将根据GlobalSetting中配色表显示颜色）
+  - 点云将显示在中间的3D显示区
+
+- 显示OCC
+
+  - OCC显示设置与点云完全一致，请按照点云支持的文件和配置操作
+
+  - OCC的wlh可以主动设置，如未配置，将 使用默认OCC格子大小(0.4m)
+
+  - 可视化效果如下：
+
+    ![](Resources/occ.jpg)
+
+- 显示bbox
+
+  - 当前只支持txt格式的bbox3d结果文件用于可视化
+  - 首先，点击ElementSetting->template->bbox3d->[bbox3d] 按钮，选择要显示的bbox文件夹
+  - 据实填写相关维度(xyzwlhθ)
+  - 填写 旋转方向和相位差。
+    - 这一栏中需要填写两个数字，第一个为顺/逆时针方向，第二个为相位差。默认方向定义为x轴起，逆时针旋转（此时为 1.0, 0)
+    - 例如，当前坐标系下bbox3d方向定义为y轴起，顺时针方向，则方向为顺,相位差为0.5pi,当前栏填写为[-1, 0.5]
+
+### 显示2D元素
+
+- 显示图像
+  - 如果图像窗体为隐藏状态，则应当首先显示图像窗体，即：菜单栏->视图->显示图片 或者通过快捷键(Ctrl+Shift+I)显示图像窗体
+  - 通过双击图像窗体，选择要显示的离线图片文件夹，即可显示图像
+  - 通过拖动图像标题栏可调整图像显示顺序和位置
+  - 如果调整后多个图像窗体宽度未能保持一致，请按[r]即可自动对齐
 
 
+### 显示车体
 
-### Displaying 3D Elements
+- 通过选中 [GlobalSetting->car_model_setting->显示车模型] 即可在3D视图中心显示仿真车
+- 如果当前车头方向与数据坐标系方向不一致，请通过重新选中调整车头方向，每次选中车头方向调整 0.5pi
 
-- Displaying Point Clouds
-  - Supported point cloud file formats include: .bin / .pcd / .txt
-    - bin format is a binary point cloud format, please ensure it can be parsed into N * X dimensions array through np.fromfile api, and in
-    - pcd format comes with parsing field, so no dimension needs to be specified
-    - txt point cloud, please ensure that the dimensions in txt are separated by spaces or commas, one point per line
-  - First, click ElementSetting->template->pointcloud->[pointcloud] button, select the point cloud folder to display
-  - According to the true filling of dim, xyz dimension, wlh dimension (optional, -1 is not set), color dimension (color display will be displayed according to the color table set in GlobalSetting)
-  - The point cloud will be displayed in the central 3D display area.
-- Displaying OCC
-  - OCC display settings are completely consistent with point clouds, please operate according to the file and configuration supported by point clouds
-  - OCC's wlh can be actively set, such as no configuration, will use the default OCC grid size (0.4m)
-  - Visual effect as follows:
+### 重置
 
-  ![](Resources/occ.jpg)
+当遇到非预期bug导致oviz无法正常操作使用时，你可以通过以下操作来重置工具
 
-- Displaying bbox3d
-  - Currently only txt format bbox3d result file is supported for visualization
-  - First, click ElementSetting->template->bbox3d->[bbox3d] button, select the bbox folder to display
-  - Fill in the relevant dimensions (xyzwlhθ)
-  - Fill in the rotation direction and phase difference.
-    - This column needs to fill in two numbers, the first is the clockwise/counterclockwise direction, the second is the phase difference. The default direction is defined as starting from the x-axis, counterclockwise rotation (1.0, 0 at this time)
-    - For example, in the current coordinate system, the bbox3d direction is defined as starting from the y-axis, clockwise, the direction is clockwise, and the phase difference is 0.5pi, the current column is filled with [-1, 0.5]
-
-### Displaying 2D Elements
-
-- Displaying Images
-  - If the image window is hidden, you should first display the image window, that is: menu bar->view->show image or display image window via shortcut (Ctrl+Shift+I)
-  - Double-click the image window to select the offline image folder to display the image
-  - You can adjust the image display order and position by dragging the image title bar
-  - If the widths of multiple image windows adjusted after are not consistent, press [r] to align automatically
-
-### Displaying Vehicles
-
-- By selecting [GlobalSetting->car_model_setting->display car model], you can display a simulated car at the center of the 3D view
-- If the current vehicle heading direction is inconsistent with the data coordinate system direction, please adjust the vehicle heading direction by reselecting each time the vehicle heading direction is adjusted 0.5pi
-
-### Reset
-
-When encountering unexpected bugs that cause oviz to be unable to operate normally, you can reset the tool through the following steps
-
-1. First, make sure that oviz is closed
-2. Use the following method to delete user configuration
+1. 首先，保证 oviz 处于关闭状态
+2. 使用以下方式来删除用户配置
 
 ```shell
 rm -r ~/.oviz
 ```
 
-## Advanced Usage
+## 进阶使用
 
-### Adding Windows
+### 增加窗体
 
-Whether it's 3D components or 2D components, oviz supports adding multiple sets of data. Simply ensure all offline data files have consistent filenames for easy comparative visualization. For example, the occ flow visualization in ECCV2024 [ViewFormer](https://arxiv.org/abs/2405.04299) is rendered based on this feature.
+无论是3D组件还是2D组件，oviz都支持增加多组数据，你只要保证所有离线数据的文件名一致，即可方便用于对比可视化。例如 ECCV2024 [ViewFormer](https://arxiv.org/abs/2405.04299) 的 occ flow可视化就是基于此功能渲染。
 
-![img](Resources/FlowOcc3D.jpg)
+![](Resources/FlowOcc3D.jpg)
 
-- Image Windows
-  - Each image window includes buttons + and x in the top right corner for easy addition and deletion of the current image window.
-- 3D Views
-  - In the ElementSetting window, clicking the + next to "template" allows you to effortlessly add a parallel set of 3D views. By selecting the same data operation, you can achieve visual comparisons.
-  - For visualization elements within the same group (e.g., point clouds, bounding boxes), you can directly add them. For instance, clicking + on the right side of point cloud adds a new set of point clouds within the current 3D view. Note that in this mode, color is determined by stacking order rather than by color dimensions.
+- 图像窗体
+  - 每个图像窗体的右上角都提供了 + 和 x两个按钮，可以方便的增删当前图像窗体。
+- 3D视图
+  - 在ElementSetting 窗口中，通过点击"template"最右侧的 + 可以轻松增加一组并列的3D视图，通过相同的选择数据操作，即可实现可视化对比
+  - 对于同一组内的可视化元素（例如点云，bbox），你也可以直接增加，例如点击pointcloud最右侧 "+"，即可在当前3D视图内，新增一组点云。需要注意的时，在当前模式下，数据颜色将不由color维度控制，而是以堆叠的元素顺序显示颜色。
 
-A complete multi-window example is shown below:
+一个完整的多窗体示例如下图所示：
+![](Resources/demo.jpg)
 
-![img](Resources/demo.jpg)
+### 历史记录
 
-### History Records
+当你配置好本地的离线数据后，如果想将保存当前配置和数据路径，以防将来修改时恢复，可以通过快捷键（Ctrl+S）保存，当需要恢复时点击 菜单栏->历史记录 即可恢复。
 
-Once you've configured local offline data, if you want to save the current configuration and data paths for future restoration after modifications, use the shortcut (Ctrl+S) to save. To restore, click on Menu -> History Records.
+![](Resources/history.jpg)
 
-![img](Resources/history.jpg)
+### 自动录屏
 
-### Automatic Screen Recording
+我们提供了两种录屏事件（切帧事件和鼠标事件），切帧事件会在你切换下一帧时保存下当前窗体渲染，鼠标事件则会在你操作鼠标（例如旋转3D视角）时，记录下窗体渲染。你只需要在 GlobalSetting->record_screen_setting 选中相应事件，然后播放数据即可。点击导出视频即可将刚才操作中记录下的所有图片导出为mp4。
 
-We offer two types of recording events (frame switching and mouse events). Frame switching saves the current window rendering when you switch to the next frame, while mouse events record window rendering when you perform mouse operations (e.g., rotating 3D view). Simply select the corresponding event under GlobalSetting -> record_screen_setting, then play the data. Click Export Video to export all recorded images as an mp4 video.
+保存的每一帧图片和视频将保存在 [Save Dir]配置的目录下。
 
-Each saved frame and video is stored in the directory configured under [Save Dir].
+![](Resources/save.jpg)
 
-![img](Resources/save.jpg)
 
-### Shortcuts
+### 快捷键
 
-| Function             | Shortcut       |
-| -------------------- | -------------- |
-| Show Images          | `Ctrl+Shift+I` |
-| Show 3D Windows      | `Ctrl+Shift+C` |
-| Show Log             | `Ctrl+Shift+L` |
-| Show Progress Bar    | `Ctrl+Shift+P` |
-| Show Element Console | `Ctrl+Shift+E` |
-| Show Global Console  | `Ctrl+Shift+G` |
-| Show Image Title Bar | `Ctrl+Shift+T` |
-| Show Status Bar      | `Ctrl+Shift+S` |
-| Show Menu Bar        | `Ctrl+Shift+B` |
-| Save                 | `Ctrl+S`       |
-| Auto Play            | `Ctrl+P`       |
-| Previous Frame       | `Ctrl+L`       |
-| Next Frame           | `Ctrl+N`       |
+| 功能           | 快捷键         |
+| -------------- | -------------- |
+| 显示图片       | `Ctrl+Shift+I` |
+| 显示3D窗口     | `Ctrl+Shift+C` |
+| 显示日志       | `Ctrl+Shift+L` |
+| 显示进度条     | `Ctrl+Shift+P` |
+| 显示元素控制台 | `Ctrl+Shift+E` |
+| 显示全局控制台 | `Ctrl+Shift+G` |
+| 显示图片标题栏 | `Ctrl+Shift+T` |
+| 显示状态栏     | `Ctrl+Shift+S` |
+| 显示菜单栏     | `Ctrl+Shift+B` |
+| 保存       | `Ctrl+S`   |
+| 自动播放   | `Ctrl+P`   |
+| 上一帧     | `Ctrl+L`   |
+| 下一帧     | `Ctrl+N`   |
 
-## Extended Features
+## 扩展功能
 
-We provide two convenient ways to extend functionality. The architecture of oviz is illustrated in the following diagram:
+我们提供了两种方式方便用户扩展。oviz的整理架构如下图所示：
 
-![img](Resources/framework.jpg)
+![](Resources/framework.jpg)
 
 ### Magic Pipeline
 
-Python's capabilities allow us to perform operations like magic, hence the term Magic Pipeline. Specifically, it serves as a window between serialized data and the rendering interface. By implementing a pipeline, we can modify or print information in real-time to aid in debugging.
+python的特性让我们可以实现很多像魔法一样的操作，因此，我把这个功能称为Magic Pipeline。具体来说，它是序列化数据到渲染界面之间的一个窗口。通过实现一个pipeline，我们可以实时修改或者打印一些信息，来帮助我们更快的debug。
 
-Enable it via GlobalSetting -> magic_pipeline_setting. Clicking [Open Editor] opens an example pipeline code in vscode (you must have it installed). You can adapt this function to control whether the data executes the current process.
+你可以通过GlobalSetting->magic_pipeline_setting 来使能它。通过点击[打开编辑器] 将通过vscode (你必须已经装过) 打开一个示例的pipeline代码。你可以通过仿写这个函数来控制数据是否执行当前流程。
 
-I attempted to simplify pipeline function design with a decorator, but explaining it remains complex. So, if you intend to use it, experiment or read the code. Feel free to contact me for remote discussions on this feature.
+我尝试实现了一个装饰器来简化pipeline函数的设计，但是解释起来仍然很复杂。啊！所以，如果你会用到，请多自己尝试或者读代码吧。也可以与我联系，我可以远程和你交流这个功能。
 
-Here's an example pipeline implementation:
+以下为示例pipline写法。
 
 ```python
 '''
@@ -245,35 +248,40 @@ def fix_nus_bbox3d(self, key, group, ele, index, data, **kwargs):
     return data
 ```
 
+
+
 ### Oviz API
 
-We provide an API that allows you to call Oviz visualizations in your code, similar to using OpenCV. This feature is currently under development and supports only a few elements. Future updates may include refactoring and optimizations, but we believe this feature holds significant promise.
+我们提供了一套API，可以使得你像opencv一样在你的代码种调用oviz可视化，当然，这是一个开发中的功能，目前只支持仅有的几种元素，未来可能会做一些重构优化，但是我仍然相信，这是一个非常值得期待的功能。
 
-Remote visualization poses a major challenge compared to local visualization. Therefore, we've implemented two middleware solutions based on TCP/IP and Share Memory for remote and local API functionality.
+相比于本地可视化，远程服务器的可视化是更大的痛点。因此，我们基于TCP/IP 和 Share Memory 实现了两种中间件，用于远程和本地的api功能。
 
-![img](Resources/oviz_api.jpg)
 
-You can use it as follows:
+![](Resources/oviz_api.jpg)
 
-- **Local API**
+你可以用以下方式调用它：
+
+- 本地API
 
 ```python
 from Oviz import Oviz
 import numpy as np
 
 for i in range(10):
-    Oviz.imshow("image/0/%s.jpg"%(str(i).zfill(6)))
-    Oviz.imshow("image/1/%s.jpg"%(str(i).zfill(6)))
+  Oviz.imshow("image/0/%s.jpg"%(str(i).zfill(6)))
+  Oviz.imshow("image/1/%s.jpg"%(str(i).zfill(6)))
 
-    fake_img = np.ones((720, 720, 3), dtype=np.uint8) * i * 10
+  fake_img = np.ones((720, 720, 3), dtype=np.uint8) * i * 10
 
-    Oviz.imshow(fake_img)
-    Oviz.pcshow("points/bins/%s.bin"%(str(i).zfill(6)))
-    print(i)
-    Oviz.waitKey()
+  Oviz.imshow(fake_img)
+  Oviz.pcshow("points/bins/%s.bin"%(str(i).zfill(6)))
+  print(i)
+  Oviz.waitKey()
 ```
 
-- **Remote API**
+
+
+- 远程API
 
 ```python
 from Oviz import Oviz
@@ -293,20 +301,20 @@ for i in range(10):
     Oviz.waitKey()
 ```
 
-Through our abstraction, the remote API requires initialization with an IP address and port in a local network, but otherwise functions identically to the local API. To use the remote API, enable this feature in oviz under GlobalSetting -> oviz_api_setting.
+经过我们的抽象，远程api相比本地只是多了局域网下的IP和端口初始化，其他完全一样。使用远程API时，你需要在oviz窗体 GloabalSetting->oviz_api_setting 打开该功能。
 
-## Future Plans
+## 未来计划
 
--  Display 2D Bounding Boxes
--  Display 2D Segmentation
--  Display Lane Lines
--  Implement 3D to 2D Projection
--  Improve Operational Portability
--  etc...
+- [ ] 显示2D BBox
+- [ ] 显示2D 分割
+- [ ] 显示车道线
+- [ ] 显示3D->2D投影
+- [ ] 提高操作的便携性
+- [ ] etc...
 
-If you encounter issues or have requests, [feel free to raise an issue](https://github.com/xiaoqiang-cheng/Oviz/issues) for prompt resolution. You can also reach out directly via email at xiaoqiang.cheng@foxmail.com.
+如果你遇到问题或者需求，[欢迎点击issue提问](https://github.com/xiaoqiang-cheng/Oviz/issues)，将尽快修复。也可以直接邮件给我  xiaoqiang.cheng@foxmail.com。
 
-Moreover, contributions and feature additions are welcome. Let's collaborate to enhance the functionality together.
+当然，欢迎你主动修改或增加功能，提交代码与我共创。
 
 ## Starchart
 
@@ -314,6 +322,6 @@ Moreover, contributions and feature additions are welcome. Let's collaborate to 
 
 ## Contributors
 
-<a href="https://github.com/xiaoqiang-cheng/Oviz/graphs/contributors">   <img src="https://contrib.rocks/image?repo=xiaoqiang-cheng/Oviz" /> </a>
-
-Please continue with the translation from here.
+<a href="https://github.com/xiaoqiang-cheng/Oviz/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=xiaoqiang-cheng/Oviz" />
+</a>
