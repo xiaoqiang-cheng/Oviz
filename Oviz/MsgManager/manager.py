@@ -20,10 +20,10 @@ class MiddleManager(threading.Thread):
         if target_port  is None:
             if UltraMiddleWareStatus:
                 self.default_middleware = UltraMiddleWare()
-                print("Note: oviz api default use UltraMiddleWare, you must eable same python version in other process")
+                print("Note: oviz api default use UltraMiddleWare, if use oviz api, you must eable same python version in other process")
 
             else:
-                print("your UltraMiddleWare can not work, please enbale TCPMiddleWare")
+                print("Note: your UltraMiddleWare can not work, if use oviz api, please enbale TCPMiddleWare")
         else:
             self.default_middleware = TCPMiddleWare(ip, target_port)
 

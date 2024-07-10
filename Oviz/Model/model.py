@@ -3,7 +3,7 @@ from Oviz.Utils.point_cloud_utils import read_pcd, read_bin
 from Oviz.log_sys import send_log_msg
 import os
 import cv2
-from Oviz.MsgManager.manager import MiddleManager
+from Oviz.MsgManager.manager import MiddleManager, UltraMiddleWareStatus
 import threading
 
 class Model(QObject):
@@ -18,7 +18,8 @@ class Model(QObject):
         self.oviz_node_event = threading.Event()
 
         self.oviz_node = MiddleManager(self.online_callback, event=self.oviz_node_event)
-        self.oviz_node.start()
+        if UltraMiddleWareStatus:
+            self.oviz_node.start()
 
     def free(self):
         self.oviz_node_event.set()
@@ -38,8 +39,11 @@ class Model(QObject):
         self.oviz_node.start()
 
     def free_middleware(self):
-        self.oviz_node.close()
-        self.oviz_node.join()
+        try:
+            self.oviz_node.close()
+            self.oviz_node.join()
+        except:
+            pass
 
     def online_callback(self, msg):
         # print(msg)
