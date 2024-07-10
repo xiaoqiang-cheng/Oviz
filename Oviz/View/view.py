@@ -119,7 +119,6 @@ class View(QMainWindow):
             self.load_history_menu.addAction("[empty]")
         self.load_history_menu_triggered = self.load_history_menu.triggered[QAction]
         self.load_history_menu_triggered.connect(self.reload_database)
-        self.menubar.setMaximumHeight(1)
 
     def show_menu_bar(self):
         if self.menubar.height() < 10:

@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="Oviz/Resources/homepage.png" width="600"/>
+  <img src="Oviz/Resources/oviz.png" width="200"/>
   <div>&nbsp;</div>
   <div align="center">
     <b><font size="6">Xiaoqiang Studio</font></b>
@@ -19,86 +19,128 @@
   <div>&nbsp;</div>
 </div>
 
+<div align="center">
+
+English | [简体中文](README_zh.md) 
+
+</div>
+
+![](Oviz/Resources/homepage.png)
+
 ---
-## 简介
+## 介绍
+
 一个正经的可视化工具，Xiaoqiang Studio三件套之一，Do Nothing, Show Anything。
 
-**当前已有**的功能：
-- 显示图像（多个相机）
-- 显示点云（一个雷达）
-- 显示体素（自定义格子）
-- 显示一个简单的车体模型
-- 录屏
-
-**计划增加**的功能：
-- 显示2D/3D 车道线
-- 显示2D/3D bounding box
-- 显示多传感器之间的标定/投影
-- 显示拓扑关系
-- 显示曲线
-- 显示文字
-- 在线模式
 
 
-## 开发说明
+## 快速开始
 
-### 依赖
-| 建议使用conda管理Python虚拟环境
-- Python 3.8+
-- pip install -r requirements
+### 安装&启动
 
-### 使用发布环境
-1. 下载打包好的oviz_env
-2. 安装 ./install.sh
-3. 激活虚拟环境 source /usr/local/oviz_env/bin/activate
+oviz 支持在 Linux，Windows 和 macOS 上运行。它需要python3.7~python3.9 (含) 的 python环境，建议使用conda 来管理该环境，以下操作默认在符合上述要求的python环境下执行。您可以使用pypi 源安装或源码安装两种方式。
 
-### 开始
-```
-python main.py
+(1) 安装
+
+- pypi安装
+
+```shell
+pip install oviz
 ```
 
+- 源码安装
 
-## 使用说明
+```shell
+git clone https://github.com/xiaoqiang-cheng/Oviz.git
+cd Oviz/
+pip install -v -e .
+```
 
-### 1. 点云可视化
-1）修改 point_setting
-- dim 点云维度
-- xyz维度
-- wlh维度 （体素显示用，-1 表示不关心，采用默认格子大小 0.4m）
-- color维度 （可以用于显示分割数据）
+(2) 启动
 
-2）选择点云路径
+```shell
+oviz
+```
 
-3）更改对应颜色
-- -1表示默认颜色
-- 其他数字以点云数据中的ID决定
+如果一切顺利，你将会看到如下启动界面，由于作者是中国人，在开发中国大部分界面信息使用了中文，将尽快适配全英文版本。
 
-4）点击voxel模式，以体素显示点云
+![image-20240710183336361](Oviz/Resources/startup.png)
 
-![选择点云](Oviz/Resources/show_pointcloud.png)
+### 显示3D元素
 
-### 2. 图像可视化
-1）点击工具上方 “视图”，选择 显示图片
-- 双击任意图片窗体选择路径
-- 拖拉窗体到喜欢的位置
+- 基本使用
 
-2）鼠标选中图片标题栏，右键 任意控制显示/取消显示某一图片窗体
+- 显示点云
+- 显示OCC
+- 显示bbox
 
-![](Oviz/Resources/show_image.jpg)
+### 显示2D元素
 
-### 3. 录屏
-1）显示滑块
-- 视图->显示滑块
-- 拖出点云设置栏
-- 点击保存录屏
+- 显示图像
 
-2）自动播放数据
-- 点击滑块栏中的 auto 自动播放数据
-- 播放完成之后，在当前目录下 Output 文件夹下查找录屏图片
-
-### 4. 恢复出厂设置
-- rm -r .user
+### 显示车体
 
 
-## 最后
-如果您觉得本项目有用，不要吝啬您的star~
+
+### 重置
+
+你可以通过以下操作来重置工具
+
+1. 首先，保证 oviz 处于关闭状态
+2. 使用以下方式来删除用户配置
+
+```shell
+rm -r ~/.oviz
+```
+
+
+
+## 进阶使用
+
+### 增加窗体
+
+### 维度介绍
+
+### 历史记录
+
+### 自动录屏
+
+### 快捷键
+
+| 功能           | 快捷键         |
+| -------------- | -------------- |
+| 显示图片       | `Ctrl+Shift+I` |
+| 显示3D窗口     | `Ctrl+Shift+C` |
+| 显示日志       | `Ctrl+Shift+L` |
+| 显示进度条     | `Ctrl+Shift+P` |
+| 显示元素控制台 | `Ctrl+Shift+E` |
+| 显示全局控制台 | `Ctrl+Shift+G` |
+| 显示图片标题栏 | `Ctrl+Shift+T` |
+| 显示状态栏     | `Ctrl+Shift+S` |
+| 显示菜单栏     | `Ctrl+Shift+B` |
+| 保存       | `Ctrl+S`   |
+| 自动播放   | `Ctrl+P`   |
+| 上一帧     | `Ctrl+L`   |
+| 下一帧     | `Ctrl+N`   |
+
+## 扩展功能
+
+### Magic Pipeline
+
+### Oviz API
+
+
+
+## 更新计划
+
+
+
+## Starchart
+
+[![Star History Chart](https://api.star-history.com/svg?repos=xiaoqiang-cheng/Oviz&type=Date)](https://star-history.com/#xiaoqiang-cheng/Oviz&Date)
+
+## Contributors
+
+<a href="https://github.com/xiaoqiang-cheng/Oviz/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=xiaoqiang-cheng/Oviz" />
+</a>

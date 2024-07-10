@@ -4,7 +4,7 @@ build-backend = 'hatchling.build'
 
 [project]
 name = "Oviz"
-version = "0.1.5"
+version = "0.1.6"
 authors = [
     { name = 'xiaoqiang cheng', email = 'xiaoqiang.cheng@foxmail.com' }
 ]
@@ -35,3 +35,5 @@ oviz = 'Oviz.main:main'
 [project.urls]
 'Homepage' = 'https://github.com/xiaoqiang-cheng/Oviz'
 
+[tool.poetry.scripts]
+publish = 'Oviz:publish'
