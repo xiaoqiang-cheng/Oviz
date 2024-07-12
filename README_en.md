@@ -145,7 +145,7 @@ rm -r ~/.oviz
 
 ### Adding Windows
 
-Whether it's 3D components or 2D components, oviz supports adding multiple sets of data. Simply ensure all offline data files have consistent filenames for easy comparative visualization. For example, the occ flow visualization in ECCV2024 [ViewFormer](https://arxiv.org/abs/2405.04299) is rendered based on this feature.
+Whether it's 3D components or 2D components, oviz supports adding multiple sets of data. Simply ensure all offline data files have consistent filenames for easy comparative visualization. For example, the occ flow visualization in ECCV2024 [ViewFormer](https://github.com/ViewFormerOcc/ViewFormer-Occ) is rendered based on this feature.
 
 ![img](Resources/FlowOcc3D.jpg)
 

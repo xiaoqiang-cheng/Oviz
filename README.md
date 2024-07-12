@@ -148,7 +148,7 @@ rm -r ~/.oviz
 
 ### 增加窗体
 
-无论是3D组件还是2D组件，oviz都支持增加多组数据，你只要保证所有离线数据的文件名一致，即可方便用于对比可视化。例如 ECCV2024 [ViewFormer](https://arxiv.org/abs/2405.04299) 的 occ flow可视化就是基于此功能渲染。
+无论是3D组件还是2D组件，oviz都支持增加多组数据，你只要保证所有离线数据的文件名一致，即可方便用于对比可视化。例如 我们发表在 ECCV2024 的工作 [ViewFormer](https://github.com/ViewFormerOcc/ViewFormer-Occ) 的 occ flow可视化就是基于此功能渲染。
 
 ![](Resources/FlowOcc3D.jpg)
 
