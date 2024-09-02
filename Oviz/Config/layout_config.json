@@ -286,6 +286,71 @@
                         }
                     }
                 }
+            }],
+
+            "lane3d" : [{
+                "type": "QVBoxLayout",
+                "widget":{
+                    "lane3d_points_dim":{
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "point_key",
+                            "default_value": {
+                                "value": "points"
+                            }
+                        }
+                    },
+
+                    "lane3d_color_dim":{
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "color_key",
+                            "default_value": {
+                                "value": "label"
+                            }
+                        }
+                    },
+
+                    "lane3d_arrow_dim":{
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "arrow_key",
+                            "default_value": {
+                                "value": "arrow"
+                            }
+                        }
+                    },
+
+                    "lane3d_txt_text_dim":{
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "text_key",
+                            "default_value": {
+                                "value": "text"
+                            }
+                        }
+                    },
+
+                    "lane3d_txt_format_dim":{
+                        "type": "LineTextWithLabelWidget",
+                        "params":{
+                            "widget_titie" : "show_format",
+                            "default_value": {
+                                "value": "[label: %d]"
+                            }
+                        }
+                    },
+
+                    "folder_path" : {
+                        "type": "FolderSelectWidget",
+                        "params":{
+                            "widget_titie" : "lane3d",
+                            "default_value": {
+                                "value": ""
+                            }
+                        }
+                    }
+                }
             }]
         }
     }

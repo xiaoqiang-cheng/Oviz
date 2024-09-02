@@ -572,6 +572,20 @@ class View(QMainWindow):
 
         return size_dims, color_dims, arrow_dims, text_dims, format_dims, clockwise_offset
 
+    def get_lane3dsetting(self, index = 0):
+        topic_type = LANE3D
+        curr_widget_key = self.get_curr_control_box_name()
+        curr_element_dict = self.dock_element_control_box_layout_dict[curr_widget_key]
+
+        point_key = curr_element_dict[topic_type][index]['lane3d_points_dim'].text()
+        color_key = curr_element_dict[topic_type][index]['lane3d_color_dim'].text()
+        text_key = curr_element_dict[topic_type][index]['lane3d_txt_text_dim'].text()
+        arrow_key = curr_element_dict[topic_type][index]['lane3d_arrow_dim'].text()
+        show_format = curr_element_dict[topic_type][index]['lane3d_txt_format_dim'].text()
+
+        return point_key, color_key, arrow_key, text_key, show_format
+
+
     def rgb_to_hex_numpy(self, rgb_list):
         rgb_array = np.array(rgb_list)
         hex_array = np.zeros((len(rgb_list),), dtype='U7')
@@ -664,6 +678,11 @@ class View(QMainWindow):
     def set_bbox3d_visible(self, mode, group="template"):
         self.canvas.set_visible(group + "_" + "bbox3d_line", mode)
 
+    def set_lane3d_visible(self, mode, group="template"):
+        self.canvas.set_visible(group + "_" + "lane3d_line", mode)
+        self.canvas.set_visible(group + "_" + "lane3d_point", mode)
+        self.canvas.set_visible(group + "_" + "lane3d_arrow", mode)
+
     def set_bbox3d_text_visible(self, mode, group="template"):
         self.canvas.set_visible(group + "_" + "text", mode)
 
@@ -718,6 +737,13 @@ class View(QMainWindow):
 
     def set_bbox3d_arrow(self, bboxes, vel_list, color, group="template"):
         self.canvas.draw_bbox3d_arrow(group + "_" + "obj_arrow", bboxes, vel_list, color)
+
+    def set_lane3d(self, lane3d, colors, arrow_list, arrow_color, group="template"):
+        self.canvas.draw_lane3d_line(group + "_" + "lane3d_line", lane3d, colors)
+        self.canvas.draw_lane3d_point(group + "_" + "lane3d_point", lane3d, colors)
+
+        # if len(arrow_list) > 0:
+        #     self.canvas.draw_lane3d_arrow(group + "_" + "lane3d_arrow", arrow_list, arrow_color)
 
     def set_reference_line(self, group="template"):
         self.canvas.draw_reference_line(group + "_" + "reference_line")

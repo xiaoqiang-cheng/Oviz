@@ -30,9 +30,11 @@ class Controller():
 
         self.pointcloud_setting_dict = dict()
         self.bbox3d_setting_dict = dict()
+        self.lane3d_setting_dict = dict()
 
         self.pointcloud_setting = PointCloudSetting()
         self.bbox3d_setting = Bbox3DSetting()
+        self.lane3d_setting = Lane3DSetting()
 
         self.signal_connect()
 
@@ -80,6 +82,16 @@ class Controller():
             sub_module['bbox3d_txt_format_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
             sub_module['bbox3d_txt_text_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
             sub_module['bbox3d_txt_arrow_dim'].textChanged.connect(self.update_bbox3dsetting_dims)
+
+        for sub_module in value['lane3d']:
+            sub_module['folder_path'].SelectDone.connect(self.select_lane3d)
+            sub_module['lane3d_points_dim'].textChanged.connect(self.update_lane3dsetting_dims)
+            sub_module['lane3d_color_dim'].textChanged.connect(self.update_lane3dsetting_dims)
+            sub_module['lane3d_txt_text_dim'].textChanged.connect(self.update_lane3dsetting_dims)
+            sub_module['lane3d_txt_format_dim'].textChanged.connect(self.update_lane3dsetting_dims)
+
+
+
 
     def element_control_box_connect(self):
         for key in self.view.dock_element_control_box_layout_dict.keys():
@@ -217,6 +229,12 @@ class Controller():
         ele_index = self.view.get_curr_sub_element_index(curr_group, topic_type)
         self.select_format(curr_group, topic_type, topic_path, ele_index)
 
+    def select_lane3d(self, topic_path, topic_type):
+        self.update_lane3dsetting_dims()
+        curr_group = self.view.get_curr_control_box_name()
+        ele_index = self.view.get_curr_sub_element_index(curr_group, topic_type)
+        self.select_format(curr_group, topic_type, topic_path, ele_index)
+
     def select_done_update_range_and_vis(self):
         self.view.set_data_range(self.model.data_frame_list)
         if self.model.offline_frame_cnt:
@@ -258,6 +276,24 @@ class Controller():
         except:
             print(self.bbox3d_setting.__dict__)
 
+    def update_lane3dsetting_dims(self):
+        try:
+            curr_tab_key = self.view.get_curr_control_box_name()
+            count = self.view.get_curr_sub_element_count(curr_tab_key, LANE3D)
+            curr_sub_ele_index = self.view.get_curr_sub_element_index(curr_tab_key, LANE3D)
+
+            if curr_tab_key not in self.lane3d_setting_dict.keys():
+                self.lane3d_setting_dict[curr_tab_key] = {}
+
+            for ele_index in range(count):
+                self.lane3d_setting_dict[curr_tab_key].update(
+                    {ele_index: Lane3DSetting(*self.view.get_lane3dsetting(index=ele_index))}
+                )
+
+            self.lane3d_setting = self.lane3d_setting_dict[curr_tab_key][curr_sub_ele_index]
+            self.update_buffer_vis()
+        except:
+            print(self.lane3d_setting.__dict__)
 
     def exec_user_magic_pipeline(self, data_dict, kargs):
         # execute user pipeline
@@ -349,6 +385,26 @@ class Controller():
 
     def image_callback(self, msg, topic_type, ele_index, group):
         self.view.set_image(msg, ele_index)
+
+    def lane3d_callback(self, msg, topic_type, ele_index, group):
+        lane3d_setting = self.lane3d_setting_dict[group][ele_index]
+        color_id_list = []
+        points_list = []
+        arrow_list = []
+        arrow_color = []
+        for lane_dict in msg:
+            color_id_list.append(lane_dict[lane3d_setting.color_key])
+            points_list.append(np.array(lane_dict[lane3d_setting.point_key]))\
+
+            if lane3d_setting.arrow_key in lane_dict and lane_dict[lane3d_setting.arrow_key]:
+                arrow_list.append(np.array(lane_dict[lane3d_setting.point_key]))
+                arrow_color.append(lane_dict[lane3d_setting.color_key])
+
+        real_color, state = self.view.color_id_to_color_list(np.array(color_id_list).reshape(-1, 1))
+        arrow_color, state = self.view.color_id_to_color_list(np.array(arrow_color).reshape(-1, 1))
+
+        self.view.set_lane3d_visible(True, group)
+        self.view.set_lane3d(points_list, real_color,  arrow_list, arrow_color, group)
 
     def bbox3d_callback(self, msg, topic, ele_index, group):
 
@@ -453,6 +509,8 @@ class Controller():
         self.view.set_point_cloud_visible(False, group)
         self.view.set_point_voxel_visible(False, group)
         self.view.set_voxel_line_visible(False, group)
+
+        self.view.set_lane3d_visible(False, group)
 
 
     def update_pointcloud_vis(self, data, group):
