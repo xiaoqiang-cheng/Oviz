@@ -38,6 +38,15 @@
             "xyz_axis": {
                 "type": "add_axis_vis"
             },
+            "lane3d_line":{
+                "type": "add_lane3d_line_vis"
+            },
+            "lane3d_arrow":{
+                "type": "add_lane3d_arrow_vis"
+            },
+            "lane3d_point":{
+                "type": "add_lane3d_point_vis"
+            },
             "car_model":{
                 "type":"add_veh_model",
                 "params":{

@@ -34,6 +34,20 @@ class Bbox3DSetting:
         self.clock_offset = clock_offset
 
 
+class Lane3DSetting:
+    def __init__(self,
+            point_key = "points",
+            color_key = "label",
+            arrow_key = "arrow",
+            text_key = "text",
+            show_format = ""
+        ):
+        self.point_key = point_key
+        self.color_key = color_key
+        self.arrow_key = arrow_key
+        self.text_key = text_key
+        self.show_format = show_format
+
 class GlobalSetting:
     def __init__(self,
         record_screen = False) -> None:

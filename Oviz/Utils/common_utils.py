@@ -47,6 +47,7 @@ sys.path.append(os.path.join(os.getcwd(), MAGIC_USER_PIPELINE_DIR))
 POINTCLOUD = "pointcloud"
 IMAGE = "image"
 BBOX3D = "bbox3d"
+LANE3D = "lane3d"
 
 ERROR = 0
 NORMAL = 1

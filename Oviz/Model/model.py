@@ -84,6 +84,9 @@ class Model(QObject):
     def smart_read_bbox3d(self, bbox_path):
         return np.loadtxt(bbox_path, dtype=str)
 
+    def smart_read_lane3d(self, lane3d_path):
+        return parse_json(lane3d_path)
+
     def smart_read_pointcloud(self, pc_path):
         if pc_path.endswith(".pcd"):
             pc = read_pcd(pc_path)
@@ -107,6 +110,10 @@ class Model(QObject):
 
     def deal_bbox3d_folder(self, group, folder_path, ele_index):
         cnt = self.deal_folder(group, folder_path, ele_index, BBOX3D, [".txt"])
+        return cnt
+
+    def deal_lane3d_folder(self, group, folder_path, ele_index):
+        cnt = self.deal_folder(group, folder_path, ele_index, LANE3D, [".json"])
         return cnt
 
     def deal_folder(self, group, folder_path, ele_index, topic_type, allowed_extensions):
