@@ -326,7 +326,7 @@
                         "params":{
                             "widget_titie" : "text_key",
                             "default_value": {
-                                "value": "text"
+                                "value": "label"
                             }
                         }
                     },
@@ -336,7 +336,7 @@
                         "params":{
                             "widget_titie" : "show_format",
                             "default_value": {
-                                "value": "[label: %d]"
+                                "value": "[label: %s]"
                             }
                         }
                     },

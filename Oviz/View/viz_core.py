@@ -193,6 +193,10 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name] = visuals.Text(font_size=600, color=(0,1,1))
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
+    def add_lane_text_vis(self, vis_name, parent_view):
+        self.vis_module[vis_name] = visuals.Text(font_size=800, color=(0,1,1))
+        self.view_panel[parent_view].add(self.vis_module[vis_name])
+
     def add_veh_model(self, vis_name, parent_view,
                         obj_path=os.path.join(OVIZ_CONFIG_DIR, "colorful_car/car.obj"),
                         texture_path='00008.BMP'
@@ -324,6 +328,11 @@ class Canvas(scene.SceneCanvas):
 
     def draw_lane3d_arrow(self, vis_name, pos_list, colors, width = 4):
         pass
+
+    def draw_lane3d_text(self, vis_name, text_pos, text, colors):
+        self.vis_module[vis_name].text = text
+        self.vis_module[vis_name].pos = text_pos
+        self.vis_module[vis_name].color = colors
 
     def draw_lane3d_line(self, vis_name, pos_list, colors, width = 4):
         lane_pos = np.concatenate(pos_list)

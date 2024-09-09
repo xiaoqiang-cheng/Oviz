@@ -47,6 +47,9 @@
             "lane3d_point":{
                 "type": "add_lane3d_point_vis"
             },
+            "lane3d_text":{
+                "type": "add_lane_text_vis"
+            },
             "car_model":{
                 "type":"add_veh_model",
                 "params":{

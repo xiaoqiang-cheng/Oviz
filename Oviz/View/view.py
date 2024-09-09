@@ -1,3 +1,4 @@
+
 from Oviz.Utils.common_utils import *
 from .viz_core import Canvas
 from Oviz.log_sys import send_log_msg
@@ -91,6 +92,14 @@ class View(QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_global_control_box)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_element_control_box)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.dock_log_info)
+
+        dock_title_style = '''
+                QDockWidget { font-family: "Roboto Lt"; font-size: 10pt; }
+        '''
+        self.dock_range_slide.setStyleSheet(dock_title_style)
+        self.dock_global_control_box.setStyleSheet(dock_title_style)
+        self.dock_element_control_box.setStyleSheet(dock_title_style)
+        self.dock_log_info.setStyleSheet(dock_title_style)
 
         self.dock_element_control_box.unfold()
         self.dock_global_control_box.unfold()
@@ -682,6 +691,8 @@ class View(QMainWindow):
         self.canvas.set_visible(group + "_" + "lane3d_line", mode)
         self.canvas.set_visible(group + "_" + "lane3d_point", mode)
         self.canvas.set_visible(group + "_" + "lane3d_arrow", mode)
+        self.canvas.set_visible(group + "_" + "lane3d_text", mode)
+
 
     def set_bbox3d_text_visible(self, mode, group="template"):
         self.canvas.set_visible(group + "_" + "text", mode)
@@ -738,12 +749,25 @@ class View(QMainWindow):
     def set_bbox3d_arrow(self, bboxes, vel_list, color, group="template"):
         self.canvas.draw_bbox3d_arrow(group + "_" + "obj_arrow", bboxes, vel_list, color)
 
-    def set_lane3d(self, lane3d, colors, arrow_list, arrow_color, group="template"):
+    def set_lane3d(self, lane3d, colors, arrow_list, arrow_color, text_list, text_pos,
+                    txt_show_format,
+                    group="template"):
         self.canvas.draw_lane3d_line(group + "_" + "lane3d_line", lane3d, colors)
         self.canvas.draw_lane3d_point(group + "_" + "lane3d_point", lane3d, colors)
 
-        # if len(arrow_list) > 0:
-        #     self.canvas.draw_lane3d_arrow(group + "_" + "lane3d_arrow", arrow_list, arrow_color)
+        if len(arrow_list) > 0:
+            self.canvas.draw_lane3d_arrow(group + "_" + "lane3d_arrow", arrow_list, arrow_color)
+        else:
+            self.canvas.set_visible(group + "_" + "lane3d_arrow", False)
+
+        if len(text_list) > 0:
+            text = []
+            for txt in text_list:
+                text.append(txt_show_format%tuple(txt))
+            self.canvas.draw_lane3d_text(group + "_" + "lane3d_text", text_pos, text,  (0.0, 1, 1, 1))
+        else:
+            self.canvas.set_visible(group + "_" + "lane3d_text", False)
+
 
     def set_reference_line(self, group="template"):
         self.canvas.draw_reference_line(group + "_" + "reference_line")

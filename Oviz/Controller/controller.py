@@ -392,19 +392,36 @@ class Controller():
         points_list = []
         arrow_list = []
         arrow_color = []
-        for lane_dict in msg:
-            color_id_list.append(lane_dict[lane3d_setting.color_key])
-            points_list.append(np.array(lane_dict[lane3d_setting.point_key]))\
+        text_list = []
+        text_pos = []
 
+        for lane_dict in msg:
+            if lane3d_setting.color_key in lane_dict:
+                color_id_list.append(lane_dict[lane3d_setting.color_key])
+                lane_pts = np.array(lane_dict[lane3d_setting.point_key])
+                points_list.append(lane_pts)
+                center_pos = lane_dict[lane3d_setting.point_key][len(lane_pts)//2]
+                txt_key_list = lane3d_setting.text_key.split(',')
+                curr_text_value = []
+                for key in txt_key_list:
+                    tmp = key.strip()
+                    if tmp in lane_dict:
+                        curr_text_value.append(lane_dict[tmp])
+
+                if curr_text_value != []:
+                    text_list.append(curr_text_value)
+                    text_pos.append([center_pos[0], center_pos[1], 0.2])
             if lane3d_setting.arrow_key in lane_dict and lane_dict[lane3d_setting.arrow_key]:
                 arrow_list.append(np.array(lane_dict[lane3d_setting.point_key]))
                 arrow_color.append(lane_dict[lane3d_setting.color_key])
+
 
         real_color, state = self.view.color_id_to_color_list(np.array(color_id_list).reshape(-1, 1))
         arrow_color, state = self.view.color_id_to_color_list(np.array(arrow_color).reshape(-1, 1))
 
         self.view.set_lane3d_visible(True, group)
-        self.view.set_lane3d(points_list, real_color,  arrow_list, arrow_color, group)
+        self.view.set_lane3d(points_list, real_color,
+                    arrow_list, arrow_color, text_list, text_pos, lane3d_setting.show_format, group)
 
     def bbox3d_callback(self, msg, topic, ele_index, group):
 
