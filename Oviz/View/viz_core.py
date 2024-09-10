@@ -171,7 +171,7 @@ class Canvas(scene.SceneCanvas):
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_lane3d_line_vis(self, vis_name, parent_view):
-        self.vis_module[vis_name] = visuals.Line(antialias=True)
+        self.vis_module[vis_name] = visuals.Line(antialias=False)
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_lane3d_arrow_vis(self, vis_name, parent_view):
@@ -181,11 +181,11 @@ class Canvas(scene.SceneCanvas):
 
     def add_lane3d_point_vis(self, vis_name, parent_view):
         self.vis_module[vis_name] = visuals.Markers(parent=self.view_panel[parent_view].scene,
-                            scaling=True,
-                            antialias=True,
-                            size=3,
-                            light_color='black', light_position=(0, 0, 0), light_ambient=0.3,)
-        self.vis_module[vis_name].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
+                            scaling=False,
+                            antialias=False,
+                            size=1,)
+                            # light_color='black', light_position=(0, 0, 0), light_ambient=0.3,)
+        # self.vis_module[vis_name].set_gl_state(**{'blend': False, 'cull_face': False, 'depth_test': True})
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
 
@@ -312,18 +312,17 @@ class Canvas(scene.SceneCanvas):
     def draw_arrow(self, vis_name, pos, arrow, color, width):
         self.vis_module[vis_name].set_data(pos, connect='segments', arrows=arrow, width=width)
 
-    def draw_lane3d_point(self, vis_name, pos_list, colors):
+    def draw_lane3d_point(self, vis_name, pos_list, colors_arr):
         lane_pos = np.concatenate(pos_list)
-        color_list = []
-        for i,  pos in enumerate(pos_list):
-            color_list.append([colors[i]] * len(pos))
+        # color_list = []
+        # for i,  pos in enumerate(pos_list):
+        #     color_list.append([colors[i]] * len(pos))
 
-        colors_arr = np.concatenate(color_list)
+        # colors_arr = np.concatenate(color_list)
         self.vis_module[vis_name].set_data(np.array(lane_pos),
                                             # edge_width=5,
                                             edge_color=colors_arr,
                                             face_color=colors_arr,
-                                            size=0.1,
                                             symbol = 'o')
 
     def draw_lane3d_arrow(self, vis_name, pos_list, colors, width = 4):
@@ -334,12 +333,12 @@ class Canvas(scene.SceneCanvas):
         self.vis_module[vis_name].pos = text_pos
         self.vis_module[vis_name].color = colors
 
-    def draw_lane3d_line(self, vis_name, pos_list, colors, width = 4):
+    def draw_lane3d_line(self, vis_name, pos_list, colors_arr, width = 4):
         lane_pos = np.concatenate(pos_list)
         idx = []
         start = 0
 
-        color_list = []
+        # color_list = []
 
         for i,  pos in enumerate(pos_list):
             for j, p in enumerate(pos[:-1]):
@@ -347,9 +346,9 @@ class Canvas(scene.SceneCanvas):
                     (j + start, j + start + 1)
                 )
             start += len(pos)
-            color_list.append([colors[i]] * len(pos))
+            # color_list.append([colors[i]] * len(pos))
 
-        colors_arr = np.concatenate(color_list)
+        # colors_arr = np.concatenate(color_list)
         p_idx = np.array(idx)
         self.vis_module[vis_name].set_data(pos=lane_pos, connect = p_idx, color=colors_arr, width=width)
 

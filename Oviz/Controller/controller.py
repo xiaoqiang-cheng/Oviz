@@ -397,8 +397,11 @@ class Controller():
 
         for lane_dict in msg:
             if lane3d_setting.color_key in lane_dict:
-                color_id_list.append(lane_dict[lane3d_setting.color_key])
                 lane_pts = np.array(lane_dict[lane3d_setting.point_key])
+                if isinstance(lane_dict[lane3d_setting.color_key], list):
+                    color_id_list.extend(lane_dict[lane3d_setting.color_key])
+                else:
+                    color_id_list.extend([lane_dict[lane3d_setting.color_key]] * len(lane_pts) )
                 points_list.append(lane_pts)
                 center_pos = lane_dict[lane3d_setting.point_key][len(lane_pts)//2]
                 txt_key_list = lane3d_setting.text_key.split(',')
