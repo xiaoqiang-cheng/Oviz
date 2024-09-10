@@ -764,7 +764,7 @@ class View(QMainWindow):
             text = []
             for txt in text_list:
                 text.append(txt_show_format%tuple(txt))
-            self.canvas.draw_lane3d_text(group + "_" + "lane3d_text", text_pos, text,  (0.0, 1, 1, 1))
+            self.canvas.draw_lane3d_text(group + "_" + "lane3d_text", text_pos, text,  (0.0, 0, 0, 1))
         else:
             self.canvas.set_visible(group + "_" + "lane3d_text", False)
 

@@ -194,7 +194,7 @@ class Canvas(scene.SceneCanvas):
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_lane_text_vis(self, vis_name, parent_view):
-        self.vis_module[vis_name] = visuals.Text(font_size=800, color=(0,1,1))
+        self.vis_module[vis_name] = visuals.Text(font_size=1500, color=(0,0,0))
         self.view_panel[parent_view].add(self.vis_module[vis_name])
 
     def add_veh_model(self, vis_name, parent_view,
