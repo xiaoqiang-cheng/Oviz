@@ -308,10 +308,6 @@ If you encounter issues or have requests, [feel free to raise an issue](https://
 
 Moreover, contributions and feature additions are welcome. Let's collaborate to enhance the functionality together.
 
-## Starchart
-
-[![Star History Chart](https://api.star-history.com/svg?repos=xiaoqiang-cheng/Oviz&type=Date)](https://star-history.com/#xiaoqiang-cheng/Oviz&Date)
-
 ## Contributors
 
 <a href="https://github.com/xiaoqiang-cheng/Oviz/graphs/contributors">   <img src="https://contrib.rocks/image?repo=xiaoqiang-cheng/Oviz" /> </a>

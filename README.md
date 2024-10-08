@@ -316,10 +316,6 @@ for i in range(10):
 
 当然，欢迎你主动修改或增加功能，提交代码与我共创。
 
-## Starchart
-
-[![Star History Chart](https://api.star-history.com/svg?repos=xiaoqiang-cheng/Oviz&type=Date)](https://star-history.com/#xiaoqiang-cheng/Oviz&Date)
-
 ## Contributors
 
 <a href="https://github.com/xiaoqiang-cheng/Oviz/graphs/contributors">
