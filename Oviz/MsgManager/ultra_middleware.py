@@ -15,7 +15,8 @@ class UltraMiddleWare():
     def __init__(self, name = None, node_type = None):
         # name: username+mac
         if name is None:
-            self.name = getpass.getuser() + "_" + get_mac_address()
+            # self.name = getpass.getuser() + "_" + get_mac_address()
+            self.name = get_mac_address()
 
         if "Windows" in platform.platform():
             self.shared_dict = UltraDict(name=self.name, auto_unlink = False, shared_lock=True)

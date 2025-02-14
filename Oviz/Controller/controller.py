@@ -39,7 +39,7 @@ class Controller():
         self.curr_frame_index = 0
         self.curr_frame_key = ""
 
-        self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="pyside2", palette = DarkPalette))
+        self.app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api="qtpy", palette = DarkPalette))
         self.revert_user_config()
         send_log_msg(NORMAL, "Oviz 系統开始运行！")
 

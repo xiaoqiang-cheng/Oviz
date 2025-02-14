@@ -1,20 +1,20 @@
 import os
 # try:
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import *
-from PySide2.QtCore import *
-from PySide2.QtGui import *
-import PySide2 as GuiCoreLib
-__GUICOREVERSION__ = "pyside2"
-    # print("use pyside2 as gui core")
+from qtpy.QtUiTools import QUiLoader
+from qtpy.QtWidgets import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+import qtpy as GuiCoreLib
+__GUICOREVERSION__ = "qtpy"
+    # print("use qtpy as gui core")
 # except:
-#     from PySide2.QtUiTools import QUiLoader
-#     from PySide2.QtWidgets import *
-#     from PySide2.QtCore import *
-#     from PySide2.QtGui import *
-#     import PySide2 as GuiCoreLib
-#     __GUICOREVERSION__ = "pyside2"
-#     # print("use pyside2 as gui core")
+#     from qtpy.QtUiTools import QUiLoader
+#     from qtpy.QtWidgets import *
+#     from qtpy.QtCore import *
+#     from qtpy.QtGui import *
+#     import qtpy as GuiCoreLib
+#     __GUICOREVERSION__ = "qtpy"
+#     # print("use qtpy as gui core")
 
 
 
